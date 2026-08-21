@@ -4,7 +4,7 @@ import { PrivacyProof } from "./PrivacyProof";
 
 export const metadata: Metadata = { title:"Privacy & live proof · Z4SK", description:"What Z4SK stores, why, for how long, and live evidence of its privacy controls." };
 
-export default function PrivacyPage() { return <LegalPage eyebrow="PRIVACY POLICY + LIVE EVIDENCE" title="Private by design. Honest by default.">
+export default function PrivacyPage() { return <LegalPage kind="privacy">
   <div className="legal-callout"><b>The honest version</b><p>Z4SK is privacy-oriented, but it is not anonymous and not end-to-end encrypted. We store the minimum content needed to deliver a questionnaire, separate public and private access, exclude answer text from analytics and erase active D1 records quickly. Cloudflare still processes traffic and maintains limited recovery history.</p></div>
   <nav className="legal-toc" aria-label="Privacy contents"><a href="#proof">Live proof</a><a href="#data">Data map</a><a href="#retention">Deletion</a><a href="#analytics">Metrics</a><a href="#rights">Your rights</a></nav>
   <PrivacyProof />

@@ -3,7 +3,7 @@ import { LegalPage } from "../components/LegalPage";
 
 export const metadata: Metadata = { title:"Terms · Z4SK", description:"Rules for creating and answering Z4SK invitations." };
 
-export default function TermsPage() { return <LegalPage eyebrow="TERMS OF USE" title="Dare responsibly.">
+export default function TermsPage() { return <LegalPage kind="terms">
   <div className="legal-callout"><b>Private-beta notice</b><p>Z4SK is an experimental service. Payments are disabled. Final operator identity, governing law and commercial terms must be completed before public launch.</p></div>
   <h2>Agreement and eligibility</h2><p>By using Z4SK you agree to these terms and the Privacy Policy. You must be legally able to use the service where you live. No Filter mode requires both participants to be at least 18 years old.</p>
   <h2>Your invitation and content</h2><p>You remain responsible for names, questions, answers and links you create or submit. You grant Z4SK only the limited right needed to host, transmit, moderate and delete that content while providing the service. Do not share a private creator link with anyone who should not read the responses.</p>

@@ -3,7 +3,7 @@ import { LegalPage } from "../components/LegalPage";
 
 export const metadata: Metadata = { title:"Safety Center · Z4SK", description:"Consent, link security, reporting and emergency guidance for Z4SK." };
 
-export default function SafetyPage() { return <LegalPage eyebrow="SAFETY CENTER" title="A daring question still needs consent.">
+export default function SafetyPage() { return <LegalPage kind="safety">
   <div className="safety-grid"><article><b>01</b><h2>Pause</h2><p>You never owe anyone an answer. Closing the page sends nothing.</p></article><article><b>02</b><h2>Check</h2><p>Confirm the sender and the exact Z4SK domain before typing.</p></article><article><b>03</b><h2>Report</h2><p>Use “Report invitation” without submitting written answers.</p></article></div>
   <h2>Before answering</h2><p>Only continue if you recognize the sender, understand who will read the answers and feel free to say no. Do not submit passwords, payment details, identity numbers, intimate images, medical records or anything that could seriously harm you if copied.</p>
   <h2>Protect creator access</h2><p>The creator dashboard URL works like a password and includes a secret key. Do not post, forward, screenshot or paste it into analytics, support tickets or public chats. Z4SK never asks a recipient for this key.</p>

@@ -150,15 +150,16 @@ test("publishes plain-language privacy and safety pages", async () => {
   assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect creator access/);
   assert.equal(terms.status, 200); assert.match(await terms.text(), /Payments are disabled/);
   assert.doesNotMatch(legalPage, /next\/link|<Link/);
-  assert.match(legalPage, /<a href="\/privacy" target="_top">Privacy<\/a>/);
-  assert.match(legalPage, /<a href="\/terms" target="_top">Terms<\/a>/);
-  assert.match(legalPage, /<a href="\/safety" target="_top">Safety<\/a>/);
+  assert.match(legalPage, /<a href="\/privacy" target="_top">\{c\.privacy\}<\/a>/);
+  assert.match(legalPage, /<a href="\/terms" target="_top">\{c\.terms\}<\/a>/);
+  assert.match(legalPage, /<a href="\/safety" target="_top">\{c\.safety\}<\/a>/);
 });
 
 test("requires complete translations and hard navigation for every supported locale", async () => {
-  const [i18n, flowCopy, builder, game, pwa, htmlInvite, brand, dashboard] = await Promise.all([
+  const [i18n, flowCopy, legalCopy, builder, game, pwa, htmlInvite, brand, dashboard] = await Promise.all([
     readFile(new URL("../app/lib/i18n.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/lib/flow-copy.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/legal-copy.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/g/[id]/GameClient.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/PwaRegister.tsx", import.meta.url), "utf8"),
@@ -172,6 +173,8 @@ test("requires complete translations and hard navigation for every supported loc
   assert.doesNotMatch(flowCopy, /\{\.\.\.FLOW_COPY\.en/);
   assert.match(i18n, /Missing translation:/);
   assert.match(flowCopy, /Missing flow translation:/);
+  assert.match(legalCopy, /Record<Locale,LegalLocale>/);
+  for (const locale of locales) assert.match(legalCopy, new RegExp(`(?:^|\\s)${locale}:\\{`));
   for (const source of [builder, game]) assert.match(source, /Record<Locale,T>/);
   for (const source of [pwa, htmlInvite, dashboard]) assert.match(source, /Record<Locale,/);
   assert.doesNotMatch(builder + game + pwa + htmlInvite, /new Proxy/);

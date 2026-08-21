@@ -28,9 +28,10 @@ test("server-renders the English-first Z4SK product", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, gameClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
+  const [builder, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/g/[id]/GameClient.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/p/[id]/DashboardClient.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/ShareInvitation.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/share.css", import.meta.url), "utf8"),
     readFile(new URL("../app/components/HomeContent.tsx", import.meta.url), "utf8"),
@@ -66,6 +67,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /creatorEmail/);
   assert.match(builder, /Email my unique access link/);
   assert.match(gameClient, /setRespondentName\(data\.recipientName\)/);
+  assert.match(dashboardClient, /role="alertdialog"/);
+  assert.match(dashboardClient, /aria-modal="true"/);
+  assert.doesNotMatch(dashboardClient, /confirm\(flow\(locale, "confirmReveal"\)\)/);
   assert.match(shareInvitation, /https:\/\/wa\.me/);
   assert.match(shareInvitation, /mailto:\?subject/);
   assert.match(shareInvitation, /mail\.google\.com/);

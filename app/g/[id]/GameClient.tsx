@@ -36,7 +36,7 @@ export function GameClient({ id }: { id: string }) {
 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
 
-  useEffect(() => { fetch(`/api/games/${id}`, { cache: "no-store" }).then(async (response) => { const data = await response.json() as Game & { error?: string }; if (!response.ok) throw new Error(data.error); setLocale(data.locale); setGame(data); setAnswers(Array(data.questions.length).fill("")); setReactions(Array(data.questions.length).fill("")); setPhase("intro"); }).catch((error) => { setMessage(error.message || "Could not open this questionnaire."); setPhase("error"); }); }, [id, setLocale]);
+  useEffect(() => { fetch(`/api/games/${id}`, { cache: "no-store" }).then(async (response) => { const data = await response.json() as Game & { error?: string }; if (!response.ok) throw new Error(data.error); setLocale(data.locale); setGame(data); setRespondentName(data.recipientName); setAnswers(Array(data.questions.length).fill("")); setReactions(Array(data.questions.length).fill("")); setPhase("intro"); }).catch((error) => { setMessage(error.message || "Could not open this questionnaire."); setPhase("error"); }); }, [id, setLocale]);
 
   async function submit() {
     if (!game) return;

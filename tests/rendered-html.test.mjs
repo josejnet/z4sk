@@ -93,9 +93,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(shareCss, /\.share-webmail\{display:none\}/);
   assert.match(home, /role="dialog"/);
   assert.match(home, /builderOpen/);
-  assert.match(home, /<a href="\/privacy" target="_top">\{footerCopy\[locale\]\.privacy\}<\/a>/);
-  assert.match(home, /<a href="\/terms" target="_top">\{footerCopy\[locale\]\.terms\}<\/a>/);
-  assert.match(home, /<a href="\/safety" target="_top">\{footerCopy\[locale\]\.safety\}<\/a>/);
+  assert.match(home, /privacy\?lang=\$\{locale\}/);
+  assert.match(home, /terms\?lang=\$\{locale\}/);
+  assert.match(home, /safety\?lang=\$\{locale\}/);
   assert.match(privacyProofUi, /target="_blank"/);
   assert.match(privacyProofUi, /rel="noopener noreferrer"/);
   assert.match(pwa, /beforeinstallprompt/);
@@ -150,9 +150,13 @@ test("publishes plain-language privacy and safety pages", async () => {
   assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect creator access/);
   assert.equal(terms.status, 200); assert.match(await terms.text(), /Payments are disabled/);
   assert.doesNotMatch(legalPage, /next\/link|<Link/);
-  assert.match(legalPage, /<a href="\/privacy" target="_top">\{c\.privacy\}<\/a>/);
-  assert.match(legalPage, /<a href="\/terms" target="_top">\{c\.terms\}<\/a>/);
-  assert.match(legalPage, /<a href="\/safety" target="_top">\{c\.safety\}<\/a>/);
+  assert.match(legalPage, /privacy\?lang=\$\{locale\}/);
+  assert.match(legalPage, /terms\?lang=\$\{locale\}/);
+  assert.match(legalPage, /safety\?lang=\$\{locale\}/);
+  assert.match(legalPage, /DATE_LOCALES/);
+  assert.match(legalPage, /Intl\.DateTimeFormat/);
+  assert.match(legalPage, /document\.title=/);
+  assert.match(legalPage, /JSON · \{doc\.eyebrow\}/);
 });
 
 test("requires complete translations and hard navigation for every supported locale", async () => {

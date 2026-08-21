@@ -38,7 +38,7 @@ const LanguageContext = createContext<LanguageContextValue>({ locale: "en", setL
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");
   const setLocale = useCallback((next: Locale) => { setLocaleState(next); document.documentElement.lang = next === "en" ? "en-US" : next === "machine" ? "x-machine" : next; try { localStorage.setItem("z4sk-locale",next); } catch { /* Language preference is optional. */ } }, []);
-  useEffect(()=>{ queueMicrotask(()=>{ try { const saved=localStorage.getItem("z4sk-locale"); if(LOCALES.some(({id})=>id===saved)) setLocale(saved as Locale); } catch { /* Continue in English when storage is unavailable. */ } }); },[setLocale]);
+  useEffect(()=>{ queueMicrotask(()=>{ try { const requested=new URLSearchParams(location.search).get("lang");const saved=localStorage.getItem("z4sk-locale");const next=LOCALES.some(({id})=>id===requested)?requested:saved;if(LOCALES.some(({id})=>id===next))setLocale(next as Locale); } catch { /* Continue in English when storage is unavailable. */ } }); },[setLocale]);
   return <LanguageContext.Provider value={{ locale, setLocale, t: (key) => MESSAGES[locale][key] }}>{children}</LanguageContext.Provider>;
 }
 export function useLanguage() { return useContext(LanguageContext); }

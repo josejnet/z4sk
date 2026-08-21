@@ -36,7 +36,7 @@ export function HomeContent() {
       <button className="hero-start" type="button" onClick={() => setBuilderOpen(true)}>{t("createQuiz")} <span>→</span></button>
       <div className="hero-meta"><span><b>01</b> {t("noAccount")}</span><span><b>02</b> {t("privateAnswers")}</span><span><b>03</b> {t("oneMinute")}</span></div>
     </section>
-    <footer className="home-footer"><span>Z4SK</span><p>{t("tagline")}</p><nav className="footer-links" aria-label={footerCopy[locale].legal}><a href="/privacy" target="_top">{footerCopy[locale].privacy}</a><a href="/terms" target="_top">{footerCopy[locale].terms}</a><a href="/safety" target="_top">{footerCopy[locale].safety}</a></nav></footer>
+    <footer className="home-footer"><span>Z4SK</span><p>{t("tagline")}</p><nav className="footer-links" aria-label={footerCopy[locale].legal}><a href={`/privacy?lang=${locale}`} target="_top">{footerCopy[locale].privacy}</a><a href={`/terms?lang=${locale}`} target="_top">{footerCopy[locale].terms}</a><a href={`/safety?lang=${locale}`} target="_top">{footerCopy[locale].safety}</a></nav></footer>
     {builderOpen && <div className="builder-modal" role="dialog" aria-modal="true" aria-labelledby="builder-title">
       <section className="builder-dialog">
         <button className="builder-close" type="button" onClick={() => setBuilderOpen(false)} aria-label={footerCopy[locale].close}>×</button>

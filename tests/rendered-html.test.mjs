@@ -54,7 +54,10 @@ test("ships privacy, defensibility and PWA assets", async () => {
     stat(new URL("../public/icon-512.png", import.meta.url)),
   ]);
   assert.match(builder, /Share once & remove ads/);
-  assert.match(builder, /Double Blind Match/);
+  assert.match(builder, /Secret match/);
+  assert.match(builder, /You answer first/);
+  assert.match(builder, /¿CUÁNDO DESAPARECE\?/);
+  assert.doesNotMatch(builder, /PACK PATROCINADO/);
   assert.match(builder, /SMART MIX/);
   assert.match(builder, /creatorEmail/);
   assert.match(builder, /Email my unique access link/);

@@ -9,6 +9,7 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 - creator dashboard URLs are bearer secrets; anyone possessing one can read that invitation’s responses
 - creator tokens are generated with Web Crypto and stored only as SHA-256 hashes
 - founder metrics require a Cloudflare secret and return aggregate data only
+- new creator links keep the secret in the URL fragment and private APIs receive it in an authorization header
 - response APIs and private dashboards send `cache-control: no-store`
 - rate-limit identifiers hash the request IP with the route scope before storage
 - payments, push and WhatsApp Business integrations are disabled
@@ -17,9 +18,9 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 
 - bearer links may leak through screenshots, clipboard history, referrers, analytics or messaging backups
 - private answers and creator emails are currently plaintext in D1
-- query-string secrets can appear in infrastructure logs unless redaction is configured
+- legacy query-string creator secrets remain accepted for backward compatibility and can appear in infrastructure logs
 - there is no creator-link recovery or revocation independent of deleting the invitation
-- in-process rate-limit records require periodic retention cleanup
+- D1 Time Travel may retain recoverable history for 7 days on Free or 30 days on Paid after active deletion
 
 ## Required production controls
 
@@ -29,6 +30,7 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 - avoid third-party analytics on `/p/*`, `/g/*` and private API responses
 - define automated expiry/deletion jobs and an encrypted backup retention policy
 - perform a focused security and privacy review before public promotion or payment activation
+- monitor `/api/privacy-proof` and the minute-level Cron purge heartbeat
 
 ## Supported versions
 

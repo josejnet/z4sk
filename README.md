@@ -25,6 +25,7 @@ Production: [z4sk.z4sk-app.workers.dev](https://z4sk.z4sk-app.workers.dev)
 - sponsor packs, HTML invitation export and share-to-unlock ad removal
 - installable PWA, founder metrics and reusable `packages/z4sk-sdk`
 - abuse reporting, automatic closure and IP-based rate limits
+- one-minute expiry purging, immediate creator deletion and public live privacy proof
 - payment surface intentionally disabled until commercial launch
 
 ## Local development

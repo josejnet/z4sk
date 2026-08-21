@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Sponsor, TopNav } from "../../components/Brand";
 import type { Game, GameResponse } from "../../lib/types";
 import type { Locale } from "../../lib/i18n";
@@ -10,33 +9,34 @@ import { useLanguage } from "../../lib/i18n";
 import { flow } from "../../lib/flow-copy";
 
 type DashboardData = { game: Game; responses: GameResponse[]; sealed: boolean };
-async function fetchDashboard(id: string, secret: string) { const response = await fetch(`/api/games/${id}/responses?key=${encodeURIComponent(secret)}`, { cache: "no-store" }); const result = await response.json() as DashboardData & { error?: string }; if (!response.ok) throw new Error(result.error); return result; }
+async function fetchDashboard(id: string, secret: string) { const response = await fetch(`/api/games/${id}/responses`, { cache: "no-store", headers: { authorization: `Bearer ${secret}` } }); const result = await response.json() as DashboardData & { error?: string }; if (!response.ok) throw new Error(result.error); return result; }
 function formatDate(value: string, locale: Locale) { const map = { en: "en-US", es: "es-ES", it: "it-IT", fr: "fr-FR", de: "de-DE" }; return new Intl.DateTimeFormat(map[locale], { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
 
 export function DashboardClient({ id }: { id: string }) {
-  const key = useSearchParams().get("key") || "";
+  const [key, setKey] = useState("");
   const { setLocale } = useLanguage();
   const [locale, setGameLocale] = useState<Locale>("en");
   const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(Boolean(key));
-  const [error, setError] = useState(key ? "" : "Missing secret dashboard key.");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [revealed, setRevealed] = useState<{ questions: string[]; response: GameResponse } | null>(null);
   const [copied, setCopied] = useState(false);
   const [notifications, setNotifications] = useState(false);
 
   useEffect(() => {
-    if (!key) return;
+    const secret = new URLSearchParams(window.location.hash.slice(1)).get("key") || "";
     let active = true;
-    void fetchDashboard(id, key).then((result) => { if (active) { setData(result); setGameLocale(result.game.locale); setLocale(result.game.locale); } }).catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : "Could not open the dashboard."); }).finally(() => { if (active) setLoading(false); });
+    if (!secret) { queueMicrotask(() => { if (active) { setError("Missing secret dashboard key."); setLoading(false); } }); return () => { active = false; }; }
+    void fetchDashboard(id, secret).then((result) => { if (active) { setKey(secret); setData(result); setGameLocale(result.game.locale); setLocale(result.game.locale); } }).catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : "Could not open the dashboard."); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [id, key, setLocale]);
+  }, [id, setLocale]);
   useEffect(() => { if (!key || !data) return; const timer = window.setInterval(() => { void fetchDashboard(id, key).then((result) => { if (!data.game.openedAt && result.game.openedAt && Notification.permission === "granted") new Notification("Z4SK", { body: `${result.game.recipientName} opened your invitation.` }); setData(result); }); }, 15000); return () => window.clearInterval(timer); }, [data, id, key]);
 
   async function refresh() { setLoading(true); setError(""); try { const result = await fetchDashboard(id, key); setData(result); setGameLocale(result.game.locale); setLocale(result.game.locale); } catch (cause) { setError(cause instanceof Error ? cause.message : flow(locale, "panelError")); } finally { setLoading(false); } }
-  async function revealOnce() { if (!confirm(flow(locale, "confirmReveal"))) return; setLoading(true); setError(""); try { const response = await fetch(`/api/games/${id}/consume?key=${encodeURIComponent(key)}`, { method: "POST" }); const result = await response.json() as { questions: string[]; response: GameResponse; error?: string }; if (!response.ok) throw new Error(result.error); setRevealed(result); setData(null); history.replaceState({}, "", `/p/${id}`); } catch (cause) { setError(cause instanceof Error ? cause.message : flow(locale, "panelError")); } finally { setLoading(false); } }
+  async function revealOnce() { if (!confirm(flow(locale, "confirmReveal"))) return; setLoading(true); setError(""); try { const response = await fetch(`/api/games/${id}/consume`, { method: "POST", headers: { authorization: `Bearer ${key}` } }); const result = await response.json() as { questions: string[]; response: GameResponse; error?: string }; if (!response.ok) throw new Error(result.error); setRevealed(result); setData(null); history.replaceState({}, "", `/p/${id}`); } catch (cause) { setError(cause instanceof Error ? cause.message : flow(locale, "panelError")); } finally { setLoading(false); } }
   async function copyShare() { const url = `${window.location.origin}/g/${id}`; await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1600); }
   async function enableNotifications() { if (!("Notification" in window)) return; const permission = await Notification.requestPermission(); setNotifications(permission === "granted"); }
-  async function remove() { if (!confirm(flow(locale, "confirmDelete"))) return; const response = await fetch(`/api/games/${id}?key=${encodeURIComponent(key)}`, { method: "DELETE" }); if (response.ok) { localStorage.setItem("z4sk-games", JSON.stringify((JSON.parse(localStorage.getItem("z4sk-games") || "[]") as { id: string }[]).filter((item) => item.id !== id))); window.location.href = "/"; } }
+  async function remove() { if (!confirm(flow(locale, "confirmDelete"))) return; const response = await fetch(`/api/games/${id}`, { method: "DELETE", headers: { authorization: `Bearer ${key}` } }); if (response.ok) window.location.href = "/"; }
 
   if (loading) return <main className="experience-page"><TopNav minimal /><div className="center-state"><div className="loader" /><p>{flow(locale, "panelLoading")}</p></div></main>;
   if (revealed) return <main className="dashboard-page"><TopNav minimal /><section className="revealed-head"><span className="eyebrow">{flow(locale, "onceDeleted")}</span><h1>{flow(locale, "onlyRead")}</h1><p>{flow(locale, "dontClose")}</p></section><section className="responses-wrap"><ResponseCard response={revealed.response} questions={revealed.questions} locale={locale} once /></section></main>;

@@ -43,5 +43,5 @@ The founder dashboard measures created, opened, responded, matched and unlocked 
 - creator access depends on possession of the secret URL; there is no recovery flow
 - email delivery uses `mailto:` and depends on the user’s configured mail app
 - push, WhatsApp Business webhooks and payments are placeholders only
-- user-generated answers are stored as plaintext in D1 until deletion or expiry operations remove them
+- user-generated answers are stored as plaintext in active D1 until explicit deletion, view-once consumption or the one-minute expiry purge removes them; Cloudflare recovery history can persist for its Time Travel window
 - formal trademark clearance and legal review remain outstanding

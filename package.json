@@ -12,7 +12,7 @@
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
-    "deploy:cloudflare": "npx @vinext/cloudflare deploy --name z4sk"
+    "deploy:cloudflare": "npx @vinext/cloudflare deploy --name z4sk && wrangler triggers deploy"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

@@ -1,4 +1,7 @@
 import { env } from "cloudflare:workers";
+import { hashToken } from "./privacy";
+
+export { deleteGameData, hashToken, purgeExpiredData } from "./privacy";
 
 let schemaReady: Promise<void> | null = null;
 
@@ -21,6 +24,7 @@ export async function ensureSchema() {
       db.prepare(`CREATE TABLE IF NOT EXISTS abuse_reports (id TEXT PRIMARY KEY, game_id TEXT NOT NULL, reason TEXT NOT NULL, country TEXT NOT NULL, created_at TEXT NOT NULL)`),
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_abuse_reports_game ON abuse_reports(game_id)`),
       db.prepare(`CREATE TABLE IF NOT EXISTS rate_limits (identifier_hash TEXT NOT NULL, scope TEXT NOT NULL, window_start INTEGER NOT NULL, request_count INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (identifier_hash, scope, window_start))`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS privacy_status (id TEXT PRIMARY KEY, last_run_at TEXT NOT NULL, last_source TEXT NOT NULL, last_expired_games INTEGER NOT NULL DEFAULT 0, last_deleted_responses INTEGER NOT NULL DEFAULT 0, total_expired_games INTEGER NOT NULL DEFAULT 0, total_deleted_responses INTEGER NOT NULL DEFAULT 0)`),
     ]);
     const columns = await db.prepare(`PRAGMA table_info(games)`).all<{ name: string }>();
     if (!columns.results.some((column) => column.name === "view_once")) await db.prepare(`ALTER TABLE games ADD COLUMN view_once INTEGER NOT NULL DEFAULT 0`).run();
@@ -38,12 +42,6 @@ export async function ensureSchema() {
   await schemaReady;
 }
 
-export async function hashToken(token: string) {
-  const bytes = new TextEncoder().encode(token);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
 export const hashQuestion = hashToken;
 
 export function randomToken(bytes = 18) {
@@ -51,9 +49,16 @@ export function randomToken(bytes = 18) {
   return [...data].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+export function bearerToken(request: Request) {
+  const authorization = request.headers.get("authorization") || "";
+  if (authorization.toLowerCase().startsWith("bearer ")) return authorization.slice(7).trim();
+  return new URL(request.url).searchParams.get("key") || "";
+}
+
 export async function recordEvent(input: { eventType: string; gameId: string; locale?: string; level?: string; country?: string; packSlug?: string; source?: string; libraryVersion?: string }) {
   const db = getDatabase();
-  await db.prepare(`INSERT INTO product_events (id, event_type, game_id, locale, level, country, pack_slug, source, library_version, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(randomToken(10), input.eventType, input.gameId, input.locale || "en", input.level || "unknown", input.country || "XX", input.packSlug || "original", input.source || "web", input.libraryVersion || "2026.08", new Date().toISOString()).run();
+  const pseudonymousGameId = input.gameId ? await hashToken(`event:${input.gameId}`) : "";
+  await db.prepare(`INSERT INTO product_events (id, event_type, game_id, locale, level, country, pack_slug, source, library_version, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(randomToken(10), input.eventType, pseudonymousGameId, input.locale || "en", input.level || "unknown", input.country || "XX", input.packSlug || "original", input.source || "web", input.libraryVersion || "2026.08", new Date().toISOString()).run();
 }
 
 export async function checkRateLimit(request: Request, scope: string, maximum: number, windowMinutes = 10) {

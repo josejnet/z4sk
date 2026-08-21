@@ -29,11 +29,4 @@ export type GameResponse = {
   createdAt: string;
 };
 
-export type SavedGame = {
-  id: string;
-  recipientName: string;
-  adminUrl: string;
-  playUrl: string;
-  createdAt: string;
-};
 import type { Locale } from "./i18n";

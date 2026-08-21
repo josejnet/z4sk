@@ -22,7 +22,7 @@ Cloudflare Worker (React pages + API routes)
         +--> static PWA and Open Graph assets
 ```
 
-The public URL contains only a random game ID. The creator URL also contains a 24-byte random token. Only its SHA-256 hash is stored in D1. API responses use `cache-control: no-store` for private or mutable data.
+The public URL contains only a random game ID. The creator URL places a 24-byte random token in the URL fragment, which browsers do not send to the server; the client sends it to private APIs in an `Authorization: Bearer` header. Only its SHA-256 hash is stored in D1. API responses use `cache-control: no-store` for private or mutable data.
 
 ## Data model
 
@@ -35,6 +35,7 @@ The public URL contains only a random game ID. The creator URL also contains a 2
 | `product_events` | funnel and attribution events | pseudonymous game ID |
 | `abuse_reports` | moderation reports | reason and game ID |
 | `rate_limits` | hashed IP-derived request counters | hashed identifier |
+| `privacy_status` | latest purge heartbeat and aggregate deletion counts | no personal data |
 
 ## API map
 
@@ -50,7 +51,8 @@ The public URL contains only a random game ID. The creator URL also contains a 2
 | `POST /api/games/:id/report` | report abuse and trigger closure threshold | public, rate limited |
 | `GET /api/smart-mix` | rank questions from aggregate signals | public |
 | `GET /api/trends` | privacy-thresholded country trends | public |
-| `GET /api/founder/metrics?key=` | aggregate business dashboard | founder secret |
+| `GET /api/founder/metrics` | aggregate business dashboard | founder bearer secret |
+| `GET /api/privacy-proof` | live database privacy checks and purge status | public |
 
 ## Source map
 
@@ -66,7 +68,8 @@ The public URL contains only a random game ID. The creator URL also contains a 2
 
 ## Architecture decisions
 
-- No user account database: possession of a high-entropy URL grants creator access.
+- No user account database: possession of a high-entropy URL fragment grants creator access.
 - No answer-text analytics: strategic datasets use question hashes and aggregate counters.
 - D1 over external SaaS: one deployment surface, low initial cost and portable SQL data.
 - Payments off by default: growth is validated before adding checkout friction and compliance scope.
+- A Worker Cron runs every minute and removes expired games, responses and abuse reports from active D1; explicit delete and view-once consumption delete immediately.

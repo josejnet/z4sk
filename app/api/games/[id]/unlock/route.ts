@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { ensureSchema, getDatabase, hashToken, recordEvent } from "../../../../../db/runtime";
+import { bearerToken, ensureSchema, getDatabase, hashToken, recordEvent } from "../../../../../db/runtime";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await ensureSchema();
     const { id } = await params;
-    const key = new URL(request.url).searchParams.get("key") || "";
+    const key = bearerToken(request);
     const db = getDatabase();
     const game = await db.prepare(`SELECT creator_token_hash, locale, level, pack_slug, library_version FROM games WHERE id = ?`).bind(id).first<{ creator_token_hash: string; locale:string; level:string; pack_slug:string; library_version:string }>();
     if (!game || game.creator_token_hash !== await hashToken(key)) return NextResponse.json({ error: "Invalid private link." }, { status: 403 });

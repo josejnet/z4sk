@@ -1,0 +1,17 @@
+.privacy-health {
+  display: grid;
+  gap: 12px;
+}
+
+.privacy-health b {
+  color: #5bd191;
+  font: 800 10px/1 var(--font-mono);
+  letter-spacing: .1em;
+}
+
+.privacy-health span {
+  border-bottom: 1px solid #292522;
+  padding-bottom: 10px;
+  color: #9a928c;
+  font-size: 12px;
+}

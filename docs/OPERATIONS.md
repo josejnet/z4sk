@@ -6,6 +6,7 @@
 - watch Cloudflare Worker errors, latency and D1 usage
 - review founder conversion funnel and unusual country/source spikes
 - review abuse-report volume and automatically closed invitations
+- verify the public privacy proof reports a purge within the last three minutes and zero expired responses
 - keep dependencies, question-library changes and releases attributable in Git
 
 ## Synthetic smoke test
@@ -39,7 +40,7 @@ Use non-personal test names and an invalid reserved email domain. Create a three
 
 ## Backup and export
 
-Before paid launch, schedule encrypted D1 exports and test restore into a non-production database. Exports contain private answer data and must have restricted access, documented retention and secure deletion.
+Do not create long-lived exports containing private answers. Cloudflare D1 Time Travel remains available for 7 days on Free or 30 days on Paid even after active-row deletion. If an operational export is ever unavoidable, encrypt it, restrict access, document a short retention deadline and test secure deletion.
 
 ## Ownership handover
 

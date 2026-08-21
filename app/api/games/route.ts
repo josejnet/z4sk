@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const country = String((request as Request & { cf?: { country?: string } }).cf?.country || request.headers.get("cf-ipcountry") || "XX").slice(0, 2).toUpperCase();
     await recordEvent({ eventType: "created", gameId: id, locale, level, country, packSlug, source: body.source === "sdk" ? "sdk" : "web", libraryVersion });
     const origin = new URL(request.url).origin;
-    return NextResponse.json({ id, playUrl: `${origin}/g/${id}`, adminUrl: `${origin}/p/${id}?key=${creatorToken}` }, { status: 201, headers: { "cache-control": "no-store" } });
+    return NextResponse.json({ id, playUrl: `${origin}/g/${id}`, adminUrl: `${origin}/p/${id}#key=${creatorToken}` }, { status: 201, headers: { "cache-control": "no-store" } });
   } catch (error) {
     console.error("create-game", error);
     return NextResponse.json({ error: "No se pudo crear. Inténtalo de nuevo." }, { status: 500 });

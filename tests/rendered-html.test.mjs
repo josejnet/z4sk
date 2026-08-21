@@ -24,12 +24,15 @@ test("server-renders the English-first Z4SK product", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, consume, responseRoute, reportRoute, metricsRoute, assetRegister, manifest, sw, og] = await Promise.all([
+  const [builder, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/games/[id]/consume/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/games/[id]/responses/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/games/[id]/report/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/founder/metrics/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/privacy-proof/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../db/privacy.ts", import.meta.url), "utf8"),
+    readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8"),
     readFile(new URL("../SELLABLE_ASSETS.md", import.meta.url), "utf8"),
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
     readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
@@ -41,7 +44,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /creatorEmail/);
   assert.match(builder, /Email my unique access link/);
   assert.match(builder, /expiresInHours/);
-  assert.match(consume, /DELETE FROM responses/);
+  assert.match(consume, /deleteGameData/);
   assert.match(consume, /no-store, no-cache/);
   assert.match(responseRoute, /trend_metrics/);
   assert.match(responseRoute, /matched/);
@@ -50,6 +53,14 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(reportRoute, /reported/);
   assert.match(metricsRoute, /FOUNDER_DASHBOARD_KEY/);
   assert.match(metricsRoute, /Aggregate metrics only/);
+  assert.match(metricsRoute, /authorization/);
+  assert.match(proofRoute, /live runtime self-audit/);
+  assert.match(proofRoute, /No expired answers remain in active D1/);
+  assert.match(privacyEngine, /purgeExpiredData/);
+  assert.match(privacyEngine, /DELETE FROM responses WHERE game_id IN/);
+  assert.match(wrangler, /"crons": \["\* \* \* \* \*"\]/);
+  assert.match(builder, /hash\.slice\(1\)/);
+  assert.doesNotMatch(builder, /localStorage/);
   assert.match(manifest, /"display":"standalone"/);
   assert.match(sw, /showNotification/);
   assert.match(assetRegister, /Smart Mix™/);
@@ -60,7 +71,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
 
 test("publishes plain-language privacy and safety pages", async () => {
   const [privacy, safety, terms] = await Promise.all([render("/privacy"), render("/safety"), render("/terms")]);
-  assert.equal(privacy.status, 200); assert.match(await privacy.text(), /We do not place answer text in analytics/);
-  assert.equal(safety.status, 200); assert.match(await safety.text(), /Report an invitation/);
-  assert.equal(terms.status, 200); assert.match(await terms.text(), /payment feature is not active/);
+  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /Cloudflare D1 Time Travel/); assert.match(privacyHtml, /What the founder can see/);
+  assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect creator access/);
+  assert.equal(terms.status, 200); assert.match(await terms.text(), /Payments are disabled/);
 });

@@ -16,3 +16,13 @@ export const trendMetrics = sqliteTable("trend_metrics", { questionHash: text("q
 export const productEvents = sqliteTable("product_events", { id: text("id").primaryKey(), eventType: text("event_type").notNull(), gameId: text("game_id").notNull(), locale: text("locale").notNull(), level: text("level").notNull(), country: text("country").notNull(), packSlug: text("pack_slug").notNull(), source: text("source").notNull(), libraryVersion: text("library_version").notNull(), createdAt: text("created_at").notNull() }, (table) => [index("idx_product_events_type_created").on(table.eventType, table.createdAt)]);
 export const abuseReports = sqliteTable("abuse_reports", { id:text("id").primaryKey(), gameId:text("game_id").notNull(), reason:text("reason").notNull(), country:text("country").notNull(), createdAt:text("created_at").notNull() }, (table)=>[index("idx_abuse_reports_game").on(table.gameId)]);
 export const rateLimits = sqliteTable("rate_limits", { identifierHash:text("identifier_hash").notNull(), scope:text("scope").notNull(), windowStart:integer("window_start").notNull(), requestCount:integer("request_count").notNull().default(1) }, (table)=>[primaryKey({columns:[table.identifierHash,table.scope,table.windowStart]})]);
+
+export const privacyStatus = sqliteTable("privacy_status", {
+  id: text("id").primaryKey(),
+  lastRunAt: text("last_run_at").notNull(),
+  lastSource: text("last_source").notNull(),
+  lastExpiredGames: integer("last_expired_games").notNull().default(0),
+  lastDeletedResponses: integer("last_deleted_responses").notNull().default(0),
+  totalExpiredGames: integer("total_expired_games").notNull().default(0),
+  totalDeletedResponses: integer("total_deleted_responses").notNull().default(0),
+});

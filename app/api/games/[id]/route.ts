@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ensureSchema, getDatabase, hashToken, recordEvent } from "../../../../db/runtime";
+import { bearerToken, deleteGameData, ensureSchema, getDatabase, hashToken, recordEvent } from "../../../../db/runtime";
 
 type Context = { params: Promise<{ id: string }> };
 type GameRow = { id: string; creator_name: string; recipient_name: string; title: string; level: string; locale: string; library_version: string; questions_json: string; premium: number; view_once: number; double_blind: number; pack_slug: string; opened_at: string | null; closed: number; created_at: string; expires_at: string; creator_token_hash: string };
@@ -22,13 +22,13 @@ export async function DELETE(request: Request, context: Context) {
   try {
     await ensureSchema();
     const { id } = await context.params;
-    const key = new URL(request.url).searchParams.get("key") || "";
+    const key = bearerToken(request);
     const hash = await hashToken(key);
     const db = getDatabase();
     const game = await db.prepare(`SELECT creator_token_hash, locale, level, pack_slug, library_version FROM games WHERE id = ?`).bind(id).first<{ creator_token_hash:string; locale:string; level:string; pack_slug:string; library_version:string }>();
     if (!game || game.creator_token_hash !== hash) return NextResponse.json({ error: "Enlace privado no válido." }, { status: 403 });
     await recordEvent({ eventType:"deleted", gameId:id, locale:game.locale, level:game.level, packSlug:game.pack_slug, libraryVersion:game.library_version });
-    await db.batch([db.prepare(`DELETE FROM responses WHERE game_id = ?`).bind(id), db.prepare(`DELETE FROM games WHERE id = ?`).bind(id)]);
+    await deleteGameData(db, id);
     return NextResponse.json({ ok: true }, { headers: { "cache-control": "no-store" } });
   } catch (error) { console.error("delete-game", error); return NextResponse.json({ error: "No se pudo eliminar." }, { status: 500 }); }
 }

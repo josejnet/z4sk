@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { checkRateLimit, ensureSchema, getDatabase, hashQuestion, hashToken, randomToken, recordEvent } from "../../../../../db/runtime";
+import { bearerToken, checkRateLimit, ensureSchema, getDatabase, hashQuestion, hashToken, randomToken, recordEvent } from "../../../../../db/runtime";
 
 type Context = { params: Promise<{ id: string }> };
 type GameRow = { creator_token_hash: string; questions_json: string; locale: string; level: string; library_version: string; view_once: number; double_blind: number; creator_interest: number; closed: number; expires_at: string };
@@ -43,7 +43,7 @@ export async function GET(request: Request, context: Context) {
   try {
     await ensureSchema();
     const { id } = await context.params;
-    const key = new URL(request.url).searchParams.get("key") || "";
+    const key = bearerToken(request);
     const db = getDatabase();
     const game = await db.prepare(`SELECT * FROM games WHERE id = ?`).bind(id).first<Record<string, string | number>>();
     if (!game || String(game.creator_token_hash) !== await hashToken(key)) return NextResponse.json({ error: "Este enlace privado no es válido." }, { status: 403 });

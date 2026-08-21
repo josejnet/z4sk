@@ -36,6 +36,13 @@
       "when": 1787329131761,
       "tag": "0004_first_mongu",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1787340907898,
+      "tag": "0005_freezing_vivisector",
+      "breakpoints": true
     }
   ]
 }

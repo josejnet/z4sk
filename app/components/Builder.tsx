@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { getDefaultQuestions, getLevels, getQuestions } from "../lib/questions";
-import type { Level, SavedGame } from "../lib/types";
+import type { Level } from "../lib/types";
 import { downloadInvitationHtml } from "../lib/html-invite";
 import { interpolate, type Locale, useLanguage } from "../lib/i18n";
 const localized=<T,>(base:Record<string,T>)=>new Proxy(base,{get:(target,key)=>target[String(key)]||target.en}) as Record<Locale,T>;
@@ -60,9 +60,6 @@ export function Builder() {
       const data = await response.json() as Created & { error?: string };
       if (!response.ok) throw new Error(data.error || t("formError"));
       setCreated(data);
-      const saved: SavedGame = { ...data, recipientName: recipientName.trim(), createdAt: new Date().toISOString() };
-      const previous = JSON.parse(localStorage.getItem("z4sk-games") || "[]") as SavedGame[];
-      localStorage.setItem("z4sk-games", JSON.stringify([saved, ...previous.filter((item) => item.id !== data.id)].slice(0, 20)));
       setStep(3);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t("formError")); } finally { setLoading(false); }
   }
@@ -76,8 +73,8 @@ export function Builder() {
     try {
       if (navigator.share) await navigator.share({ title: "Z4SK", text: growthCopy[locale].share, url: window.location.origin });
       else window.open(`https://wa.me/?text=${encodeURIComponent(`${growthCopy[locale].share}\n\n${window.location.origin}`)}`, "_blank", "noopener,noreferrer");
-      const key = new URL(created.adminUrl).searchParams.get("key");
-      const response = await fetch(`/api/games/${created.id}/unlock?key=${encodeURIComponent(key || "")}`, { method: "POST" });
+      const key = new URLSearchParams(new URL(created.adminUrl).hash.slice(1)).get("key");
+      const response = await fetch(`/api/games/${created.id}/unlock`, { method: "POST", headers: { authorization: `Bearer ${key || ""}` } });
       if (response.ok) setUnlocked(true);
     } catch { /* A cancelled share leaves the questionnaire unchanged. */ }
   }

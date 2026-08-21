@@ -7,6 +7,7 @@
 - D1 database: `z4sk-db`
 - temporary URL: `https://z4sk.z4sk-app.workers.dev`
 - required secret: `FOUNDER_DASHBOARD_KEY`
+- retention trigger: `* * * * *` (every minute, UTC)
 
 Cloudflare account identifiers in `wrangler.jsonc` route deployments but are not authentication credentials. OAuth tokens and secret values must stay outside Git.
 
@@ -29,7 +30,8 @@ Use Node.js 22.13 or newer. Do not put the founder key in `.env`, command histor
 3. If the schema changed, generate and inspect a migration, then apply it remotely before code that depends on it.
 4. Run `npm run deploy:cloudflare`.
 5. Verify the homepage, create/respond/read flow and founder metrics.
-6. Tag meaningful production releases after verification.
+6. Verify `/api/privacy-proof` reports a current purge heartbeat and zero expired responses.
+7. Tag meaningful production releases after verification.
 
 ## Custom domain
 

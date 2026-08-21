@@ -78,8 +78,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(dashboardClient, /confirm\(flow\(locale, "confirmReveal"\)\)/);
   assert.match(dashboardClient, /styles\.backHomeLink/);
   assert.match(dashboardClient, /aria-hidden="true">←/);
-  assert.match(dashboardClient, /<a className=\{styles\.backHomeLink\} href="\/">/);
-  assert.match(brand, /<a className="brand" href="\/" aria-label="Z4SK, home">/);
+  assert.match(dashboardClient, /<a className=\{styles\.backHomeLink\} href="\/" target="_top">/);
+  assert.match(brand, /<a className="brand" href="\/" target="_top" aria-label=\{navCopy\[locale\]\.home\}>/);
   assert.doesNotMatch(brand, /<Link className="brand"/);
   assert.equal(home.match(/target="_top"/g)?.length, 3);
   assert.match(shareInvitation, /https:\/\/wa\.me/);
@@ -93,9 +93,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(shareCss, /\.share-webmail\{display:none\}/);
   assert.match(home, /role="dialog"/);
   assert.match(home, /builderOpen/);
-  assert.match(home, /<a href="\/privacy" target="_top">Privacy<\/a>/);
-  assert.match(home, /<a href="\/terms" target="_top">Terms<\/a>/);
-  assert.match(home, /<a href="\/safety" target="_top">Safety<\/a>/);
+  assert.match(home, /<a href="\/privacy" target="_top">\{footerCopy\[locale\]\.privacy\}<\/a>/);
+  assert.match(home, /<a href="\/terms" target="_top">\{footerCopy\[locale\]\.terms\}<\/a>/);
+  assert.match(home, /<a href="\/safety" target="_top">\{footerCopy\[locale\]\.safety\}<\/a>/);
   assert.match(privacyProofUi, /target="_blank"/);
   assert.match(privacyProofUi, /rel="noopener noreferrer"/);
   assert.match(pwa, /beforeinstallprompt/);
@@ -153,4 +153,31 @@ test("publishes plain-language privacy and safety pages", async () => {
   assert.match(legalPage, /<a href="\/privacy" target="_top">Privacy<\/a>/);
   assert.match(legalPage, /<a href="\/terms" target="_top">Terms<\/a>/);
   assert.match(legalPage, /<a href="\/safety" target="_top">Safety<\/a>/);
+});
+
+test("requires complete translations and hard navigation for every supported locale", async () => {
+  const [i18n, flowCopy, builder, game, pwa, htmlInvite, brand, dashboard] = await Promise.all([
+    readFile(new URL("../app/lib/i18n.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/flow-copy.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/g/[id]/GameClient.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/PwaRegister.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/html-invite.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/Brand.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/p/[id]/DashboardClient.tsx", import.meta.url), "utf8"),
+  ]);
+  const locales = ["en","es","it","fr","de","nl","eo","pt","zh","hi","ja","tr","machine"];
+  assert.equal((i18n.match(/id:/g) ?? []).length >= locales.length, true);
+  assert.doesNotMatch(i18n, /const (?:nl|eo|pt|ja|tr|machine):typeof en=\{\.\.\.en/);
+  assert.doesNotMatch(flowCopy, /\{\.\.\.FLOW_COPY\.en/);
+  assert.match(i18n, /Missing translation:/);
+  assert.match(flowCopy, /Missing flow translation:/);
+  for (const source of [builder, game]) assert.match(source, /Record<Locale,T>/);
+  for (const source of [pwa, htmlInvite, dashboard]) assert.match(source, /Record<Locale,/);
+  assert.doesNotMatch(builder + game + pwa + htmlInvite, /new Proxy/);
+  assert.doesNotMatch(game, /from "next\/link"|<Link/);
+  assert.match(game, /target="_top"/);
+  assert.match(brand, /target="_top"/);
+  assert.match(dashboard, /target="_top"/);
+  assert.match(i18n, /localStorage\.setItem\("z4sk-locale"/);
 });

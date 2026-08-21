@@ -1,0 +1,11 @@
+.brand-mark {
+  border: 0;
+  border-radius: 7px;
+  background: #f4efe8 url("/icon-192.png") center / cover no-repeat;
+  box-shadow: 0 0 0 1px rgba(244, 239, 232, 0.16);
+}
+
+.pwa-app-icon {
+  background: #f4efe8 url("/icon-192.png") center / cover no-repeat;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}

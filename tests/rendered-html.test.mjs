@@ -28,7 +28,7 @@ test("server-renders the English-first Z4SK product", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, home, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og] = await Promise.all([
+  const [builder, home, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/HomeContent.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/PwaRegister.tsx", import.meta.url), "utf8"),
@@ -46,6 +46,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
     readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
     stat(new URL("../public/og.png", import.meta.url)),
+    stat(new URL("../public/favicon-32.png", import.meta.url)),
+    stat(new URL("../public/icon-192.png", import.meta.url)),
+    stat(new URL("../public/icon-512.png", import.meta.url)),
   ]);
   assert.match(builder, /Share once & remove ads/);
   assert.match(builder, /Double Blind Match/);
@@ -85,10 +88,15 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(manifest, /"scope":"\/"/);
   assert.match(manifest, /"orientation":"portrait-primary"/);
   assert.match(sw, /showNotification/);
-  assert.match(sw, /z4sk-shell-v2/);
+  assert.match(manifest, /"src":"\/icon-192\.png"/);
+  assert.match(manifest, /"src":"\/icon-512\.png"/);
+  assert.match(sw, /z4sk-shell-v3/);
   assert.match(assetRegister, /Smart Mix™/);
   assert.match(assetRegister, /chain-of-title/);
   assert.ok(og.size > 100_000);
+  assert.ok(favicon.size > 1_000);
+  assert.ok(icon192.size > 10_000);
+  assert.ok(icon512.size > 50_000);
   await assert.rejects(access(new URL("../app/_sites-preview/SkeletonPreview.tsx", import.meta.url)));
 });
 

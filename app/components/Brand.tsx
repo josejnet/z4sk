@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LOCALES, useLanguage } from "../lib/i18n";
 
 export function Brand() {
-  return <Link className="brand" href="/" aria-label="Z4SK, home"><span className="brand-mark">4</span><span>Z4SK</span></Link>;
+  return <Link className="brand" href="/" aria-label="Z4SK, home"><span className="brand-mark" aria-hidden="true" /><span>Z4SK</span></Link>;
 }
 
 export function TopNav({ minimal = false }: { minimal?: boolean }) {

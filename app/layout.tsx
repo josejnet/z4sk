@@ -7,6 +7,7 @@ import "./extras.css";
 import "./features.css";
 import "./modal.css";
 import "./wizard.css";
+import "./logo.css";
 import { LanguageProvider } from "./lib/i18n";
 import { PwaRegister } from "./components/PwaRegister";
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
@@ -16,6 +17,6 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host") || "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") || (host.startsWith("localhost") ? "http" : "https");
   const origin = `${protocol}://${host}`;
-  return { metadataBase: new URL(origin), manifest: "/manifest.webmanifest", applicationName: "Z4SK", title: "Z4SK — Ask. Answer. Dare.", description: "Create questions, share a link, and receive answers privately.", openGraph: { title: "Z4SK — Ask. Answer. Dare.", description: "Create a private questionnaire and share it on WhatsApp.", images: [{ url: `${origin}/og.png`, width: 1732, height: 908, alt: "Z4SK — Ask. Answer. Dare." }] }, twitter: { card: "summary_large_image", title: "Z4SK — Ask. Answer. Dare.", description: "Create a private questionnaire and share it on WhatsApp.", images: [`${origin}/og.png`] } };
+  return { metadataBase: new URL(origin), manifest: "/manifest.webmanifest", applicationName: "Z4SK", title: "Z4SK — Ask. Answer. Dare.", description: "Create questions, share a link, and receive answers privately.", icons: { icon: [{ url: "/favicon-32.png", sizes: "32x32", type: "image/png" }, { url: "/icon-192.png", sizes: "192x192", type: "image/png" }], apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }] }, openGraph: { title: "Z4SK — Ask. Answer. Dare.", description: "Create a private questionnaire and share it on WhatsApp.", images: [{ url: `${origin}/og.png`, width: 1732, height: 908, alt: "Z4SK — Ask. Answer. Dare." }] }, twitter: { card: "summary_large_image", title: "Z4SK — Ask. Answer. Dare.", description: "Create a private questionnaire and share it on WhatsApp.", images: [`${origin}/og.png`] } };
 }
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en-US"><body className={`${geist.variable} ${mono.variable}`}><LanguageProvider><PwaRegister />{children}</LanguageProvider></body></html>; }

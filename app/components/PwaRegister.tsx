@@ -43,5 +43,5 @@ export function PwaRegister() {
 
   if (installed) return null;
   const c = copy[locale as Locale];
-  return <><button className="pwa-install" type="button" onClick={install} aria-label={c.title}><span>↓</span>{c.install}</button>{helpOpen&&<div className="pwa-help" role="dialog" aria-modal="true" aria-labelledby="pwa-help-title"><section><button type="button" className="pwa-help-close" onClick={()=>setHelpOpen(false)} aria-label="Close">×</button><span className="pwa-app-icon">4</span><h2 id="pwa-help-title">{c.title}</h2><p>{isIos?c.ios:c.fallback}</p><button type="button" className="primary" onClick={()=>setHelpOpen(false)}>{c.close}</button></section></div>}</>;
+  return <><button className="pwa-install" type="button" onClick={install} aria-label={c.title}><span>↓</span>{c.install}</button>{helpOpen&&<div className="pwa-help" role="dialog" aria-modal="true" aria-labelledby="pwa-help-title"><section><button type="button" className="pwa-help-close" onClick={()=>setHelpOpen(false)} aria-label="Close">×</button><span className="pwa-app-icon" aria-hidden="true" /><h2 id="pwa-help-title">{c.title}</h2><p>{isIos?c.ios:c.fallback}</p><button type="button" className="primary" onClick={()=>setHelpOpen(false)}>{c.close}</button></section></div>}</>;
 }

@@ -76,6 +76,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(dashboardClient, /<a className=\{styles\.backHomeLink\} href="\/">/);
   assert.match(brand, /<a className="brand" href="\/" aria-label="Z4SK, home">/);
   assert.doesNotMatch(brand, /<Link className="brand"/);
+  assert.equal(home.match(/target="_top"/g)?.length, 3);
   assert.match(shareInvitation, /https:\/\/wa\.me/);
   assert.match(shareInvitation, /mailto:\?subject/);
   assert.match(shareInvitation, /mail\.google\.com/);
@@ -87,9 +88,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(shareCss, /\.share-webmail\{display:none\}/);
   assert.match(home, /role="dialog"/);
   assert.match(home, /builderOpen/);
-  assert.match(home, /<a href="\/privacy">Privacy<\/a>/);
-  assert.match(home, /<a href="\/terms">Terms<\/a>/);
-  assert.match(home, /<a href="\/safety">Safety<\/a>/);
+  assert.match(home, /<a href="\/privacy" target="_top">Privacy<\/a>/);
+  assert.match(home, /<a href="\/terms" target="_top">Terms<\/a>/);
+  assert.match(home, /<a href="\/safety" target="_top">Safety<\/a>/);
   assert.match(privacyProofUi, /target="_blank"/);
   assert.match(privacyProofUi, /rel="noopener noreferrer"/);
   assert.match(pwa, /beforeinstallprompt/);
@@ -137,7 +138,12 @@ test("ships privacy, defensibility and PWA assets", async () => {
 
 test("publishes plain-language privacy and safety pages", async () => {
   const [privacy, safety, terms] = await Promise.all([render("/privacy"), render("/safety"), render("/terms")]);
+  const legalPage = await readFile(new URL("../app/components/LegalPage.tsx", import.meta.url), "utf8");
   assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /Cloudflare D1 Time Travel/); assert.match(privacyHtml, /What the founder can see/);
   assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect creator access/);
   assert.equal(terms.status, 200); assert.match(await terms.text(), /Payments are disabled/);
+  assert.doesNotMatch(legalPage, /next\/link|<Link/);
+  assert.match(legalPage, /<a href="\/privacy" target="_top">Privacy<\/a>/);
+  assert.match(legalPage, /<a href="\/terms" target="_top">Terms<\/a>/);
+  assert.match(legalPage, /<a href="\/safety" target="_top">Safety<\/a>/);
 });

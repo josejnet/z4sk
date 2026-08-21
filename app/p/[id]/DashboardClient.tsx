@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Sponsor, TopNav } from "../../components/Brand";
 import type { Game, GameResponse } from "../../lib/types";
 import type { Locale } from "../../lib/i18n";
@@ -43,7 +42,9 @@ export function DashboardClient({ id }: { id: string }) {
 
   if (loading) return <main className="experience-page"><TopNav minimal /><div className="center-state"><div className="loader" /><p>{flow(locale, "panelLoading")}</p></div></main>;
   if (revealed) return <main className="dashboard-page"><TopNav minimal /><section className="revealed-head"><span className="eyebrow">{flow(locale, "onceDeleted")}</span><h1>{flow(locale, "onlyRead")}</h1><p>{flow(locale, "dontClose")}</p></section><section className="responses-wrap"><ResponseCard response={revealed.response} questions={revealed.questions} locale={locale} once /></section></main>;
-  if (error || !data) return <main className="experience-page"><TopNav minimal /><div className="center-state"><span className="large-symbol">◆</span><h1>{flow(locale, "panelError")}</h1><p>{error}</p><Link className={styles.backHomeLink} href="/"><span aria-hidden="true">←</span>{flow(locale, "home")}</Link></div></main>;
+  // A hard navigation keeps this recovery action available if the client router fails.
+  // eslint-disable-next-line @next/next/no-html-link-for-pages
+  if (error || !data) return <main className="experience-page"><TopNav minimal /><div className="center-state"><span className="large-symbol">◆</span><h1>{flow(locale, "panelError")}</h1><p>{error}</p><a className={styles.backHomeLink} href="/"><span aria-hidden="true">←</span>{flow(locale, "home")}</a></div></main>;
 
   const count = data.game.responseCount || 0;
   return <><main className="dashboard-page"><TopNav minimal /><header className="dashboard-head"><div><span className="eyebrow">{flow(locale, "panelOf", { name: data.game.creatorName.toUpperCase() })}</span><h1>{flow(locale, "answersFor")}<br /><em>{data.game.recipientName}.</em></h1><p>◆ {flow(locale, "secret")} {data.game.openedAt ? `· Opened ${formatDate(data.game.openedAt, locale)}` : ""}</p></div><div className="dashboard-stat"><strong>{count}</strong><span>{flow(locale, count === 1 ? "response" : "responses")}</span></div></header><div className="dashboard-toolbar"><button onClick={copyShare}>{copied ? flow(locale, "linkCopied") : flow(locale, "copyAnswer")}</button><button onClick={refresh}>{flow(locale, "refresh")}</button><button onClick={enableNotifications}>{notifications ? "✓ Alerts on" : "Enable alerts"}</button><button className="danger-link" onClick={remove}>{flow(locale, "delete")}</button></div>

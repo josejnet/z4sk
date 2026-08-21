@@ -55,6 +55,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
     stat(new URL("../public/icon-192.png", import.meta.url)),
     stat(new URL("../public/icon-512.png", import.meta.url)),
   ]);
+  const brand = await readFile(new URL("../app/components/Brand.tsx", import.meta.url), "utf8");
   assert.match(builder, /Share once & remove ads/);
   assert.match(builder, /Secret match/);
   assert.match(builder, /You answer first/);
@@ -72,6 +73,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(dashboardClient, /confirm\(flow\(locale, "confirmReveal"\)\)/);
   assert.match(dashboardClient, /styles\.backHomeLink/);
   assert.match(dashboardClient, /aria-hidden="true">←/);
+  assert.match(dashboardClient, /<a className=\{styles\.backHomeLink\} href="\/">/);
+  assert.match(brand, /<a className="brand" href="\/" aria-label="Z4SK, home">/);
+  assert.doesNotMatch(brand, /<Link className="brand"/);
   assert.match(shareInvitation, /https:\/\/wa\.me/);
   assert.match(shareInvitation, /mailto:\?subject/);
   assert.match(shareInvitation, /mail\.google\.com/);

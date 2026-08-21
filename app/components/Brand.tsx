@@ -2,7 +2,9 @@ import Link from "next/link";
 import { LOCALES, useLanguage } from "../lib/i18n";
 
 export function Brand() {
-  return <Link className="brand" href="/" aria-label="Z4SK, home"><span className="brand-mark" aria-hidden="true" /><span>Z4SK</span></Link>;
+  // A hard navigation keeps the home escape hatch working if the client router fails.
+  // eslint-disable-next-line @next/next/no-html-link-for-pages
+  return <a className="brand" href="/" aria-label="Z4SK, home"><span className="brand-mark" aria-hidden="true" /><span>Z4SK</span></a>;
 }
 
 export function TopNav({ minimal = false }: { minimal?: boolean }) {

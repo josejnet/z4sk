@@ -20,6 +20,8 @@ test("server-renders the English-first Z4SK product", async () => {
   assert.match(html, /hero-start/);
   assert.doesNotMatch(html, /class="studio"/);
   assert.match(html, /<html lang="en-US">/);
+  assert.match(html, /rel="icon" href="\/favicon\.ico"/);
+  assert.match(html, /rel="shortcut icon" href="\/favicon\.ico"/);
   assert.match(html, /value="machine"/);
   assert.match(html, /value="ja"/);
   assert.match(html, /value="zh"/);
@@ -55,7 +57,10 @@ test("ships privacy, defensibility and PWA assets", async () => {
     stat(new URL("../public/icon-192.png", import.meta.url)),
     stat(new URL("../public/icon-512.png", import.meta.url)),
   ]);
-  const brand = await readFile(new URL("../app/components/Brand.tsx", import.meta.url), "utf8");
+  const [brand, faviconIco] = await Promise.all([
+    readFile(new URL("../app/components/Brand.tsx", import.meta.url), "utf8"),
+    stat(new URL("../public/favicon.ico", import.meta.url)),
+  ]);
   assert.match(builder, /Share once & remove ads/);
   assert.match(builder, /Secret match/);
   assert.match(builder, /You answer first/);
@@ -126,11 +131,13 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(sw, /showNotification/);
   assert.match(manifest, /"src":"\/icon-192\.png"/);
   assert.match(manifest, /"src":"\/icon-512\.png"/);
-  assert.match(sw, /z4sk-shell-v3/);
+  assert.match(sw, /z4sk-shell-v4/);
+  assert.match(sw, /\/favicon\.ico/);
   assert.match(assetRegister, /Smart Mix™/);
   assert.match(assetRegister, /chain-of-title/);
   assert.ok(og.size > 100_000);
   assert.ok(favicon.size > 1_000);
+  assert.ok(faviconIco.size > 1_000);
   assert.ok(icon192.size > 10_000);
   assert.ok(icon512.size > 50_000);
   await assert.rejects(access(new URL("../app/_sites-preview/SkeletonPreview.tsx", import.meta.url)));

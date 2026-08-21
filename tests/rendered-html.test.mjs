@@ -28,8 +28,10 @@ test("server-renders the English-first Z4SK product", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, home, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
+  const [builder, shareInvitation, shareCss, home, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/ShareInvitation.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/share.css", import.meta.url), "utf8"),
     readFile(new URL("../app/components/HomeContent.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/PwaRegister.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/lib/questions.ts", import.meta.url), "utf8"),
@@ -55,6 +57,15 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /SMART MIX/);
   assert.match(builder, /creatorEmail/);
   assert.match(builder, /Email my unique access link/);
+  assert.match(shareInvitation, /https:\/\/wa\.me/);
+  assert.match(shareInvitation, /mailto:\?subject/);
+  assert.match(shareInvitation, /mail\.google\.com/);
+  assert.match(shareInvitation, /outlook\.office\.com/);
+  assert.match(shareInvitation, /compose\.mail\.yahoo\.com/);
+  assert.match(shareInvitation, /navigator\.share/);
+  assert.match(shareInvitation, /adminUrl=REDACTED/);
+  assert.match(shareCss, /@media\(max-width:620px\)/);
+  assert.match(shareCss, /\.share-webmail\{display:none\}/);
   assert.match(home, /role="dialog"/);
   assert.match(home, /builderOpen/);
   assert.match(pwa, /beforeinstallprompt/);

@@ -17,6 +17,8 @@ test("server-renders the English-first Z4SK product", async () => {
   assert.match(html, /Z4SK — Ask\. Answer\. Dare\./i);
   assert.match(html, /Some things you only/);
   assert.match(html, /Private answers/);
+  assert.match(html, /hero-start/);
+  assert.doesNotMatch(html, /class="studio"/);
   assert.match(html, /<html lang="en-US">/);
   assert.match(html, /value="machine"/);
   assert.match(html, /value="ja"/);
@@ -24,8 +26,10 @@ test("server-renders the English-first Z4SK product", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og] = await Promise.all([
+  const [builder, home, pwa, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/HomeContent.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/PwaRegister.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/api/games/[id]/consume/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/games/[id]/responses/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/games/[id]/report/route.ts", import.meta.url), "utf8"),
@@ -43,6 +47,11 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /SMART MIX/);
   assert.match(builder, /creatorEmail/);
   assert.match(builder, /Email my unique access link/);
+  assert.match(home, /role="dialog"/);
+  assert.match(home, /builderOpen/);
+  assert.match(pwa, /beforeinstallprompt/);
+  assert.match(pwa, /appinstalled/);
+  assert.match(pwa, /Add to Home Screen/);
   assert.match(builder, /expiresInHours/);
   assert.match(consume, /deleteGameData/);
   assert.match(consume, /no-store, no-cache/);
@@ -62,7 +71,10 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /hash\.slice\(1\)/);
   assert.doesNotMatch(builder, /localStorage/);
   assert.match(manifest, /"display":"standalone"/);
+  assert.match(manifest, /"scope":"\/"/);
+  assert.match(manifest, /"orientation":"portrait-primary"/);
   assert.match(sw, /showNotification/);
+  assert.match(sw, /z4sk-shell-v2/);
   assert.match(assetRegister, /Smart Mix™/);
   assert.match(assetRegister, /chain-of-title/);
   assert.ok(og.size > 100_000);

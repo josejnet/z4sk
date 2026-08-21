@@ -1,9 +1,44 @@
 "use client";
-import { Builder } from "./Builder";
-import { Sponsor, TopNav } from "./Brand";
-import { useLanguage } from "../lib/i18n";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useLanguage } from "../lib/i18n";
+import { Builder } from "./Builder";
+import { TopNav } from "./Brand";
+
 export function HomeContent() {
   const { t, locale } = useLanguage();
-  return <main><TopNav /><section className="hero" id="top"><div className="eyebrow">✦ &nbsp; {t("eyebrow")}</div><h1>{t("hero1")}<br />{t("hero2")}<br /><em>{t("hero3")}</em></h1><p>{t("heroCopy")}</p><div className="hero-meta"><span><b>01</b> {t("noAccount")}</span><span><b>02</b> {t("privateAnswers")}</span><span><b>03</b> {t("oneMinute")}</span></div><a className="hero-cta" href="#crear">{t("createQuiz")} ↓</a></section><section className="studio" id="crear"><div className="section-label">{t("createYours")}</div><div className="studio-layout"><Builder key={locale} /><aside className="studio-side"><div className="side-number">01</div><p className="side-quote">“{t("sideQuote")}”</p><div className="privacy-note"><span>◆</span><div><b>{t("onlyEyes")}</b><p>{t("onlyEyesCopy")}</p></div></div><Sponsor /></aside></div></section><section className="how"><span className="section-label">{t("how")}</span><div className="how-grid"><article><b>01</b><h3>{t("ask")}</h3><p>{t("askCopy")}</p></article><article><b>02</b><h3>{t("passIt")}</h3><p>{t("passCopy")}</p></article><article><b>03</b><h3>{t("discover")}</h3><p>{t("discoverCopy")}</p></article></div></section><footer><span>Z4SK</span><p>{t("tagline")}</p><small>{t("adultFooter")}</small><div className="footer-links"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/safety">Safety</Link></div></footer></main>;
+  const [builderOpen, setBuilderOpen] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("create") || params.has("sponsor")) queueMicrotask(() => setBuilderOpen(true));
+  }, []);
+
+  useEffect(() => {
+    if (!builderOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setBuilderOpen(false); };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => { document.body.style.overflow = previousOverflow; window.removeEventListener("keydown", closeOnEscape); };
+  }, [builderOpen]);
+
+  return <main className="home-shell">
+    <TopNav />
+    <section className="hero hero-contained" id="top">
+      <div className="eyebrow">✦ &nbsp; {t("eyebrow")}</div>
+      <h1>{t("hero1")}<br />{t("hero2")}<br /><em>{t("hero3")}</em></h1>
+      <p>{t("heroCopy")}</p>
+      <button className="hero-start" type="button" onClick={() => setBuilderOpen(true)}>{t("createQuiz")} <span>→</span></button>
+      <div className="hero-meta"><span><b>01</b> {t("noAccount")}</span><span><b>02</b> {t("privateAnswers")}</span><span><b>03</b> {t("oneMinute")}</span></div>
+    </section>
+    <footer className="home-footer"><span>Z4SK</span><p>{t("tagline")}</p><div className="footer-links"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/safety">Safety</Link></div></footer>
+    {builderOpen && <div className="builder-modal" role="dialog" aria-modal="true" aria-labelledby="builder-title">
+      <section className="builder-dialog">
+        <button className="builder-close" type="button" onClick={() => setBuilderOpen(false)} aria-label="Close">×</button>
+        <Builder key={locale} onClose={() => setBuilderOpen(false)} />
+      </section>
+    </div>}
+  </main>;
 }

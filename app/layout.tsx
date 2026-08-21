@@ -5,6 +5,8 @@ import "./globals.css";
 import "./product.css";
 import "./extras.css";
 import "./features.css";
+import "./modal.css";
+import "./wizard.css";
 import { LanguageProvider } from "./lib/i18n";
 import { PwaRegister } from "./components/PwaRegister";
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });

@@ -1,0 +1,5 @@
+import type { Metadata } from "next";
+import { LegalPage } from "../components/LegalPage";
+
+export const metadata:Metadata = { title:"Safety · Pásalo" };
+export default function SafetyPage(){return <LegalPage eyebrow="SAFETY CENTER" title="A daring question still needs consent."><h2>Before you answer</h2><p>Check that you know the sender and that the domain is correct. You never need to answer a question that makes you uncomfortable. Closing the page sends nothing.</p><h2>Protect the secret link</h2><p>The creator dashboard link works like a password. Never post it publicly or forward it. Pásalo will never ask a recipient for that key.</p><h2>Report an invitation</h2><p>Use “Report invitation” on the opening screen. Reports do not reveal your written answers. Repeated reports automatically close the invitation while it awaits review.</p><h2>Immediate danger</h2><p>If a message includes threats, coercion, exploitation or immediate danger, do not engage. Save relevant evidence and contact local emergency services or an appropriate trusted organization.</p></LegalPage>}

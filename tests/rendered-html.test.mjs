@@ -30,8 +30,9 @@ test("server-renders the English-first Z4SK product", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
+  const [builder, qrCard, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, runtime, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/components/QrCard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/g/[id]/GameClient.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/p/[id]/DashboardClient.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/ShareInvitation.tsx", import.meta.url), "utf8"),
@@ -48,6 +49,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
     readFile(new URL("../app/api/founder/metrics/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/privacy-proof/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../db/privacy.ts", import.meta.url), "utf8"),
+    readFile(new URL("../db/runtime.ts", import.meta.url), "utf8"),
     readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8"),
     readFile(new URL("../SELLABLE_ASSETS.md", import.meta.url), "utf8"),
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
@@ -71,7 +73,19 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(builder, /PACK PATROCINADO/);
   assert.match(builder, /SMART MIX/);
   assert.match(builder, /creatorEmail/);
-  assert.match(builder, /Email my unique access link/);
+  assert.match(builder, /YOUR EMAIL · OPTIONAL/);
+  assert.match(builder, /Z4SK never receives or stores it/);
+  assert.match(builder, /<QrCard kind="invitation"/);
+  assert.match(builder, /<QrCard kind="dashboard"/);
+  assert.doesNotMatch(gameRoute, /body\.creatorEmail/);
+  assert.doesNotMatch(sdk, /creatorEmail/);
+  assert.match(gameRoute, /VALUES \(\?, \?, '', \?/);
+  assert.match(qrCard, /import\("qrcode"\)/);
+  assert.match(qrCard, /QRCode\.toCanvas/);
+  assert.match(qrCard, /"image\/png"\|"image\/jpeg"/);
+  assert.match(qrCard, /SECRET · DO NOT SHARE/);
+  assert.match(qrCard, /generation=device_local/);
+  assert.match(qrCard, /qr\.role=password/);
   assert.match(gameClient, /setRespondentName\(data\.recipientName\)/);
   assert.match(dashboardClient, /role="alertdialog"/);
   assert.match(dashboardClient, /aria-modal="true"/);
@@ -119,6 +133,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(metricsRoute, /Aggregate metrics only/);
   assert.match(metricsRoute, /authorization/);
   assert.match(proofRoute, /live runtime self-audit/);
+  assert.match(proofRoute, /Creator email never reaches active D1/);
+  assert.match(runtime, /UPDATE games SET creator_email = ''/);
   assert.match(proofRoute, /No expired answers remain in active D1/);
   assert.match(privacyEngine, /purgeExpiredData/);
   assert.match(privacyEngine, /DELETE FROM responses WHERE game_id IN/);

@@ -13,7 +13,7 @@
 - test paid visual personalization and advanced creator statistics
 - add Apple Pay/Google Pay through a hosted Stripe flow only after explicit activation
 - sell branded sponsor packs to venues and creators
-- add transactional email recovery without introducing mandatory passwords
+- evaluate opt-in recovery only if it preserves the current no-account, email-not-stored privacy model
 
 ## Phase 3 — defensible platform
 

@@ -11,7 +11,7 @@
 
 ## Synthetic smoke test
 
-Use non-personal test names and an invalid reserved email domain. Create a three-question invitation, load the public API, submit one response, read it with the secret creator URL, then delete the synthetic game. Never use real answers in test or issue logs.
+Use non-personal test names and leave the optional email empty. Create a three-question invitation, verify both QR cards, load the public API, submit one response, read it with the secret creator URL, then delete the synthetic game. Never use real answers in test or issue logs.
 
 ## Incident priorities
 

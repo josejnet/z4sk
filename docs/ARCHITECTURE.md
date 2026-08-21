@@ -24,11 +24,13 @@ Cloudflare Worker (React pages + API routes)
 
 The public URL contains only a random game ID. The creator URL places a 24-byte random token in the URL fragment, which browsers do not send to the server; the client sends it to private APIs in an `Authorization: Bearer` header. Only its SHA-256 hash is stored in D1. API responses use `cache-control: no-store` for private or mutable data.
 
+Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK never receives or stores the optional recovery email; it is used locally to open `mailto:`, and the user's email provider processes it only if the message is sent. New API writes force the legacy `creator_email` column to an empty string, and runtime initialization clears any older active values.
+
 ## Data model
 
 | Table | Purpose | Sensitive content |
 | --- | --- | --- |
-| `games` | configuration, creator email, expiry and hashed creator token | email and names |
+| `games` | configuration, expiry and hashed creator token; legacy email column forced empty | display names |
 | `responses` | respondent name, answer and reaction JSON, match flag | private answers |
 | `question_metrics` | aggregate selection/completion signals | no answer text |
 | `trend_metrics` | aggregate country/language performance | no answer text |
@@ -57,6 +59,7 @@ The public URL contains only a random game ID. The creator URL places a 24-byte 
 ## Source map
 
 - `app/components/Builder.tsx`: creator funnel
+- `app/components/QrCard.tsx`: localized, on-device public/private QR image export
 - `app/g/[id]`: recipient experience
 - `app/p/[id]`: private creator panel
 - `app/founder`: aggregate founder analytics

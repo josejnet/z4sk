@@ -5,7 +5,7 @@ import { LEGAL_COPY,type LegalKind } from "../lib/legal-copy";
 
 const DATE_LOCALES={en:"en-US",es:"es-ES",it:"it-IT",fr:"fr-FR",de:"de-DE",nl:"nl-NL",eo:"eo",pt:"pt-PT",zh:"zh-CN",hi:"hi-IN",ja:"ja-JP",tr:"tr-TR",machine:"en-CA"} as const;
 
-export function LegalPage({ kind, updated = "2026-08-21", children }:{ kind:LegalKind; updated?:string; children:React.ReactNode }) {
+export function LegalPage({ kind, updated = "2026-08-22", children }:{ kind:LegalKind; updated?:string; children:React.ReactNode }) {
   const {locale,setLocale}=useLanguage();const c=LEGAL_COPY[locale];const doc=c.docs[kind];
   const displayDate=locale==="machine"?updated:new Intl.DateTimeFormat(DATE_LOCALES[locale],{dateStyle:"long",timeZone:"UTC"}).format(new Date(`${updated}T12:00:00Z`));
   useEffect(()=>{const timer=window.setTimeout(()=>{document.title=`${doc.title} · Z4SK`;document.querySelector('meta[name="description"]')?.setAttribute("content",doc.intro);},0);return()=>window.clearTimeout(timer);},[doc]);

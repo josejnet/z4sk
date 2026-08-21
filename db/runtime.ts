@@ -29,6 +29,7 @@ export async function ensureSchema() {
     const columns = await db.prepare(`PRAGMA table_info(games)`).all<{ name: string }>();
     if (!columns.results.some((column) => column.name === "view_once")) await db.prepare(`ALTER TABLE games ADD COLUMN view_once INTEGER NOT NULL DEFAULT 0`).run();
     if (!columns.results.some((column) => column.name === "creator_email")) await db.prepare(`ALTER TABLE games ADD COLUMN creator_email TEXT NOT NULL DEFAULT ''`).run();
+    await db.prepare(`UPDATE games SET creator_email = '' WHERE creator_email <> ''`).run();
     if (!columns.results.some((column) => column.name === "locale")) await db.prepare(`ALTER TABLE games ADD COLUMN locale TEXT NOT NULL DEFAULT 'en'`).run();
     if (!columns.results.some((column) => column.name === "library_version")) await db.prepare(`ALTER TABLE games ADD COLUMN library_version TEXT NOT NULL DEFAULT '2026.08'`).run();
     if (!columns.results.some((column) => column.name === "double_blind")) await db.prepare(`ALTER TABLE games ADD COLUMN double_blind INTEGER NOT NULL DEFAULT 0`).run();

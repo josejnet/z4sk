@@ -22,7 +22,7 @@ Production: [z4sk.z4sk-app.workers.dev](https://z4sk.z4sk-app.workers.dev)
 - double-blind interest match
 - private creator dashboard and emoji reactions
 - Smart Mix question ranking based only on aggregate completion signals
-- sponsor packs, HTML invitation export and share-to-unlock ad removal
+- sponsor packs, HTML/PNG/JPG invitation export, public/private QR cards and share-to-unlock ad removal
 - installable PWA, founder metrics and reusable `packages/z4sk-sdk`
 - abuse reporting, automatic closure and IP-based rate limits
 - one-minute expiry purging, immediate creator deletion and public live privacy proof

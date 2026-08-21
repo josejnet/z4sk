@@ -71,3 +71,20 @@ export const LEGAL_COPY:Record<Locale,LegalLocale>={
     safety:{eyebrow:"SAFETY",title:"MUTUAL_AND_SAFE",intro:"purpose=honest_conversation; pressure=false; harm=false",points:[["CONSENT","send_if=reasonable_expectation; accept=[silence,refusal]"],["ACCESS","admin_url.classification=SECRET; sensitive_data=false"],["ADULTS_BOUNDARIES","no_filter.age>=18; minors=false; abuse=false; exploitation=false"],["REPORT_HELP","report=>review; repeated_reports=>auto_close; immediate_danger=>emergency_services"]]}
   }}
 };
+
+const EMAIL_MINIMIZATION_COPY:Record<Locale,string>={
+  en:"Invitations contain display names, questions and settings. Z4SK never receives or stores the optional recovery email; the user's email provider processes it only if a message is sent. Responses contain a name, written answers, reactions and match result.",
+  es:"Las invitaciones contienen nombres visibles, preguntas y ajustes. Z4SK nunca recibe ni guarda el correo opcional; el proveedor de correo lo trata solo si se envía el mensaje. Las respuestas contienen nombre, texto, reacciones y resultado del match.",
+  it:"Gli inviti includono nomi visibili, domande e impostazioni. Z4SK non riceve né salva l'e-mail facoltativa; il provider la tratta solo se il messaggio viene inviato. Le risposte includono nome, testo, reazioni e risultato del match.",
+  fr:"Les invitations contiennent noms affichés, questions et réglages. Z4SK ne reçoit ni ne stocke l'e-mail facultatif ; le fournisseur le traite uniquement si le message est envoyé. Les réponses contiennent nom, texte, réactions et résultat du match.",
+  de:"Einladungen enthalten Anzeigenamen, Fragen und Einstellungen. Z4SK empfängt oder speichert die optionale E-Mail nicht; der Anbieter verarbeitet sie nur beim Senden. Antworten enthalten Name, Text, Reaktionen und Match-Ergebnis.",
+  nl:"Uitnodigingen bevatten zichtbare namen, vragen en instellingen. Z4SK ontvangt of bewaart het optionele e-mailadres niet; de provider verwerkt het alleen als het bericht wordt verzonden. Antwoorden bevatten naam, tekst, reacties en matchresultaat.",
+  eo:"Invitoj enhavas videblajn nomojn, demandojn kaj agordojn. Z4SK ne ricevas aŭ konservas la nedevigan retpoŝton; la provizanto prilaboras ĝin nur se la mesaĝo estas sendita. Respondoj enhavas nomon, tekston, reagojn kaj kongruon.",
+  pt:"Os convites incluem nomes visíveis, perguntas e definições. O Z4SK nunca recebe nem guarda o e-mail opcional; o fornecedor processa-o apenas se a mensagem for enviada. As respostas incluem nome, texto, reações e resultado do match.",
+  zh:"邀请包含显示名称、问题和设置。Z4SK 不会接收或保存可选邮箱；只有发送邮件后，邮件服务商才会处理。回答包含姓名、文字、表情反应和匹配结果。",
+  hi:"निमंत्रण में दिखने वाले नाम, सवाल और सेटिंग्स होते हैं। Z4SK वैकल्पिक ईमेल को न प्राप्त करता है, न सहेजता है; संदेश भेजने पर ही ईमेल प्रदाता इसे संभालता है। जवाब में नाम, लिखित उत्तर, प्रतिक्रियाएँ और मैच परिणाम होते हैं।",
+  ja:"招待には表示名、質問、設定が含まれます。Z4SKは任意のメールを受信も保存もしません。送信した場合だけメール事業者が処理します。回答には名前、本文、リアクション、マッチ結果が含まれます。",
+  tr:"Davetler görünen adları, soruları ve ayarları içerir. Z4SK isteğe bağlı e-postayı almaz veya saklamaz; yalnızca mesaj gönderilirse e-posta sağlayıcısı işler. Yanıtlar adı, metni, tepkileri ve eşleşme sonucunu içerir.",
+  machine:"invitation={display_names,questions,settings}; Z4SK_email_receive=false; D1_email_store=false; on_mail_send=>email_provider_process; response={name,text,reactions,match}"
+};
+for(const locale of Object.keys(EMAIL_MINIMIZATION_COPY) as Locale[])LEGAL_COPY[locale].docs.privacy.points[0][1]=EMAIL_MINIMIZATION_COPY[locale];

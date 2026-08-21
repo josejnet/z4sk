@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "../lib/i18n";
 import { Builder } from "./Builder";
@@ -33,7 +32,7 @@ export function HomeContent() {
       <button className="hero-start" type="button" onClick={() => setBuilderOpen(true)}>{t("createQuiz")} <span>→</span></button>
       <div className="hero-meta"><span><b>01</b> {t("noAccount")}</span><span><b>02</b> {t("privateAnswers")}</span><span><b>03</b> {t("oneMinute")}</span></div>
     </section>
-    <footer className="home-footer"><span>Z4SK</span><p>{t("tagline")}</p><div className="footer-links"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/safety">Safety</Link></div></footer>
+    <footer className="home-footer"><span>Z4SK</span><p>{t("tagline")}</p><nav className="footer-links" aria-label="Legal"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/safety">Safety</a></nav></footer>
     {builderOpen && <div className="builder-modal" role="dialog" aria-modal="true" aria-labelledby="builder-title">
       <section className="builder-dialog">
         <button className="builder-close" type="button" onClick={() => setBuilderOpen(false)} aria-label="Close">×</button>

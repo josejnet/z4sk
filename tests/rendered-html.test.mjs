@@ -70,6 +70,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(dashboardClient, /role="alertdialog"/);
   assert.match(dashboardClient, /aria-modal="true"/);
   assert.doesNotMatch(dashboardClient, /confirm\(flow\(locale, "confirmReveal"\)\)/);
+  assert.match(dashboardClient, /styles\.backHomeLink/);
+  assert.match(dashboardClient, /aria-hidden="true">←/);
   assert.match(shareInvitation, /https:\/\/wa\.me/);
   assert.match(shareInvitation, /mailto:\?subject/);
   assert.match(shareInvitation, /mail\.google\.com/);

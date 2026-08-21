@@ -2,6 +2,18 @@
 
 Z4SK is an English-first, mobile-first viral questionnaire web app. A creator makes a private invitation, sends the public link through WhatsApp, and reads responses through a separate secret dashboard link.
 
+Production: [z4sk.z4sk-app.workers.dev](https://z4sk.z4sk-app.workers.dev)
+
+## Documentation
+
+- [Product and growth model](docs/PRODUCT.md)
+- [System architecture and data model](docs/ARCHITECTURE.md)
+- [Cloudflare deployment and rollback](docs/DEPLOYMENT.md)
+- [Security, privacy and threat model](SECURITY.md)
+- [Operations and incident runbook](docs/OPERATIONS.md)
+- [Commercial roadmap](docs/ROADMAP.md)
+- [Sellable asset register](SELLABLE_ASSETS.md)
+
 ## Product features
 
 - English (US), Spanish, Italian, French, German, Dutch, Esperanto, Portuguese, Japanese, Turkish and Machine/JSON question libraries

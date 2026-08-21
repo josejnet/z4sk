@@ -1,0 +1,72 @@
+# Architecture
+
+## Runtime
+
+- UI and API: React 19 with vinext/App Router
+- edge runtime: Cloudflare Workers
+- persistence: Cloudflare D1 (SQLite)
+- schema management: Drizzle definitions and SQL migrations
+- PWA: web manifest and service worker
+- integration asset: framework-neutral TypeScript client in `packages/z4sk-sdk`
+
+## Request flow
+
+```text
+Browser / WhatsApp
+        |
+        v
+Cloudflare Worker (React pages + API routes)
+        |
+        +--> D1: games and private responses
+        +--> D1: aggregate product/trend metrics
+        +--> static PWA and Open Graph assets
+```
+
+The public URL contains only a random game ID. The creator URL also contains a 24-byte random token. Only its SHA-256 hash is stored in D1. API responses use `cache-control: no-store` for private or mutable data.
+
+## Data model
+
+| Table | Purpose | Sensitive content |
+| --- | --- | --- |
+| `games` | configuration, creator email, expiry and hashed creator token | email and names |
+| `responses` | respondent name, answer and reaction JSON, match flag | private answers |
+| `question_metrics` | aggregate selection/completion signals | no answer text |
+| `trend_metrics` | aggregate country/language performance | no answer text |
+| `product_events` | funnel and attribution events | pseudonymous game ID |
+| `abuse_reports` | moderation reports | reason and game ID |
+| `rate_limits` | hashed IP-derived request counters | hashed identifier |
+
+## API map
+
+| Method and route | Responsibility | Access |
+| --- | --- | --- |
+| `POST /api/games` | create an invitation | public, rate limited |
+| `GET /api/games/:id` | load public questionnaire | public ID |
+| `DELETE /api/games/:id?key=` | delete invitation and responses | creator token |
+| `POST /api/games/:id/responses` | submit answers | public, rate limited |
+| `GET /api/games/:id/responses?key=` | read creator dashboard | creator token |
+| `POST /api/games/:id/consume` | consume view-once response | creator token |
+| `POST /api/games/:id/unlock` | record share unlock | public |
+| `POST /api/games/:id/report` | report abuse and trigger closure threshold | public, rate limited |
+| `GET /api/smart-mix` | rank questions from aggregate signals | public |
+| `GET /api/trends` | privacy-thresholded country trends | public |
+| `GET /api/founder/metrics?key=` | aggregate business dashboard | founder secret |
+
+## Source map
+
+- `app/components/Builder.tsx`: creator funnel
+- `app/g/[id]`: recipient experience
+- `app/p/[id]`: private creator panel
+- `app/founder`: aggregate founder analytics
+- `app/lib/questions.ts`: versioned question library
+- `app/lib/i18n.tsx` and `flow-copy.ts`: localization
+- `db/schema.ts` and `drizzle/`: data model and migrations
+- `db/runtime.ts`: D1 access, hashing, events and rate limits
+- `worker/index.ts` and `wrangler.jsonc`: Cloudflare entry and bindings
+
+## Architecture decisions
+
+- No user account database: possession of a high-entropy URL grants creator access.
+- No answer-text analytics: strategic datasets use question hashes and aggregate counters.
+- D1 over external SaaS: one deployment surface, low initial cost and portable SQL data.
+- Payments off by default: growth is validated before adding checkout friction and compliance scope.

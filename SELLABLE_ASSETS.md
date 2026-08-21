@@ -5,7 +5,7 @@ This file distinguishes assets already implemented from legal protections that s
 ## Assets implemented in this repository
 
 1. **Product and source code.** The complete Z4SK web/PWA, private response workflow, destruction mechanics, double-blind match logic, multilingual UI and founder dashboard.
-2. **Question Library v2026.08.** A structured five-language content library with intensity levels. Keep dated source files and editorial change logs as evidence of authorship.
+2. **Question Library v2026.08.** A structured eleven-mode content library with intensity levels: English, Spanish, Italian, French, German, Dutch, Esperanto, Portuguese, Japanese, Turkish and Machine/JSON. Keep dated source files and editorial change logs as evidence of authorship.
 3. **Smart Mix™.** A privacy-safe ranking system that learns from selection, completion and answer-length signals without analyzing answer text.
 4. **Country trend dataset.** Aggregate country, locale and question-performance tables with a minimum publication threshold. The growing dataset—not an individual answer—is the strategic asset.
 5. **Viral distribution funnel.** Event taxonomy covering create, open, respond, match, unlock, report, destroy and delete events, with source and sponsor-pack attribution.

@@ -13,6 +13,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json() as Record<string, unknown>;
     const creatorName = cleanText(body.creatorName, 40);
+    const creatorEmail = cleanText(body.creatorEmail, 120).toLowerCase();
     const recipientName = cleanText(body.recipientName, 40);
     const level = cleanText(body.level, 20);
     const locale = locales.has(cleanText(body.locale, 5)) ? cleanText(body.locale, 5) : "en";
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
     const requestedHours = Number(body.expiresInHours);
     const expiresInHours = [12, 24, 48, 72].includes(requestedHours) ? requestedHours : 12;
     const questions = Array.isArray(body.questions) ? body.questions.map((item) => cleanText(item, 180)).filter((item) => item.length >= 5) : [];
-    if (creatorName.length < 2 || recipientName.length < 2 || !levels.has(level) || questions.length < 3 || questions.length > 12) return NextResponse.json({ error: "Revisa los nombres y selecciona entre 3 y 12 preguntas." }, { status: 400 });
+    if (creatorName.length < 2 || recipientName.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail) || !levels.has(level) || questions.length < 3 || questions.length > 12) return NextResponse.json({ error: "Check the names, email and choose 3 to 12 questions." }, { status: 400 });
     if (new Set(questions).size !== questions.length) return NextResponse.json({ error: "No puede haber preguntas repetidas." }, { status: 400 });
 
     await ensureSchema();
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
     const createdAt = new Date();
     const expiresAt = new Date(createdAt.getTime() + expiresInHours * 60 * 60 * 1000);
     const viewOnce = body.viewOnce === true ? 1 : 0;
-    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_name, recipient_name, title, level, locale, library_version, questions_json, premium, view_once, double_blind, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, ?)`).bind(id, tokenHash, creatorName, recipientName, `${recipientName} · Pásalo`, level, locale, libraryVersion, JSON.stringify(questions), viewOnce, doubleBlind, creatorInterest, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
+    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, premium, view_once, double_blind, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, ?)`).bind(id, tokenHash, creatorEmail, creatorName, recipientName, `${recipientName} · Pásalo`, level, locale, libraryVersion, JSON.stringify(questions), viewOnce, doubleBlind, creatorInterest, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
     const metricStatements = await Promise.all(questions.map(async (question) => db.prepare(`INSERT INTO question_metrics (question_hash, locale, level, library_version, selected_count, completed_count, total_answer_chars) VALUES (?, ?, ?, ?, 1, 0, 0) ON CONFLICT(question_hash, locale, level, library_version) DO UPDATE SET selected_count = selected_count + 1`).bind(await hashQuestion(question), locale, level, libraryVersion)));
     if (metricStatements.length) await db.batch(metricStatements);
     const country = String((request as Request & { cf?: { country?: string } }).cf?.country || request.headers.get("cf-ipcountry") || "XX").slice(0, 2).toUpperCase();

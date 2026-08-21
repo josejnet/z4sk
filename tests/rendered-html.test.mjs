@@ -36,6 +36,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /Share once & remove ads/);
   assert.match(builder, /Double Blind Match/);
   assert.match(builder, /SMART MIX/);
+  assert.match(builder, /creatorEmail/);
+  assert.match(builder, /Email my unique access link/);
   assert.match(builder, /expiresInHours/);
   assert.match(consume, /DELETE FROM responses/);
   assert.match(consume, /no-store, no-cache/);

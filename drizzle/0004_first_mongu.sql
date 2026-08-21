@@ -1,0 +1,1 @@
+ALTER TABLE `games` ADD `creator_email` text DEFAULT '' NOT NULL;

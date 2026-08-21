@@ -3,6 +3,7 @@ export type Level = "curioso" | "coqueto" | "picante" | "sinfiltro";
 export type Game = {
   id: string;
   creatorName: string;
+  creatorEmail?: string;
   recipientName: string;
   title: string;
   level: Level;

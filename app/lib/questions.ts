@@ -1,7 +1,7 @@
 import type { Level } from "./types";
 import type { Locale } from "./i18n";
 
-const labels: Record<Locale, Record<Level, [string, string]>> = {
+const labels: Partial<Record<Locale, Record<Level, [string, string]>>> = {
   en: { curioso: ["Curious", "Break the ice"], coqueto: ["Flirty", "Hints with intent"], picante: ["Spicy", "Turn up the heat"], sinfiltro: ["No filter", "Adults only · 18+"] },
   es: { curioso: ["Curioso", "Para romper el hielo"], coqueto: ["Coqueto", "Indirectas con intención"], picante: ["Picante", "Sube la temperatura"], sinfiltro: ["Sin filtro", "Solo para +18"] },
   it: { curioso: ["Curioso", "Per rompere il ghiaccio"], coqueto: ["Civettuolo", "Allusioni intenzionali"], picante: ["Piccante", "Alza la temperatura"], sinfiltro: ["Senza filtri", "Solo per maggiorenni"] },
@@ -9,7 +9,7 @@ const labels: Record<Locale, Record<Level, [string, string]>> = {
   de: { curioso: ["Neugierig", "Zum Kennenlernen"], coqueto: ["Flirt", "Hinweise mit Absicht"], picante: ["Prickelnd", "Mehr Spannung"], sinfiltro: ["Ohne Filter", "Nur für Erwachsene"] },
 };
 
-export const QUESTION_BANK: Record<Locale, Record<Level, string[]>> = {
+export const QUESTION_BANK: Partial<Record<Locale, Record<Level, string[]>>> = {
   en: {
     curioso: ["What was your first impression of me?", "Which moment with me do you remember most fondly?", "What song makes you think of me?", "What do you think we have most in common?", "What plan should we finally make happen together?", "What quality of mine do I not value enough?", "What secret nickname would you give me?", "What have you always wanted to ask me?"],
     coqueto: ["What was the first thing about me that caught your attention?", "Have you ever felt nervous while talking to me?", "Would you go on a date with me if I asked?", "What detail about me do you find most attractive?", "What would our perfect date look like?", "Have you ever dreamed about me?", "What do you think would happen if we kissed?", "What hint do you think I have missed?"],
@@ -42,7 +42,25 @@ export const QUESTION_BANK: Record<Locale, Record<Level, string[]>> = {
   },
 };
 
+Object.assign(labels,{
+  nl:{curioso:["Nieuwsgierig","Breek het ijs"],coqueto:["Flirterig","Hints met bedoeling"],picante:["Pittig","Voer de spanning op"],sinfiltro:["Geen filter","Alleen 18+"]},
+  eo:{curioso:["Scivolema","Rompu la glacion"],coqueto:["Flirtema","Aludoj kun intenco"],picante:["Spica","Altigu la varmon"],sinfiltro:["Sen filtrilo","Nur 18+"]},
+  pt:{curioso:["Curioso","Quebra o gelo"],coqueto:["Sedutor","Indiretas com intenção"],picante:["Picante","Aumenta a temperatura"],sinfiltro:["Sem filtro","Apenas 18+"]},
+  ja:{curioso:["気になる","まずは気軽に"],coqueto:["フレンドリー","好意を少しだけ"],picante:["スパイシー","もっと大胆に"],sinfiltro:["フィルターなし","18歳以上限定"]},
+  tr:{curioso:["Meraklı","Buzları erit"],coqueto:["Flörtöz","Niyetli imalar"],picante:["Ateşli","Sıcaklığı artır"],sinfiltro:["Filtresiz","Yalnızca 18+"]},
+  machine:{curioso:["DISCOVERY","handshake()"],coqueto:["SIGNAL","intent++"],picante:["HEAT","temperature++"],sinfiltro:["ROOT","age>=18"]}
+} satisfies Partial<Record<Locale,Record<Level,[string,string]>>>);
+
+Object.assign(QUESTION_BANK,{
+  nl:{curioso:["Wat was je eerste indruk van mij?","Welk moment met mij herinner je je het liefst?","Welk liedje doet je aan mij denken?","Wat wilde je me altijd al vragen?"],coqueto:["Wat viel je als eerste aan mij op?","Zou je met me uitgaan als ik het vroeg?","Hoe ziet onze perfecte date eruit?","Welke hint heb ik gemist?"],picante:["Heb je er ooit aan gedacht mij te kussen?","Wat vind je onweerstaanbaar aan mij?","Wat zou je doen als we nu alleen waren?","Welk flirterig geheim durf je te vertellen?"],sinfiltro:["Welke fantasie heb je nog nooit verteld?","Wat is je stoutste gedachte over mij?","Heb je liever de controle of word je verrast?","Als we één nacht hadden, hoe zou die beginnen?"]},
+  eo:{curioso:["Kia estis via unua impreso pri mi?","Kiun momenton kun mi vi plej ŝate memoras?","Kiu kanto pensigas vin pri mi?","Kion vi ĉiam volis demandi min?"],coqueto:["Kio unue kaptis vian atenton ĉe mi?","Ĉu vi rendevuus kun mi se mi petus?","Kia estus nia perfekta rendevuo?","Kiun aludon mi ne rimarkis?"],picante:["Ĉu vi iam imagis kisi min?","Kion ĉe mi vi trovas nerezistebla?","Kion vi farus se ni estus solaj nun?","Kiun flirtan sekreton vi kuraĝus konfesi?"],sinfiltro:["Kiun fantazion vi neniam rakontis?","Kio estis via plej aŭdaca penso pri mi?","Ĉu vi preferas regi aŭ esti surprizita?","Se ni havus nur unu nokton, kiel ĝi komenciĝus?"]},
+  pt:{curioso:["Qual foi a tua primeira impressão de mim?","Que momento comigo recordas com mais carinho?","Que música te faz pensar em mim?","O que sempre quiseste perguntar-me?"],coqueto:["O que em mim chamou primeiro a tua atenção?","Aceitarias sair comigo se eu convidasse?","Como seria o nosso encontro perfeito?","Que indireta minha não percebeste?"],picante:["Já imaginaste beijar-me?","O que em mim consideras irresistível?","O que farias se estivéssemos a sós agora?","Que segredo sedutor terias coragem de confessar?"],sinfiltro:["Que fantasia nunca contaste a ninguém?","Qual foi o pensamento mais ousado que tiveste sobre mim?","Preferes ter o controlo ou ser surpreendido?","Se tivéssemos só uma noite, como começaria?"]},
+  ja:{curioso:["私の第一印象は？","一緒に過ごした中で一番好きな思い出は？","私を思い出す曲は？","ずっと聞いてみたかったことは？"],coqueto:["最初に私のどこが気になった？","誘ったらデートしてくれる？","理想のデートはどんな感じ？","私が気づかなかったサインは？"],picante:["私にキスする想像をしたことはある？","私のどこが魅力的？","今二人きりなら何をする？","打ち明けられる少し大胆な秘密は？"],sinfiltro:["誰にも話したことのない願望は？","私について一番大胆に考えたことは？","主導したい？それとも驚かされたい？","一晩だけなら、どう始める？"]},
+  tr:{curioso:["Benimle ilgili ilk izlenimin neydi?","Benimle yaşadığın en güzel an hangisi?","Hangi şarkı sana beni hatırlatıyor?","Bana her zaman ne sormak istedin?"],coqueto:["Bende ilk dikkatini çeken neydi?","Teklif etsem benimle buluşur musun?","Mükemmel buluşmamız nasıl olurdu?","Hangi imayı kaçırdım?"],picante:["Beni öpmeyi hiç hayal ettin mi?","Bende karşı konulmaz bulduğun şey ne?","Şu an yalnız olsak ne yapardın?","Hangi flörtöz sırrını itiraf ederdin?"],sinfiltro:["Kimseye anlatmadığın fantezin ne?","Benimle ilgili en cesur düşüncen neydi?","Kontrol etmeyi mi, şaşırtılmayı mı seversin?","Sadece bir gecemiz olsaydı nasıl başlardı?"]},
+  machine:{curioso:["GET creator.first_impression","SELECT memory ORDER BY affection DESC LIMIT 1","MATCH song WHERE subject=creator","PROMPT unanswered_question"],coqueto:["DETECT attraction.first_signal","BOOLEAN date.accepted","RENDER perfect_date","LIST missed_hints"],picante:["SIMULATE kiss","GET creator.irresistible_trait","IF alone_now THEN action?","DECRYPT flirty_secret"],sinfiltro:["READ private_fantasy","MAX(bold_thoughts)","ENUM control_or_surprise","INIT one_night"]}
+} satisfies Partial<Record<Locale,Record<Level,string[]>>>);
+
 const icons: Record<Level, string> = { curioso: "✦", coqueto: "♡", picante: "✹", sinfiltro: "🔥" };
-export function getLevels(locale: Locale) { return (Object.keys(icons) as Level[]).map((id) => ({ id, icon: icons[id], label: labels[locale][id][0], copy: labels[locale][id][1] })); }
-export function getQuestions(locale: Locale, level: Level) { return QUESTION_BANK[locale][level]; }
+export function getLevels(locale: Locale) { const copy=labels[locale]||labels.en!; return (Object.keys(icons) as Level[]).map((id) => ({ id, icon: icons[id], label: copy[id][0], copy: copy[id][1] })); }
+export function getQuestions(locale: Locale, level: Level) { return (QUESTION_BANK[locale]||QUESTION_BANK.en!)[level]; }
 export function getDefaultQuestions(locale: Locale, level: Level) { return getQuestions(locale, level).slice(0, 6); }

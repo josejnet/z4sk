@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LOCALES, useLanguage } from "../lib/i18n";
 
 export function Brand() {
-  return <Link className="brand" href="/" aria-label="Pásalo, inicio"><span className="brand-mark">P</span><span>PÁSALO</span></Link>;
+  return <Link className="brand" href="/" aria-label="Z4SK, home"><span className="brand-mark">4</span><span>Z4SK</span></Link>;
 }
 
 export function TopNav({ minimal = false }: { minimal?: boolean }) {
@@ -12,5 +12,5 @@ export function TopNav({ minimal = false }: { minimal?: boolean }) {
 
 export function Sponsor({ compact = false }: { compact?: boolean }) {
   const { t } = useLanguage();
-  return <aside className={`sponsor ${compact ? "sponsor-compact" : ""}`} aria-label="Advertisement"><span>{t("sponsorSpace")}</span><p>{t("sponsorCopy")}</p><a href="mailto:hello@pasalo.app">{t("advertise")} →</a></aside>;
+  return <aside className={`sponsor ${compact ? "sponsor-compact" : ""}`} aria-label="Advertisement"><span>{t("sponsorSpace")}</span><p>{t("sponsorCopy")}</p><Link href="/?sponsor=1#crear">{t("advertise")} →</Link></aside>;
 }

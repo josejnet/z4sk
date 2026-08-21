@@ -1,17 +1,17 @@
-# Pásalo
+# Z4SK
 
-Pásalo is an English-first, mobile-first viral questionnaire web app. A creator makes a private invitation, sends the public link through WhatsApp, and reads responses through a separate secret dashboard link.
+Z4SK is an English-first, mobile-first viral questionnaire web app. A creator makes a private invitation, sends the public link through WhatsApp, and reads responses through a separate secret dashboard link.
 
 ## Product features
 
-- English (US), Spanish, Italian, French and German question libraries
+- English (US), Spanish, Italian, French, German, Dutch, Esperanto, Portuguese, Japanese, Turkish and Machine/JSON question libraries
 - 12/24/48/72-hour destruction countdown
 - optional one-response, view-and-destroy mode
 - double-blind interest match
 - private creator dashboard and emoji reactions
 - Smart Mix question ranking based only on aggregate completion signals
 - sponsor packs, HTML invitation export and share-to-unlock ad removal
-- installable PWA, founder metrics and reusable `packages/pasalo-sdk`
+- installable PWA, founder metrics and reusable `packages/z4sk-sdk`
 - abuse reporting, automatic closure and IP-based rate limits
 - payment surface intentionally disabled until commercial launch
 
@@ -25,6 +25,16 @@ npm run dev
 ```
 
 The site runs at `http://localhost:3000`. In local development, the founder dashboard key defaults to `dev-founder`. Production must set a long random `FOUNDER_DASHBOARD_KEY`.
+
+## Cloudflare deployment
+
+Production uses a Cloudflare Worker backed by D1. The temporary launch URL is `https://z4sk.z4sk-app.workers.dev`; attach the branded domain before public launch.
+
+```bash
+npm run deploy:cloudflare
+```
+
+Apply new D1 migrations with `npx wrangler d1 migrations apply z4sk-db --remote` before deploying application code that depends on them.
 
 ## Verification
 

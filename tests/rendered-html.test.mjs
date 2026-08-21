@@ -9,15 +9,17 @@ async function render(path = "/") {
   return worker.fetch(new Request(`http://localhost${path}`, { headers: { accept: "text/html", host: "localhost" } }), { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } }, { waitUntil() {}, passThroughOnException() {} });
 }
 
-test("server-renders the English-first Pásalo product", async () => {
+test("server-renders the English-first Z4SK product", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
-  assert.match(html, /Pásalo — Ask\. Answer\. Dare\./i);
+  assert.match(html, /Z4SK — Ask\. Answer\. Dare\./i);
   assert.match(html, /Some things you only/);
   assert.match(html, /Private answers/);
   assert.match(html, /<html lang="en-US">/);
+  assert.match(html, /value="machine"/);
+  assert.match(html, /value="ja"/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
 });
 

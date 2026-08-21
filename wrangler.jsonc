@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "z4sk",
+  "account_id": "237448393dd8021ef829041bc8ecb401",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "z4sk-db",
+      "database_id": "1db10601-b8ce-4439-aa29-a5f4e42877b1",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "observability": { "enabled": true }
+}

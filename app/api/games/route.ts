@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { checkRateLimit, ensureSchema, getDatabase, hashQuestion, hashToken, randomToken, recordEvent } from "../../../db/runtime";
 
 const levels = new Set(["curioso", "coqueto", "picante", "sinfiltro"]);
-const locales = new Set(["en", "es", "it", "fr", "de"]);
+const locales = new Set(["en", "es", "it", "fr", "de", "nl", "eo", "pt", "ja", "tr", "machine"]);
 const packs = new Set(["original", "nightlife", "creator"]);
 
 function cleanText(value: unknown, max: number) {
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const createdAt = new Date();
     const expiresAt = new Date(createdAt.getTime() + expiresInHours * 60 * 60 * 1000);
     const viewOnce = body.viewOnce === true ? 1 : 0;
-    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, premium, view_once, double_blind, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, ?)`).bind(id, tokenHash, creatorEmail, creatorName, recipientName, `${recipientName} · Pásalo`, level, locale, libraryVersion, JSON.stringify(questions), viewOnce, doubleBlind, creatorInterest, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
+    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, premium, view_once, double_blind, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, ?)`).bind(id, tokenHash, creatorEmail, creatorName, recipientName, `${recipientName} · Z4SK`, level, locale, libraryVersion, JSON.stringify(questions), viewOnce, doubleBlind, creatorInterest, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
     const metricStatements = await Promise.all(questions.map(async (question) => db.prepare(`INSERT INTO question_metrics (question_hash, locale, level, library_version, selected_count, completed_count, total_answer_chars) VALUES (?, ?, ?, ?, 1, 0, 0) ON CONFLICT(question_hash, locale, level, library_version) DO UPDATE SET selected_count = selected_count + 1`).bind(await hashQuestion(question), locale, level, libraryVersion)));
     if (metricStatements.length) await db.batch(metricStatements);
     const country = String((request as Request & { cf?: { country?: string } }).cf?.country || request.headers.get("cf-ipcountry") || "XX").slice(0, 2).toUpperCase();

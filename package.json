@@ -1,5 +1,5 @@
 {
-  "name": "pasalo-web",
+  "name": "z4sk-web",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -11,7 +11,8 @@
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "deploy:cloudflare": "npx @vinext/cloudflare deploy --name z4sk"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
@@ -22,7 +23,6 @@
     "@cloudflare/vite-plugin": "1.37.1",
     "@eslint/js": "9.39.4",
     "@next/eslint-plugin-next": "16.2.6",
-    "@openai/sites-vite-plugin": "0.1.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",

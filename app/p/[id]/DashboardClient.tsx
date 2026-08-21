@@ -10,7 +10,7 @@ import { flow } from "../../lib/flow-copy";
 
 type DashboardData = { game: Game; responses: GameResponse[]; sealed: boolean };
 async function fetchDashboard(id: string, secret: string) { const response = await fetch(`/api/games/${id}/responses`, { cache: "no-store", headers: { authorization: `Bearer ${secret}` } }); const result = await response.json() as DashboardData & { error?: string }; if (!response.ok) throw new Error(result.error); return result; }
-function formatDate(value: string, locale: Locale) { const map = { en: "en-US", es: "es-ES", it: "it-IT", fr: "fr-FR", de: "de-DE" }; return new Intl.DateTimeFormat(map[locale], { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
+function formatDate(value: string, locale: Locale) { const map:Partial<Record<Locale,string>> = { en: "en-US", es: "es-ES", it: "it-IT", fr: "fr-FR", de: "de-DE", zh:"zh-CN", hi:"hi-IN", ja:"ja-JP" }; return new Intl.DateTimeFormat(map[locale]||"en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
 
 export function DashboardClient({ id }: { id: string }) {
   const [key, setKey] = useState("");

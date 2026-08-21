@@ -16,7 +16,7 @@ Production: [z4sk.z4sk-app.workers.dev](https://z4sk.z4sk-app.workers.dev)
 
 ## Product features
 
-- English (US), Spanish, Italian, French, German, Dutch, Esperanto, Portuguese, Japanese, Turkish and Machine/JSON question libraries
+- English (US), Spanish, Italian, French, German, Dutch, Esperanto, Portuguese, Simplified Chinese, Hindi, Japanese, Turkish and Machine/JSON question libraries
 - 12/24/48/72-hour destruction countdown
 - optional one-response, view-and-destroy mode
 - double-blind interest match

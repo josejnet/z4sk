@@ -22,14 +22,19 @@ test("server-renders the English-first Z4SK product", async () => {
   assert.match(html, /<html lang="en-US">/);
   assert.match(html, /value="machine"/);
   assert.match(html, /value="ja"/);
+  assert.match(html, /value="zh"/);
+  assert.match(html, /value="hi"/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, home, pwa, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og] = await Promise.all([
+  const [builder, home, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, wrangler, assetRegister, manifest, sw, og] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/HomeContent.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/PwaRegister.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/questions.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/games/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../packages/z4sk-sdk/src/index.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/games/[id]/consume/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/games/[id]/responses/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/games/[id]/report/route.ts", import.meta.url), "utf8"),
@@ -52,6 +57,12 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(pwa, /beforeinstallprompt/);
   assert.match(pwa, /appinstalled/);
   assert.match(pwa, /Add to Home Screen/);
+  assert.match(pwa, /安装 Z4SK/);
+  assert.match(pwa, /Z4SK इंस्टॉल करें/);
+  assert.match(questions, /你对我的第一印象是什么/);
+  assert.match(questions, /मेरे बारे में आपकी पहली राय क्या थी/);
+  assert.match(gameRoute, /"zh", "hi"/);
+  assert.match(sdk, /"zh"\|"hi"/);
   assert.match(builder, /expiresInHours/);
   assert.match(consume, /deleteGameData/);
   assert.match(consume, /no-store, no-cache/);

@@ -11,6 +11,8 @@ const copy = new Proxy<Record<string, InstallCopy>>({
   it: { install: "Installa", title: "Installa Z4SK", ios: "Tocca Condividi, poi “Aggiungi alla schermata Home”.", fallback: "Apri il menu del browser e scegli “Installa app”.", close: "Fatto" },
   fr: { install: "Installer", title: "Installer Z4SK", ios: "Touchez Partager, puis « Sur l’écran d’accueil ».", fallback: "Ouvrez le menu du navigateur et choisissez « Installer l’application ».", close: "Compris" },
   de: { install: "Installieren", title: "Z4SK installieren", ios: "Tippe auf Teilen und dann „Zum Home-Bildschirm“.", fallback: "Öffne das Browsermenü und wähle „App installieren“.", close: "Verstanden" },
+  zh: { install: "安装", title: "安装 Z4SK", ios: "点击“分享”，然后选择“添加到主屏幕”。", fallback: "打开浏览器菜单，选择“安装应用”或“添加到主屏幕”。", close: "知道了" },
+  hi: { install: "इंस्टॉल", title: "Z4SK इंस्टॉल करें", ios: "Share दबाएँ, फिर “Add to Home Screen” चुनें।", fallback: "ब्राउज़र मेनू खोलें और “Install app” या “Add to Home Screen” चुनें।", close: "समझ गया" },
 }, { get: (target, key) => target[String(key)] || target.en });
 
 export function PwaRegister() {

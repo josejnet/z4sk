@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { checkRateLimit, ensureSchema, getDatabase, hashQuestion, hashToken, randomToken, recordEvent } from "../../../db/runtime";
 
 const levels = new Set(["curioso", "coqueto", "picante", "sinfiltro"]);
-const locales = new Set(["en", "es", "it", "fr", "de", "nl", "eo", "pt", "ja", "tr", "machine"]);
+const locales = new Set(["en", "es", "it", "fr", "de", "nl", "eo", "pt", "zh", "hi", "ja", "tr", "machine"]);
 const packs = new Set(["original", "nightlife", "creator"]);
 
 function cleanText(value: unknown, max: number) {

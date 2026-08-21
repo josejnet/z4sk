@@ -4,7 +4,7 @@ import type { Locale } from "../../lib/i18n";
 import type { Level } from "../../lib/types";
 import { ensureSchema, getDatabase, hashQuestion } from "../../../db/runtime";
 
-const locales = new Set(["en", "es", "it", "fr", "de"]);
+const locales = new Set(["en", "es", "it", "fr", "de", "nl", "eo", "pt", "zh", "hi", "ja", "tr", "machine"]);
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url); const locale = (locales.has(url.searchParams.get("locale") || "") ? url.searchParams.get("locale") : "en") as Locale; const country = (url.searchParams.get("country") || "US").slice(0, 2).toUpperCase();

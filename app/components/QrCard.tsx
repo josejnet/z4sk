@@ -28,19 +28,19 @@ const COPY:Record<Locale,Copy>={
 };
 
 const PRIVATE_WARNING:Record<Locale,string>={
-  en:"Warning: this QR is a password. Anyone who scans it can open the private dashboard and read its answers.",
-  es:"Aviso: este QR funciona como una contraseña. Quien lo escanee podrá abrir el panel privado y leer sus respuestas.",
-  it:"Attenzione: questo QR funziona come una password. Chi lo scansiona può aprire il pannello privato e leggere le risposte.",
-  fr:"Attention : ce QR fonctionne comme un mot de passe. Toute personne qui le scanne peut ouvrir l'espace privé et lire les réponses.",
-  de:"Warnung: Dieser QR funktioniert wie ein Passwort. Wer ihn scannt, kann den privaten Bereich öffnen und die Antworten lesen.",
-  nl:"Waarschuwing: deze QR werkt als een wachtwoord. Wie hem scant, kan het privédashboard openen en de antwoorden lezen.",
-  eo:"Averto: ĉi tiu QR funkcias kiel pasvorto. Ĉiu skananto povas malfermi la privatan panelon kaj legi la respondojn.",
-  pt:"Aviso: este QR funciona como uma palavra-passe. Quem o ler pode abrir o painel privado e ver as respostas.",
-  zh:"警告：此二维码相当于密码。任何扫描它的人都能打开私人面板并查看回答。",
-  hi:"चेतावनी: यह QR पासवर्ड की तरह काम करता है। इसे स्कैन करने वाला निजी डैशबोर्ड और जवाब देख सकता है।",
-  ja:"警告：このQRはパスワードと同じです。読み取った人は非公開パネルを開き、回答を閲覧できます。",
-  tr:"Uyarı: bu QR bir parola gibi çalışır. Tarayan herkes özel paneli açıp yanıtları okuyabilir.",
-  machine:"WARNING: qr.role=password; scanner=>dashboard.read(private_answers)"
+  en:"Warning: this QR contains the only private decryption key. Anyone who scans it can open the dashboard and decrypt its answers.",
+  es:"Aviso: este QR contiene la única clave privada de descifrado. Quien lo escanee podrá abrir el panel y descifrar las respuestas.",
+  it:"Attenzione: questo QR contiene l'unica chiave privata di decifratura. Chi lo scansiona può aprire il pannello e decifrare le risposte.",
+  fr:"Attention : ce QR contient l’unique clé privée de déchiffrement. Toute personne qui le scanne peut ouvrir l’espace et déchiffrer les réponses.",
+  de:"Warnung: Dieser QR enthält den einzigen privaten Entschlüsselungsschlüssel. Wer ihn scannt, kann den Bereich öffnen und Antworten entschlüsseln.",
+  nl:"Waarschuwing: deze QR bevat de enige privésleutel voor ontsleuteling. Wie hem scant, kan het dashboard openen en antwoorden ontsleutelen.",
+  eo:"Averto: ĉi tiu QR enhavas la solan privatan deĉifran ŝlosilon. Ĉiu skananto povas malfermi la panelon kaj deĉifri respondojn.",
+  pt:"Aviso: este QR contém a única chave privada de decifragem. Quem o ler pode abrir o painel e decifrar as respostas.",
+  zh:"警告：此二维码包含唯一的私人解密密钥。任何扫描它的人都能打开面板并解密回答。",
+  hi:"चेतावनी: इस QR में एकमात्र निजी डिक्रिप्शन कुंजी है। इसे स्कैन करने वाला पैनल खोलकर जवाब डिक्रिप्ट कर सकता है।",
+  ja:"警告：このQRには唯一の秘密復号鍵が含まれます。読み取った人はパネルを開き、回答を復号できます。",
+  tr:"Uyarı: bu QR tek özel şifre çözme anahtarını içerir. Tarayan herkes paneli açıp yanıtların şifresini çözebilir.",
+  machine:"WARNING: qr.contains=ONLY_PRIVATE_DECRYPTION_KEY; scanner=>dashboard.decrypt(ciphertext)"
 };
 
 function fillTemplate(value:string,name:string){return value.replace("{name}",name);}

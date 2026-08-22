@@ -43,6 +43,13 @@
       "when": 1787340907898,
       "tag": "0005_freezing_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1787356288895,
+      "tag": "0006_material_black_crow",
+      "breakpoints": true
     }
   ]
 }

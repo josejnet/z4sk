@@ -6,13 +6,13 @@ This file distinguishes assets already implemented from legal protections that s
 
 1. **Product and source code.** The complete Z4SK web/PWA, private response workflow, destruction mechanics, double-blind match logic, multilingual UI and founder dashboard.
 2. **Question Library v2026.08.** A structured thirteen-mode content library with intensity levels: English, Spanish, Italian, French, German, Dutch, Esperanto, Portuguese, Chinese, Hindi, Japanese, Turkish and Machine/JSON. Keep dated source files and editorial change logs as evidence of authorship.
-3. **Smart Mix™.** A privacy-safe ranking system that learns from selection, completion and answer-length signals without analyzing answer text.
+3. **Smart Mix™.** A privacy-safe ranking system that learns from aggregate selection and completion signals without receiving answer text or answer length.
 4. **Country trend dataset.** Aggregate country, locale and question-performance tables with a minimum publication threshold. The growing dataset—not an individual answer—is the strategic asset.
-5. **Viral distribution funnel.** Event taxonomy covering create, open, respond, match, unlock, report, destroy and delete events, with source and sponsor-pack attribution.
+5. **Viral distribution funnel.** Event taxonomy covering create, open, respond, unlock, report, destroy and delete events, with source and sponsor-pack attribution. Match choices stay inside the encrypted payload and are deliberately excluded from founder analytics.
 6. **Sponsor Pack system.** Theme and attribution architecture for brands, venues and creators.
 7. **Reusable SDK.** `packages/z4sk-sdk` packages the creation and embed workflow for licensing as “Viral Quiz as a Service.”
-8. **Safety and privacy operations.** Short-lived content, secret bearer dashboards, view-once deletion, aggregate-only analytics, reporting and rate limiting.
-9. **On-device QR distribution system.** Localized, branded public invitation cards and secret dashboard-recovery cards exported as PNG/JPG without sending QR payloads to a third-party generator.
+8. **Safety and privacy operations.** End-to-end encrypted response payloads, creator-held decryption keys, short-lived content, atomic view-once deletion, aggregate-only analytics, reporting and rate limiting.
+9. **On-device QR distribution system.** Localized, branded public invitation cards and secret dashboard-recovery cards exported as PNG/JPG without sending QR payloads to a third-party generator. The private QR is the sole portable decryption-key backup.
 
 ## Protection actions before a sale
 

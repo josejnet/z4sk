@@ -6,6 +6,7 @@ import { Sponsor, TopNav } from "../../components/Brand";
 import type { Game } from "../../lib/types";
 import { type Locale, useLanguage } from "../../lib/i18n";
 import { flow } from "../../lib/flow-copy";
+import { encryptPrivateResponse } from "../../lib/response-crypto";
 
 const localized=<T,>(base:Record<Locale,T>)=>base;
 type MatchCopy={question:string;private:string;yes:string;no:string;title:string;copy:string;time:string;blind:string};
@@ -36,7 +37,7 @@ function countdown(expiresAt:string,now:number){const left=Math.max(0,new Date(e
 export function GameClient({ id }: { id: string }) {
   const { locale:preferredLocale,setLocale } = useLanguage();
   const [game, setGame] = useState<Game | null>(null);
-  const [phase, setPhase] = useState<"loading" | "intro" | "match" | "questions" | "sending" | "matchResult" | "done" | "error">("loading");
+  const [phase, setPhase] = useState<"loading" | "intro" | "match" | "questions" | "sending" | "done" | "error">("loading");
   const [message, setMessage] = useState("");
   const [respondentName, setRespondentName] = useState("");
   const [adult, setAdult] = useState(false);
@@ -54,7 +55,7 @@ export function GameClient({ id }: { id: string }) {
   async function submit() {
     if (!game) return;
     setPhase("sending"); setMessage("");
-    try { const response = await fetch(`/api/games/${id}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ respondentName, answers, reactions, matchInterest }) }); const data = await response.json() as { error?: string; matched?: boolean }; if (!response.ok) throw new Error(data.error); setPhase(data.matched ? "matchResult" : "done"); }
+    try { const encryptedResponse = await encryptPrivateResponse({ respondentName, answers, reactions, matchInterest }, game.encryptionPublicKey); const response = await fetch(`/api/games/${id}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedResponse, answerCount: answers.length }) }); const data = await response.json() as { error?: string }; if (!response.ok) throw new Error(data.error); setRespondentName(""); setAnswers([]); setReactions([]); setMatchInterest(null); setPhase("done"); }
     catch { setMessage(gameUi[locale].sendError); setPhase("questions"); }
   }
 
@@ -68,7 +69,6 @@ export function GameClient({ id }: { id: string }) {
   if (phase === "loading") return <main className="experience-page"><TopNav minimal /><div className="center-state"><div className="loader" /><p>{flow(locale, "loading")}</p></div></main>;
   if (phase === "error") return <main className="experience-page"><TopNav minimal /><div className="center-state"><span className="large-symbol">×</span><h1>{flow(locale, "closed")}</h1><p>{message}</p><a href="/" target="_top">{flow(locale, "createOwn")}</a></div></main>;
   if (phase === "done" && game) return <main className="experience-page"><TopNav minimal /><div className="center-state success-state"><span className="large-symbol">✓</span><div className="eyebrow">{flow(locale, "sent")}</div><h1>{flow(locale, "now", { name: game.creatorName })}</h1><p>{flow(locale, game.viewOnce ? "sentOnce" : "sentCopy")}</p><a className="primary-link" href="/" target="_top">{flow(locale, "createOther")} →</a><Sponsor compact /></div></main>;
-  if (phase === "matchResult" && game) return <main className="experience-page match-result"><TopNav minimal /><div className="center-state success-state"><div className="match-fire">🔥</div><div className="eyebrow">{matchCopy[locale].blind}</div><h1>{matchCopy[locale].title}</h1><p>{matchCopy[locale].copy}</p><div className="match-names"><span>{game.creatorName}</span><b>♡</b><span>{respondentName}</span></div><a className="primary-link" href="/" target="_top">{flow(locale,"createOther")} →</a></div></main>;
   if (phase === "match" && game) return <main className="experience-page"><TopNav minimal /><div className="center-state blind-question"><span className="large-symbol">◐</span><div className="eyebrow">{matchCopy[locale].blind}</div><h1>{matchCopy[locale].question.replace("{name}",game.creatorName)}</h1><p>{matchCopy[locale].private}</p><div className="blind-actions"><button onClick={()=>{setMatchInterest(false);setPhase("questions")}}>{matchCopy[locale].no}</button><button className="yes" onClick={()=>{setMatchInterest(true);setPhase("questions")}}>{matchCopy[locale].yes} 🔥</button></div></div></main>;
   if (!game) return null;
 

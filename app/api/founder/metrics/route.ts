@@ -15,11 +15,11 @@ export async function GET(request: Request) {
       db.prepare(`SELECT pack_slug AS label, COUNT(*) AS value FROM product_events WHERE event_type='created' GROUP BY pack_slug ORDER BY value DESC`),
       db.prepare(`SELECT source AS label, COUNT(*) AS value FROM product_events WHERE event_type='created' GROUP BY source ORDER BY value DESC`),
       db.prepare(`SELECT library_version AS label, COUNT(*) AS value FROM product_events WHERE event_type='created' GROUP BY library_version ORDER BY value DESC`),
-      db.prepare(`SELECT substr(created_at,1,10) AS day, SUM(CASE WHEN event_type='created' THEN 1 ELSE 0 END) AS created, SUM(CASE WHEN event_type='opened' THEN 1 ELSE 0 END) AS opened, SUM(CASE WHEN event_type='responded' THEN 1 ELSE 0 END) AS responded, SUM(CASE WHEN event_type='matched' THEN 1 ELSE 0 END) AS matched FROM product_events WHERE created_at >= datetime('now','-14 days') GROUP BY day ORDER BY day`),
+      db.prepare(`SELECT substr(created_at,1,10) AS day, SUM(CASE WHEN event_type='created' THEN 1 ELSE 0 END) AS created, SUM(CASE WHEN event_type='opened' THEN 1 ELSE 0 END) AS opened, SUM(CASE WHEN event_type='responded' THEN 1 ELSE 0 END) AS responded FROM product_events WHERE created_at >= datetime('now','-14 days') GROUP BY day ORDER BY day`),
       db.prepare(`SELECT COUNT(*) AS active, SUM(CASE WHEN premium=1 THEN 1 ELSE 0 END) AS ad_free, SUM(CASE WHEN view_once=1 THEN 1 ELSE 0 END) AS view_once, SUM(CASE WHEN double_blind=1 THEN 1 ELSE 0 END) AS double_blind FROM games WHERE closed=0 AND expires_at > ?`).bind(new Date().toISOString()),
-      db.prepare(`SELECT locale||':'||level AS label, SUM(completed_count) AS value, ROUND(AVG(CASE WHEN completed_count>0 THEN total_answer_chars*1.0/completed_count ELSE 0 END)) AS avg_depth FROM question_metrics GROUP BY locale,level ORDER BY value DESC`),
+      db.prepare(`SELECT locale||':'||level AS label, SUM(completed_count) AS value FROM question_metrics GROUP BY locale,level ORDER BY value DESC`),
       db.prepare(`SELECT last_run_at, last_source, last_expired_games, last_deleted_responses, total_expired_games, total_deleted_responses FROM privacy_status WHERE id='retention'`),
-      db.prepare(`SELECT COUNT(*) AS active_responses, SUM(CASE WHEN matched=1 THEN 1 ELSE 0 END) AS active_matches FROM responses`),
+      db.prepare(`SELECT COUNT(*) AS active_responses FROM responses`),
       db.prepare(`SELECT event_type AS label, COUNT(*) AS value FROM product_events WHERE created_at >= datetime('now','-24 hours') GROUP BY event_type ORDER BY value DESC`),
     ]);
     const rows=(index:number)=>results[index].results as Record<string,string|number>[];

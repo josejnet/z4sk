@@ -12,17 +12,22 @@
 ## Request flow
 
 ```text
-Browser / WhatsApp
-        |
+Creator browser: ECDH P-256 key pair
+        | public key only
         v
-Cloudflare Worker (React pages + API routes)
+Cloudflare Worker <--> D1: invitation metadata + response ciphertext
+        ^
+        | ephemeral ECDH + HKDF-SHA-256 + AES-256-GCM ciphertext
+Recipient browser
+
+Creator secret URL fragment: bearer token + private decryption key
         |
-        +--> D1: games and private responses
-        +--> D1: aggregate product/trend metrics
-        +--> static PWA and Open Graph assets
+        +--> creator browser decrypts responses locally
 ```
 
-The public URL contains only a random game ID. The creator URL places a 24-byte random token in the URL fragment, which browsers do not send to the server; the client sends it to private APIs in an `Authorization: Bearer` header. Only its SHA-256 hash is stored in D1. API responses use `cache-control: no-store` for private or mutable data.
+The public URL contains only a random game ID. The creator URL fragment contains a 24-byte API bearer token plus the ECDH private key. Fragments are not included in HTTP requests. The client sends only the bearer token to private APIs in an `Authorization: Bearer` header; D1 stores its SHA-256 hash. The decryption key is never sent to the API. API responses use `cache-control: no-store` for private or mutable data.
+
+The creator browser generates an extractable ECDH P-256 key pair at invitation creation. Only the public point is stored with the game. For each submission, the recipient browser creates an ephemeral ECDH key pair, derives a per-response AES-256-GCM key using HKDF-SHA-256 with a random salt, and encrypts respondent name, answers, reactions and double-blind interest locally. The server receives an authenticated ciphertext envelope containing the ephemeral public point, salt, IV and ciphertext. The creator dashboard derives the same content key and decrypts locally.
 
 Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK never receives or stores the optional recovery email; it is used locally to open `mailto:`, and the user's email provider processes it only if the message is sent. New API writes force the legacy `creator_email` column to an empty string, and runtime initialization clears any older active values.
 
@@ -30,8 +35,8 @@ Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK nev
 
 | Table | Purpose | Sensitive content |
 | --- | --- | --- |
-| `games` | configuration, expiry and hashed creator token; legacy email column forced empty | display names |
-| `responses` | respondent name, answer and reaction JSON, match flag | private answers |
+| `games` | configuration, expiry, public encryption key and hashed creator token; legacy email column forced empty | display names and selected questions |
+| `responses` | per-response authenticated ciphertext envelope; legacy plaintext columns forced empty | encrypted private payload only |
 | `question_metrics` | aggregate selection/completion signals | no answer text |
 | `trend_metrics` | aggregate country/language performance | no answer text |
 | `product_events` | funnel and attribution events | pseudonymous game ID |
@@ -46,9 +51,9 @@ Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK nev
 | `POST /api/games` | create an invitation | public, rate limited |
 | `GET /api/games/:id` | load public questionnaire | public ID |
 | `DELETE /api/games/:id?key=` | delete invitation and responses | creator token |
-| `POST /api/games/:id/responses` | submit answers | public, rate limited |
-| `GET /api/games/:id/responses?key=` | read creator dashboard | creator token |
-| `POST /api/games/:id/consume` | consume view-once response | creator token |
+| `POST /api/games/:id/responses` | store a browser-encrypted response | public, rate limited |
+| `GET /api/games/:id/responses` | return ciphertext for local creator decryption | creator bearer token |
+| `POST /api/games/:id/consume` | atomically delete and return one ciphertext, then delete the invitation | creator bearer token |
 | `POST /api/games/:id/unlock` | record share unlock | public |
 | `POST /api/games/:id/report` | report abuse and trigger closure threshold | public, rate limited |
 | `GET /api/smart-mix` | rank questions from aggregate signals | public |
@@ -72,7 +77,8 @@ Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK nev
 ## Architecture decisions
 
 - No user account database: possession of a high-entropy URL fragment grants creator access.
-- No answer-text analytics: strategic datasets use question hashes and aggregate counters.
+- End-to-end response encryption: the application server and D1 never receive the private decryption key or answer plaintext.
+- No answer-text, answer-length or match-choice analytics: strategic datasets use question hashes and aggregate completion counters.
 - D1 over external SaaS: one deployment surface, low initial cost and portable SQL data.
 - Payments off by default: growth is validated before adding checkout friction and compliance scope.
-- A Worker Cron runs every minute and removes expired games, responses and abuse reports from active D1; explicit delete and view-once consumption delete immediately.
+- A Worker Cron runs every minute and removes expired games, ciphertext responses and abuse reports from active D1. Explicit deletion is immediate. View-once consumption uses `DELETE … RETURNING` so the active response row is removed before its ciphertext is returned; the invitation is then deleted and the browser removes the secret fragment and key state after local decryption.

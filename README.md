@@ -20,12 +20,13 @@ Production: [z4sk.z4sk-app.workers.dev](https://z4sk.z4sk-app.workers.dev)
 - 12/24/48/72-hour destruction countdown
 - optional one-response, view-and-destroy mode
 - double-blind interest match
+- end-to-end encrypted response payloads using ECDH P-256, HKDF-SHA-256 and AES-256-GCM; the only private key stays in the creator URL fragment/QR and never enters D1
 - private creator dashboard and emoji reactions
 - Smart Mix question ranking based only on aggregate completion signals
 - sponsor packs, HTML/PNG/JPG invitation export, public/private QR cards and share-to-unlock ad removal
 - installable PWA, founder metrics and reusable `packages/z4sk-sdk`
 - abuse reporting, automatic closure and IP-based rate limits
-- one-minute expiry purging, immediate creator deletion and public live privacy proof
+- one-minute expiry purging, atomic view-once deletion-before-return, immediate creator deletion and public live privacy proof
 - payment surface intentionally disabled until commercial launch
 
 ## Local development

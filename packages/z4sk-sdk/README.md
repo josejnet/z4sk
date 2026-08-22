@@ -8,7 +8,6 @@ import { Z4skClient } from "@z4sk/viral-quiz-sdk";
 const z4sk = new Z4skClient("https://your-z4sk-domain.com");
 const quiz = await z4sk.createQuiz({
   creatorName: "Alex",
-  creatorEmail: "alex@example.com",
   recipientName: "Taylor",
   locale: "en",
   level: "coqueto",
@@ -21,4 +20,4 @@ const quiz = await z4sk.createQuiz({
 z4sk.mount(document.querySelector("#z4sk-widget")!);
 ```
 
-The creator’s `adminUrl` is a bearer secret and must never be logged, indexed, or sent to analytics providers.
+The SDK generates an ECDH P-256 key pair locally. Only the public key is sent to Z4SK; the private decryption key is appended to the `adminUrl` fragment and never reaches the API or D1. The complete `adminUrl` is therefore both a bearer secret and the only response-decryption key: never log, index or send it to analytics providers.

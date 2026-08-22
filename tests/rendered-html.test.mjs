@@ -30,7 +30,7 @@ test("server-renders the English-first Z4SK product", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, qrCard, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, runtime, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
+  const [builder, qrCard, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, runtime, responseCrypto, encryptionTypes, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/QrCard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/g/[id]/GameClient.tsx", import.meta.url), "utf8"),
@@ -50,6 +50,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
     readFile(new URL("../app/api/privacy-proof/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../db/privacy.ts", import.meta.url), "utf8"),
     readFile(new URL("../db/runtime.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/response-crypto.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/encryption-types.ts", import.meta.url), "utf8"),
     readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8"),
     readFile(new URL("../SELLABLE_ASSETS.md", import.meta.url), "utf8"),
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
@@ -77,22 +79,33 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /Z4SK never receives or stores it/);
   assert.match(builder, /<QrCard kind="invitation"/);
   assert.match(builder, /<QrCard kind="dashboard"/);
+  assert.match(builder, /generateResponseKeyPair/);
+  assert.match(builder, /attachPrivateDecryptionKey/);
+  assert.match(builder, /encryptionPublicKey: encryptionKeys\.publicKey/);
   assert.doesNotMatch(gameRoute, /body\.creatorEmail/);
+  assert.doesNotMatch(gameRoute, /body\.creatorInterest/);
   assert.doesNotMatch(sdk, /creatorEmail/);
-  assert.match(gameRoute, /VALUES \(\?, \?, '', \?/);
+  assert.match(sdk, /ECDH/);
+  assert.match(gameRoute, /encryption_public_key/);
   assert.match(qrCard, /import\("qrcode"\)/);
   assert.match(qrCard, /QRCode\.toCanvas/);
   assert.match(qrCard, /"image\/png"\|"image\/jpeg"/);
   assert.match(qrCard, /SECRET · DO NOT SHARE/);
   assert.match(qrCard, /generation=device_local/);
-  assert.match(qrCard, /qr\.role=password/);
+  assert.match(qrCard, /qr\.contains=ONLY_PRIVATE_DECRYPTION_KEY/);
   assert.match(gameClient, /setRespondentName\(data\.recipientName\)/);
+  assert.match(gameClient, /encryptPrivateResponse/);
+  assert.doesNotMatch(gameClient, /JSON\.stringify\(\{ respondentName, answers, reactions, matchInterest \}\)/);
   assert.match(dashboardClient, /role="alertdialog"/);
   assert.match(dashboardClient, /aria-modal="true"/);
   assert.doesNotMatch(dashboardClient, /confirm\(flow\(locale, "confirmReveal"\)\)/);
   assert.match(dashboardClient, /styles\.backHomeLink/);
   assert.match(dashboardClient, /aria-hidden="true">←/);
   assert.match(dashboardClient, /<a className=\{styles\.backHomeLink\} href="\/" target="_top">/);
+  assert.match(dashboardClient, /decryptPrivateResponse/);
+  assert.match(dashboardClient, /verifyPrivateDecryptionKey/);
+  assert.match(dashboardClient, /history\.replaceState\(\{\}, "", `\/p\/\$\{id\}`\)/);
+  assert.match(dashboardClient, /setPrivateKey\(""\)/);
   assert.match(brand, /<a className="brand" href="\/" target="_top" aria-label=\{navCopy\[locale\]\.home\}>/);
   assert.doesNotMatch(brand, /<Link className="brand"/);
   assert.equal(home.match(/target="_top"/g)?.length, 3);
@@ -123,9 +136,13 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(sdk, /"zh"\|"hi"/);
   assert.match(builder, /expiresInHours/);
   assert.match(consume, /deleteGameData/);
+  assert.match(consume, /DELETE FROM responses/);
+  assert.match(consume, /RETURNING id, encrypted_payload, created_at/);
   assert.match(consume, /no-store, no-cache/);
   assert.match(responseRoute, /trend_metrics/);
-  assert.match(responseRoute, /matched/);
+  assert.match(responseRoute, /encrypted_payload/);
+  assert.doesNotMatch(responseRoute, /body\.(?:respondentName|answers|reactions|matchInterest)/);
+  assert.doesNotMatch(responseRoute, /eventType:\s*"matched"/);
   assert.match(responseRoute, /checkRateLimit/);
   assert.match(reportRoute, /automaticallyClosed/);
   assert.match(reportRoute, /reported/);
@@ -134,7 +151,17 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(metricsRoute, /authorization/);
   assert.match(proofRoute, /live runtime self-audit/);
   assert.match(proofRoute, /Creator email never reaches active D1/);
+  assert.match(proofRoute, /Private decryption keys never enter D1/);
+  assert.match(proofRoute, /Every active response is ciphertext only/);
   assert.match(runtime, /UPDATE games SET creator_email = ''/);
+  assert.match(runtime, /DELETE FROM responses WHERE game_id IN/);
+  assert.match(runtime, /encrypted_payload = ''/);
+  assert.match(responseCrypto, /ECDH/);
+  assert.match(responseCrypto, /AES-GCM/);
+  assert.match(responseCrypto, /HKDF/);
+  assert.match(responseCrypto, /shared\.fill\(0\)/);
+  assert.match(responseCrypto, /private decryption key does not match this invitation/);
+  assert.match(encryptionTypes, /ECDH-P256\+HKDF-SHA256\+A256GCM/);
   assert.match(proofRoute, /No expired answers remain in active D1/);
   assert.match(privacyEngine, /purgeExpiredData/);
   assert.match(privacyEngine, /DELETE FROM responses WHERE game_id IN/);
@@ -162,7 +189,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
 test("publishes plain-language privacy and safety pages", async () => {
   const [privacy, safety, terms] = await Promise.all([render("/privacy"), render("/safety"), render("/terms")]);
   const legalPage = await readFile(new URL("../app/components/LegalPage.tsx", import.meta.url), "utf8");
-  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /Cloudflare D1 Time Travel/); assert.match(privacyHtml, /What the founder can see/);
+  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /end-to-end encrypted/); assert.match(privacyHtml, /Cloudflare Time Travel/); assert.match(privacyHtml, /What the founder can see/);
   assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect creator access/);
   assert.equal(terms.status, 200); assert.match(await terms.text(), /Payments are disabled/);
   assert.doesNotMatch(legalPage, /next\/link|<Link/);

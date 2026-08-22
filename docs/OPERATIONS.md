@@ -13,6 +13,8 @@
 
 Use non-personal test names and leave the optional email empty. Create a three-question invitation, verify both QR cards, load the public API, submit one response, read it with the secret creator URL, then delete the synthetic game. Never use real answers in test or issue logs.
 
+With a local server on port 3001, run `npm run verify:e2ee` to execute the reproducible view-once privacy check. It generates a temporary client-side ECDH key pair, sends only ciphertext, consumes the response once, decrypts it with the creator key and verifies that the active invitation cannot be fetched or consumed again.
+
 ## Incident priorities
 
 ### Private link or answer exposure

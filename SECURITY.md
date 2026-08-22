@@ -6,8 +6,10 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 
 ## Security model
 
-- creator dashboard URLs are bearer secrets; anyone possessing one can read that invitation’s responses
-- creator tokens are generated with Web Crypto and stored only as SHA-256 hashes
+- creator dashboard URLs contain two independent secrets: an API bearer token and the only private response-decryption key; anyone possessing the complete URL can read that invitation's responses
+- creator browsers generate ECDH P-256 key pairs with Web Crypto; D1 receives only the public key, while the private key remains in the creator URL fragment/QR
+- recipient browsers encrypt the complete private payload with ephemeral ECDH P-256, HKDF-SHA-256 and AES-256-GCM before transmission; active D1 stores only the ciphertext envelope
+- creator bearer tokens are generated with Web Crypto and stored only as SHA-256 hashes
 - founder metrics require a Cloudflare secret and return aggregate data only
 - new creator links keep the secret in the URL fragment and private APIs receive it in an authorization header
 - response APIs and private dashboards send `cache-control: no-store`
@@ -17,10 +19,12 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 ## Known risks
 
 - bearer links may leak through screenshots, clipboard history, referrers, analytics or messaging backups
-- private answers and creator emails are currently plaintext in D1
+- invitation metadata (creator/recipient display names, selected questions, locale and expiry) is not end-to-end encrypted
+- a compromised page, browser, extension, device, clipboard, screenshot or complete creator URL can expose decrypted answers
+- JavaScript can clear application state and mutable byte buffers after view-once consumption, but cannot prove physical erasure from browser memory managed by the runtime
 - legacy query-string creator secrets remain accepted for backward compatibility and can appear in infrastructure logs
 - there is no creator-link recovery or revocation independent of deleting the invitation
-- D1 Time Travel may retain recoverable history for 7 days on Free or 30 days on Paid after active deletion
+- D1 Time Travel may retain recoverable ciphertext and legacy pre-encryption history for 7 days on Free or 30 days on Paid after active deletion; ciphertext remains unreadable without the private creator key
 
 ## Required production controls
 
@@ -28,7 +32,7 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 - keep the GitHub repository private and require MFA for GitHub, Cloudflare and domain accounts
 - enable secret scanning, dependency alerts and branch protection where available
 - avoid third-party analytics on `/p/*`, `/g/*` and private API responses
-- define automated expiry/deletion jobs and an encrypted backup retention policy
+- retain the minute-level expiry purge and atomic view-once consume path; never export private creator URLs with database backups
 - perform a focused security and privacy review before public promotion or payment activation
 - monitor `/api/privacy-proof` and the minute-level Cron purge heartbeat
 

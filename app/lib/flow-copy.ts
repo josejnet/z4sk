@@ -19,6 +19,22 @@ const extraFlow:Partial<Record<Locale,Record<string,string>>>={
   machine:{loading:"OPEN invitation…",closed:"ERR_GONE",createOwn:"CREATE questionnaire",sent:"HTTP_201_ANSWERS",now:"TURN={name}",sentCopy:"answers.destination=private_dashboard",sentOnce:"answers.destination=private_dashboard; max_reads=1",createOther:"FORK questionnaire",from:"FROM::{name}",intro:'COUNT={count}; ACL=[{name}]',single:"max_responses=1",singleCopy:"ON {name}.open => DELETE_PERMANENT",who:"IDENTIFY respondent",name:"respondent.name",adult:"ASSERT respondent.age>=18",start:"RUN",question:"QUERY",answer:"RETURN string",previous:"PREV",next:"NEXT",send:"POST answers[]",sending:"TX_PENDING",encrypted:"transport=tls; destination=secret_dashboard",panelLoading:"OPEN admin_url…",panelError:"ERR_DASHBOARD_ACCESS",home:"NAVIGATE /",onceDeleted:"CONSUME_ONCE · SERVER_DATA_DELETED",onlyRead:"remaining_reads=1",dontClose:"NO_REFRESH; NO_CLOSE; server.response_exists=false",panelOf:"PRIVATE_DASHBOARD::{name}",answersFor:"ANSWERS_FOR",secret:"ACL=secret_url_holder",response:"RESPONSE",responses:"RESPONSES",copyAnswer:"COPY play_url",linkCopied:"COPY_OK",refresh:"REFRESH",delete:"DELETE_ALL",sealed:"SEALED_RESPONSE",someone:"response_count>0",sealedCopy:"ON consume: read_once=true; DELETE questionnaire,response FROM server IMMEDIATELY",destroy:"CONSUME_AND_DELETE",irreversible:"ROLLBACK=false",silent:"response_count=0",silentOnce:"SHARE play_url; AWAIT sealed_response",silentNormal:"SHARE play_url; POLL later",copyLink:"COPY_URL",hide:"COLLAPSE",viewAnswers:"EXPAND_ANSWERS",confirmReveal:"CONFIRM consume_once AND DELETE questionnaire,response FROM server?",confirmDelete:"CONFIRM DELETE questionnaire AND responses; rollback=false"}
 };
 Object.assign(FLOW_COPY,extraFlow);
+const E2EE_FLOW:Record<Locale,string>={
+  en:"Encrypted in this browser before sending. D1 receives only ciphertext; only the creator's secret link can decrypt it.",
+  es:"Se cifra en este navegador antes de enviarse. D1 solo recibe texto cifrado; únicamente el enlace secreto del creador puede descifrarlo.",
+  it:"Cifrato in questo browser prima dell'invio. D1 riceve solo testo cifrato; solo il link segreto del creatore può decifrarlo.",
+  fr:"Chiffré dans ce navigateur avant l’envoi. D1 ne reçoit que le texte chiffré ; seul le lien secret du créateur peut le déchiffrer.",
+  de:"Vor dem Senden in diesem Browser verschlüsselt. D1 erhält nur Ciphertext; nur der geheime Link des Erstellers kann ihn entschlüsseln.",
+  nl:"Voor verzending in deze browser versleuteld. D1 ontvangt alleen cijfertekst; alleen de geheime link van de maker kan die ontsleutelen.",
+  eo:"Ĉifrita en ĉi tiu retumilo antaŭ sendo. D1 ricevas nur ĉifrotekston; nur la sekreta ligilo de la kreinto povas deĉifri ĝin.",
+  pt:"Cifrado neste navegador antes do envio. O D1 recebe apenas texto cifrado; só o link secreto do criador consegue decifrá-lo.",
+  zh:"发送前已在此浏览器中加密。D1 只接收密文；只有创建者的秘密链接才能解密。",
+  hi:"भेजने से पहले इसी ब्राउज़र में एन्क्रिप्ट किया जाता है। D1 को केवल सिफरटेक्स्ट मिलता है; सिर्फ निर्माता का गुप्त लिंक इसे डिक्रिप्ट कर सकता है।",
+  ja:"送信前にこのブラウザ内で暗号化します。D1が受け取るのは暗号文だけで、作成者の秘密リンクだけが復号できます。",
+  tr:"Gönderilmeden önce bu tarayıcıda şifrelenir. D1 yalnızca şifreli metni alır; yalnızca oluşturucunun gizli bağlantısı çözebilir.",
+  machine:"encrypt.location=recipient_browser; D1.payload=ciphertext_only; decrypt.key=creator_url_fragment_only"
+};
+for(const locale of Object.keys(E2EE_FLOW) as Locale[])FLOW_COPY[locale]!.encrypted=E2EE_FLOW[locale];
 const requiredFlowKeys=Object.keys(FLOW_COPY.en!);
 for(const {id} of LOCALES){const translated=FLOW_COPY[id];if(!translated)throw new Error(`Missing flow language: ${id}`);for(const key of requiredFlowKeys){if(typeof translated[key]!=="string")throw new Error(`Missing flow translation: ${id}.${key}`);const expected=[...FLOW_COPY.en![key].matchAll(/\{(\w+)\}/g)].map((match)=>match[1]).sort().join(",");const actual=[...translated[key].matchAll(/\{(\w+)\}/g)].map((match)=>match[1]).sort().join(",");if(actual!==expected)throw new Error(`Flow placeholders differ: ${id}.${key}`);}}
 

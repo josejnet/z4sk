@@ -18,6 +18,7 @@ export type Game = {
   viewOnce: boolean;
   createdAt: string;
   responseCount?: number;
+  encryptionPublicKey: EncryptionPublicKey;
 };
 
 export type GameResponse = {
@@ -29,4 +30,11 @@ export type GameResponse = {
   createdAt: string;
 };
 
+export type StoredEncryptedResponse = {
+  id: string;
+  encryptedPayload: EncryptedResponseEnvelope;
+  createdAt: string;
+};
+
 import type { Locale } from "./i18n";
+import type { EncryptedResponseEnvelope, EncryptionPublicKey } from "./encryption-types";

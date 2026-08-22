@@ -14,8 +14,8 @@ export async function ensureSchema() {
   if (!schemaReady) schemaReady = (async () => {
     const db = getDatabase();
     await db.batch([
-      db.prepare(`CREATE TABLE IF NOT EXISTS games (id TEXT PRIMARY KEY, creator_token_hash TEXT NOT NULL, creator_email TEXT NOT NULL DEFAULT '', creator_name TEXT NOT NULL, recipient_name TEXT NOT NULL, title TEXT NOT NULL, level TEXT NOT NULL, locale TEXT NOT NULL DEFAULT 'en', library_version TEXT NOT NULL DEFAULT '2026.08', questions_json TEXT NOT NULL, premium INTEGER NOT NULL DEFAULT 0, view_once INTEGER NOT NULL DEFAULT 0, double_blind INTEGER NOT NULL DEFAULT 0, creator_interest INTEGER NOT NULL DEFAULT 0, pack_slug TEXT NOT NULL DEFAULT 'original', opened_at TEXT, closed INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, expires_at TEXT NOT NULL)`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS responses (id TEXT PRIMARY KEY, game_id TEXT NOT NULL REFERENCES games(id) ON DELETE CASCADE, respondent_name TEXT NOT NULL, answers_json TEXT NOT NULL, reactions_json TEXT NOT NULL DEFAULT '[]', matched INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS games (id TEXT PRIMARY KEY, creator_token_hash TEXT NOT NULL, creator_email TEXT NOT NULL DEFAULT '', creator_name TEXT NOT NULL, recipient_name TEXT NOT NULL, title TEXT NOT NULL, level TEXT NOT NULL, locale TEXT NOT NULL DEFAULT 'en', library_version TEXT NOT NULL DEFAULT '2026.08', questions_json TEXT NOT NULL, encryption_public_key TEXT NOT NULL DEFAULT '', premium INTEGER NOT NULL DEFAULT 0, view_once INTEGER NOT NULL DEFAULT 0, double_blind INTEGER NOT NULL DEFAULT 0, creator_interest INTEGER NOT NULL DEFAULT 0, pack_slug TEXT NOT NULL DEFAULT 'original', opened_at TEXT, closed INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, expires_at TEXT NOT NULL)`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS responses (id TEXT PRIMARY KEY, game_id TEXT NOT NULL REFERENCES games(id) ON DELETE CASCADE, respondent_name TEXT NOT NULL, answers_json TEXT NOT NULL, reactions_json TEXT NOT NULL DEFAULT '[]', encrypted_payload TEXT NOT NULL DEFAULT '', matched INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)`),
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_responses_game_created ON responses(game_id, created_at)`),
       db.prepare(`CREATE TABLE IF NOT EXISTS question_metrics (question_hash TEXT NOT NULL, locale TEXT NOT NULL, level TEXT NOT NULL, library_version TEXT NOT NULL, selected_count INTEGER NOT NULL DEFAULT 0, completed_count INTEGER NOT NULL DEFAULT 0, total_answer_chars INTEGER NOT NULL DEFAULT 0, last_completed_at TEXT, PRIMARY KEY (question_hash, locale, level, library_version))`),
       db.prepare(`CREATE TABLE IF NOT EXISTS trend_metrics (question_hash TEXT NOT NULL, country TEXT NOT NULL, locale TEXT NOT NULL, level TEXT NOT NULL, completed_count INTEGER NOT NULL DEFAULT 0, total_answer_chars INTEGER NOT NULL DEFAULT 0, last_completed_at TEXT NOT NULL, PRIMARY KEY (question_hash, country, locale, level))`),
@@ -30,6 +30,7 @@ export async function ensureSchema() {
     if (!columns.results.some((column) => column.name === "view_once")) await db.prepare(`ALTER TABLE games ADD COLUMN view_once INTEGER NOT NULL DEFAULT 0`).run();
     if (!columns.results.some((column) => column.name === "creator_email")) await db.prepare(`ALTER TABLE games ADD COLUMN creator_email TEXT NOT NULL DEFAULT ''`).run();
     await db.prepare(`UPDATE games SET creator_email = '' WHERE creator_email <> ''`).run();
+    if (!columns.results.some((column) => column.name === "encryption_public_key")) await db.prepare(`ALTER TABLE games ADD COLUMN encryption_public_key TEXT NOT NULL DEFAULT ''`).run();
     if (!columns.results.some((column) => column.name === "locale")) await db.prepare(`ALTER TABLE games ADD COLUMN locale TEXT NOT NULL DEFAULT 'en'`).run();
     if (!columns.results.some((column) => column.name === "library_version")) await db.prepare(`ALTER TABLE games ADD COLUMN library_version TEXT NOT NULL DEFAULT '2026.08'`).run();
     if (!columns.results.some((column) => column.name === "double_blind")) await db.prepare(`ALTER TABLE games ADD COLUMN double_blind INTEGER NOT NULL DEFAULT 0`).run();
@@ -39,6 +40,13 @@ export async function ensureSchema() {
     const responseColumns = await db.prepare(`PRAGMA table_info(responses)`).all<{ name: string }>();
     if (!responseColumns.results.some((column) => column.name === "reactions_json")) await db.prepare(`ALTER TABLE responses ADD COLUMN reactions_json TEXT NOT NULL DEFAULT '[]'`).run();
     if (!responseColumns.results.some((column) => column.name === "matched")) await db.prepare(`ALTER TABLE responses ADD COLUMN matched INTEGER NOT NULL DEFAULT 0`).run();
+    if (!responseColumns.results.some((column) => column.name === "encrypted_payload")) await db.prepare(`ALTER TABLE responses ADD COLUMN encrypted_payload TEXT NOT NULL DEFAULT ''`).run();
+    await db.prepare(`DELETE FROM abuse_reports WHERE game_id IN (SELECT id FROM games WHERE encryption_public_key = '')`).run();
+    await db.prepare(`DELETE FROM responses WHERE game_id IN (SELECT id FROM games WHERE encryption_public_key = '') OR encrypted_payload = ''`).run();
+    await db.prepare(`DELETE FROM games WHERE encryption_public_key = ''`).run();
+    await db.prepare(`UPDATE games SET creator_interest = 0 WHERE creator_interest <> 0`).run();
+    await db.prepare(`UPDATE responses SET respondent_name = '', answers_json = '[]', reactions_json = '[]', matched = 0 WHERE encrypted_payload <> '' AND (respondent_name <> '' OR answers_json <> '[]' OR reactions_json <> '[]' OR matched <> 0)`).run();
+    await db.prepare(`DELETE FROM product_events WHERE event_type = 'matched'`).run();
   })().catch((error) => { schemaReady = null; throw error; });
   await schemaReady;
 }

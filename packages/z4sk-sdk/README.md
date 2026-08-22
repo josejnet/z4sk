@@ -13,6 +13,7 @@ const quiz = await z4sk.createQuiz({
   level: "coqueto",
   questions: ["Would you go on a date with me?", "What caught your eye?", "What should we do together?"],
   doubleBlind: true,
+  timedMode: true, // 30 seconds per question, with two required acknowledgements
   creatorInterest: true,
   expiresInHours: 12,
 });

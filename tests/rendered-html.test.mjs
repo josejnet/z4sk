@@ -68,6 +68,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /Share once & remove ads/);
   assert.match(builder, /Secret match/);
   assert.match(builder, /You answer first/);
+  assert.match(builder, /30-second challenge/);
+  assert.match(builder, /must confirm it twice before starting/);
+  assert.match(builder, /timedMode/);
   assert.match(builder, /Several people can answer with the same link/);
   assert.match(builder, /Varias personas pueden responder con el mismo enlace/);
   assert.match(builder, /deleted from the active database/);
@@ -100,6 +103,12 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameClient, /selectionStart/);
   assert.match(gameClient, /setSelectionRange\(cursor,cursor\)/);
   assert.match(gameClient, /INSERT_EMOJI_AT_CURSOR/);
+  assert.match(gameClient, /timed-confirm-one/);
+  assert.match(gameClient, /timed-confirm-two/);
+  assert.match(gameClient, /deadline=Date\.now\(\)\+30_000/);
+  assert.match(gameClient, /useEffectEvent/);
+  assert.match(gameClient, /handleQuestionTimeout\(\)/);
+  assert.match(gameClient, /navigation\.back=false/);
   assert.doesNotMatch(gameClient, /JSON\.stringify\(\{ respondentName, answers, reactions, matchInterest \}\)/);
   assert.match(dashboardClient, /role="alertdialog"/);
   assert.match(dashboardClient, /aria-modal="true"/);
@@ -139,6 +148,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(questions, /मेरे बारे में आपकी पहली राय क्या थी/);
   assert.match(gameRoute, /"zh", "hi"/);
   assert.match(sdk, /"zh"\|"hi"/);
+  assert.match(sdk, /timedMode\?:boolean/);
   assert.match(builder, /expiresInHours/);
   assert.match(consume, /deleteGameData/);
   assert.match(consume, /DELETE FROM responses/);
@@ -153,11 +163,13 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(reportRoute, /reported/);
   assert.match(metricsRoute, /FOUNDER_DASHBOARD_KEY/);
   assert.match(metricsRoute, /Aggregate metrics only/);
+  assert.match(metricsRoute, /timed_mode/);
   assert.match(metricsRoute, /authorization/);
   assert.match(proofRoute, /live runtime self-audit/);
   assert.match(proofRoute, /Creator email never reaches active D1/);
   assert.match(proofRoute, /Private decryption keys never enter D1/);
   assert.match(proofRoute, /Every active response is ciphertext only/);
+  assert.match(runtime, /timed_mode INTEGER NOT NULL DEFAULT 0/);
   assert.match(runtime, /UPDATE games SET creator_email = ''/);
   assert.match(runtime, /DELETE FROM responses WHERE game_id IN/);
   assert.match(runtime, /encrypted_payload = ''/);

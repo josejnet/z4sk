@@ -10,6 +10,7 @@ export type Game = {
   locale: Locale;
   libraryVersion: string;
   doubleBlind: boolean;
+  timedMode: boolean;
   expiresAt: string;
   openedAt?: string | null;
   packSlug: string;

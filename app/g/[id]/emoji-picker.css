@@ -1,0 +1,30 @@
+.quick-reactions {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.emoji-picker-label {
+  flex-basis: 100%;
+  color: #817974;
+  font: 700 8px/1.2 var(--font-mono);
+  letter-spacing: 0.12em;
+}
+
+.quick-reactions button:focus-visible {
+  border-color: var(--orange);
+  background: rgba(255, 90, 31, 0.08);
+  filter: none;
+  outline: 2px solid color-mix(in srgb, var(--orange) 58%, transparent);
+  outline-offset: 2px;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 620px) {
+  .quick-reactions {
+    gap: 7px;
+  }
+
+  .quick-reactions button {
+    width: 40px;
+  }
+}

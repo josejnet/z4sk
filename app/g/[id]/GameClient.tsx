@@ -1,12 +1,13 @@
 "use client";
 /* eslint-disable @next/next/no-html-link-for-pages */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sponsor, TopNav } from "../../components/Brand";
 import type { Game } from "../../lib/types";
 import { type Locale, useLanguage } from "../../lib/i18n";
 import { flow } from "../../lib/flow-copy";
 import { encryptPrivateResponse } from "../../lib/response-crypto";
+import "./emoji-picker.css";
 
 const localized=<T,>(base:Record<Locale,T>)=>base;
 type MatchCopy={question:string;private:string;yes:string;no:string;title:string;copy:string;time:string;blind:string};
@@ -32,6 +33,15 @@ const reportCopy = localized<{button:string;confirm:string;sent:string}>({
 const gameUi=localized<{openError:string;sendError:string}>({
   en:{openError:"Could not open this questionnaire.",sendError:"Could not send your answers."},es:{openError:"No se pudo abrir este cuestionario.",sendError:"No se pudieron enviar tus respuestas."},it:{openError:"Impossibile aprire questo questionario.",sendError:"Impossibile inviare le risposte."},fr:{openError:"Impossible d’ouvrir ce questionnaire.",sendError:"Impossible d’envoyer vos réponses."},de:{openError:"Dieser Fragebogen konnte nicht geöffnet werden.",sendError:"Deine Antworten konnten nicht gesendet werden."},nl:{openError:"Deze vragenlijst kon niet worden geopend.",sendError:"Je antwoorden konden niet worden verstuurd."},eo:{openError:"Ne eblis malfermi ĉi tiun demandaron.",sendError:"Ne eblis sendi viajn respondojn."},pt:{openError:"Não foi possível abrir este questionário.",sendError:"Não foi possível enviar as tuas respostas."},zh:{openError:"无法打开这份问卷。",sendError:"无法发送你的回答。"},hi:{openError:"यह प्रश्नपत्र नहीं खुल सका।",sendError:"आपके जवाब नहीं भेजे जा सके।"},ja:{openError:"この質問を開けませんでした。",sendError:"回答を送信できませんでした。"},tr:{openError:"Bu soru formu açılamadı.",sendError:"Yanıtların gönderilemedi."},machine:{openError:"ERR_QUESTIONNAIRE_OPEN",sendError:"ERR_ANSWERS_POST"}
 });
+const emojiPickerLabel=localized<string>({
+  en:"ADD TO YOUR ANSWER",es:"AÑADIR A TU RESPUESTA",it:"AGGIUNGI ALLA RISPOSTA",fr:"AJOUTER À VOTRE RÉPONSE",de:"ZUR ANTWORT HINZUFÜGEN",nl:"AAN JE ANTWOORD TOEVOEGEN",eo:"ALDONI AL VIA RESPONDO",pt:"ADICIONAR À RESPOSTA",zh:"添加到回答",hi:"जवाब में जोड़ें",ja:"回答に追加",tr:"YANITA EKLE",machine:"INSERT_EMOJI_AT_CURSOR"
+});
+const emojiSets:Record<Game["level"],readonly string[]>={
+  curioso:["😄","🤭","👀","✨","😂","🙈"],
+  coqueto:["😉","😏","🥰","❤️","😘","💫"],
+  picante:["🔥","😈","💋","🫦","🥵","👀"],
+  sinfiltro:["🔥","😈","🫦","🥵","🍑","💦"]
+};
 function countdown(expiresAt:string,now:number){const left=Math.max(0,new Date(expiresAt).getTime()-now);const hours=Math.floor(left/3600000);const minutes=Math.floor((left%3600000)/60000);const seconds=Math.floor((left%60000)/1000);return `${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;}
 
 export function GameClient({ id }: { id: string }) {
@@ -47,6 +57,7 @@ export function GameClient({ id }: { id: string }) {
   const [matchInterest, setMatchInterest] = useState<boolean | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [reportSent, setReportSent] = useState(false);
+  const answerRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
 
@@ -65,6 +76,19 @@ export function GameClient({ id }: { id: string }) {
     if (response.ok) setReportSent(true);
   }
 
+  function insertEmoji(emoji:string) {
+    const textarea=answerRef.current;
+    const current=answers[index]||"";
+    const start=textarea?.selectionStart??current.length;
+    const end=textarea?.selectionEnd??current.length;
+    if(current.length-(end-start)+emoji.length>800)return;
+    const next=`${current.slice(0,start)}${emoji}${current.slice(end)}`;
+    const cursor=start+emoji.length;
+    setAnswers((values)=>values.map((value,answerIndex)=>answerIndex===index?next:value));
+    setReactions((values)=>values.map((value,reactionIndex)=>reactionIndex===index?emoji:value));
+    requestAnimationFrame(()=>{textarea?.focus();textarea?.setSelectionRange(cursor,cursor);});
+  }
+
   const locale = game?.locale || preferredLocale;
   if (phase === "loading") return <main className="experience-page"><TopNav minimal /><div className="center-state"><div className="loader" /><p>{flow(locale, "loading")}</p></div></main>;
   if (phase === "error") return <main className="experience-page"><TopNav minimal /><div className="center-state"><span className="large-symbol">×</span><h1>{flow(locale, "closed")}</h1><p>{message}</p><a href="/" target="_top">{flow(locale, "createOwn")}</a></div></main>;
@@ -75,5 +99,5 @@ export function GameClient({ id }: { id: string }) {
   if (phase === "intro") return <main className={`experience-page pack-${game.packSlug}`}><TopNav minimal /><section className="invitation-intro"><div className="invitation-card"><div className="countdown"><span>{matchCopy[locale].time}</span><b>{countdown(game.expiresAt,now)}</b></div><span className="eyebrow">{flow(locale, "from", { name: game.creatorName.toUpperCase() })}</span><div className="intro-spark">✦</div><h1>{game.recipientName},<br /><em>Z4SK.</em></h1><p>{flow(locale, "intro", { count: game.questions.length, name: game.creatorName })}</p>{game.viewOnce && <div className="burn-note"><span>◉</span><p><b>{flow(locale, "single")}</b> {flow(locale, "singleCopy", { name: game.creatorName })}</p></div>}<label htmlFor="respondent">{flow(locale, "who")}</label><input id="respondent" value={respondentName} onChange={(event) => setRespondentName(event.target.value.slice(0, 40))} placeholder={flow(locale, "name")} />{game.level === "sinfiltro" && <label className="age-check"><input type="checkbox" checked={adult} onChange={(event) => setAdult(event.target.checked)} /><span>{flow(locale, "adult")}</span></label>}<button className="primary" disabled={respondentName.trim().length < 2 || (game.level === "sinfiltro" && !adult)} onClick={() => setPhase(game.doubleBlind?"match":"questions")}>{flow(locale, "start")} <span>→</span></button><button type="button" className="report-link" disabled={reportSent} onClick={reportInvitation}>{reportSent ? reportCopy[locale].sent : reportCopy[locale].button}</button></div>{!game.premium && <Sponsor compact />}</section></main>;
 
   const last = index === game.questions.length - 1;
-  return <main className={`question-page pack-${game.packSlug}`}><div className="question-top"><span className="mini-brand">Z4SK</span><span className="countdown-mini">{matchCopy[locale].time} {countdown(game.expiresAt,now)}</span><span>{respondentName}</span></div><div className="question-progress"><i style={{ width: `${((index + 1) / game.questions.length) * 100}%` }} /></div><section className="question-stage"><div className="question-number">{flow(locale, "question")} {String(index + 1).padStart(2, "0")} / {String(game.questions.length).padStart(2, "0")}</div><div className="quote">“</div><h1>{game.questions[index]}</h1><div className="quick-reactions">{["😳","🔥","❤️","😂"].map((emoji)=><button type="button" key={emoji} className={reactions[index]===emoji?"active":""} onClick={()=>setReactions((current)=>current.map((value,reactionIndex)=>reactionIndex===index?(value===emoji?"":emoji):value))}>{emoji}</button>)}</div><textarea aria-label={flow(locale, "answer")} value={answers[index]} onChange={(event) => setAnswers((current) => current.map((value, answerIndex) => answerIndex === index ? event.target.value.slice(0, 800) : value))} placeholder={flow(locale, "answer")} /><div className="answer-count">{answers[index].length}/800</div>{message && <p className="form-error">{message}</p>}<div className="question-actions"><button className="secondary" disabled={index === 0} onClick={() => setIndex((value) => value - 1)}>← {flow(locale, "previous")}</button><button className="primary" disabled={!answers[index].trim() || phase === "sending"} onClick={() => last ? submit() : setIndex((value) => value + 1)}>{phase === "sending" ? flow(locale, "sending") : last ? flow(locale, "send") : flow(locale, "next")}<span>→</span></button></div><small className="answer-privacy">◆ {flow(locale, "encrypted")}</small></section></main>;
+  return <main className={`question-page pack-${game.packSlug}`}><div className="question-top"><span className="mini-brand">Z4SK</span><span className="countdown-mini">{matchCopy[locale].time} {countdown(game.expiresAt,now)}</span><span>{respondentName}</span></div><div className="question-progress"><i style={{ width: `${((index + 1) / game.questions.length) * 100}%` }} /></div><section className="question-stage"><div className="question-number">{flow(locale, "question")} {String(index + 1).padStart(2, "0")} / {String(game.questions.length).padStart(2, "0")}</div><div className="quote">“</div><h1>{game.questions[index]}</h1><div className="quick-reactions"><span className="emoji-picker-label">{emojiPickerLabel[locale]}</span>{emojiSets[game.level].map((emoji)=><button type="button" key={emoji} className={reactions[index]===emoji?"active":""} aria-label={`${emojiPickerLabel[locale]}: ${emoji}`} aria-pressed={reactions[index]===emoji} title={`${emojiPickerLabel[locale]}: ${emoji}`} onMouseDown={(event)=>event.preventDefault()} onClick={()=>insertEmoji(emoji)}>{emoji}</button>)}</div><textarea ref={answerRef} aria-label={flow(locale, "answer")} value={answers[index]} onChange={(event) => setAnswers((current) => current.map((value, answerIndex) => answerIndex === index ? event.target.value.slice(0, 800) : value))} placeholder={flow(locale, "answer")} /><div className="answer-count">{answers[index].length}/800</div>{message && <p className="form-error">{message}</p>}<div className="question-actions"><button className="secondary" disabled={index === 0} onClick={() => setIndex((value) => value - 1)}>← {flow(locale, "previous")}</button><button className="primary" disabled={!answers[index].trim() || phase === "sending"} onClick={() => last ? submit() : setIndex((value) => value + 1)}>{phase === "sending" ? flow(locale, "sending") : last ? flow(locale, "send") : flow(locale, "next")}<span>→</span></button></div><small className="answer-privacy">◆ {flow(locale, "encrypted")}</small></section></main>;
 }

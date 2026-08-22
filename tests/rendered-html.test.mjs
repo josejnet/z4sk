@@ -95,6 +95,11 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(qrCard, /qr\.contains=ONLY_PRIVATE_DECRYPTION_KEY/);
   assert.match(gameClient, /setRespondentName\(data\.recipientName\)/);
   assert.match(gameClient, /encryptPrivateResponse/);
+  assert.match(gameClient, /useRef<HTMLTextAreaElement>/);
+  assert.match(gameClient, /emojiSets\[game\.level\]/);
+  assert.match(gameClient, /selectionStart/);
+  assert.match(gameClient, /setSelectionRange\(cursor,cursor\)/);
+  assert.match(gameClient, /INSERT_EMOJI_AT_CURSOR/);
   assert.doesNotMatch(gameClient, /JSON\.stringify\(\{ respondentName, answers, reactions, matchInterest \}\)/);
   assert.match(dashboardClient, /role="alertdialog"/);
   assert.match(dashboardClient, /aria-modal="true"/);

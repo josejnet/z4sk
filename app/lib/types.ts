@@ -10,6 +10,7 @@ export type Game = {
   locale: Locale;
   libraryVersion: string;
   doubleBlind: boolean;
+  matchQuestion: string;
   timedMode: boolean;
   expiresAt: string;
   openedAt?: string | null;

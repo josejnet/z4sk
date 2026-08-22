@@ -28,7 +28,7 @@ Create → share → open → answer → match/read → remix. Ad removal is cur
 ## Differentiation
 
 - time-limited and optional single-response invitations
-- double-blind consent logic
+- double-blind consent logic with a creator-customizable question
 - optional 30-second questions with two explicit acknowledgements, deadline-based timing and automatic advance
 - end-to-end encrypted response payloads with the private key held only by the creator link
 - private bearer dashboard separate from the public link

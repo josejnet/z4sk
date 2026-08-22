@@ -19,7 +19,7 @@ Production: [z4sk.z4sk-app.workers.dev](https://z4sk.z4sk-app.workers.dev)
 - English (US), Spanish, Italian, French, German, Dutch, Esperanto, Portuguese, Simplified Chinese, Hindi, Japanese, Turkish and Machine/JSON question libraries
 - 12/24/48/72-hour destruction countdown
 - optional one-response, view-and-destroy mode
-- double-blind interest match
+- double-blind interest match with a creator-customizable match question
 - optional 30-second-per-question challenge with two mandatory recipient acknowledgements, automatic advance and no backtracking
 - end-to-end encrypted response payloads using ECDH P-256, HKDF-SHA-256 and AES-256-GCM; the only private key stays in the creator URL fragment/QR and never enters D1
 - private creator dashboard and emoji reactions

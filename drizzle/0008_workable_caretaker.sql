@@ -1,0 +1,1 @@
+ALTER TABLE `games` ADD `match_question` text DEFAULT '' NOT NULL;

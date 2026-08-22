@@ -1,6 +1,6 @@
 export type Z4skLocale="en"|"es"|"it"|"fr"|"de"|"nl"|"eo"|"pt"|"zh"|"hi"|"ja"|"tr"|"machine";
 export type Z4skLevel="curioso"|"coqueto"|"picante"|"sinfiltro";
-export type CreateQuizInput={creatorName:string;recipientName:string;locale?:Z4skLocale;level:Z4skLevel;questions:string[];viewOnce?:boolean;doubleBlind?:boolean;timedMode?:boolean;creatorInterest?:boolean;expiresInHours?:12|24|48|72;packSlug?:"original"|"nightlife"|"creator"};
+export type CreateQuizInput={creatorName:string;recipientName:string;locale?:Z4skLocale;level:Z4skLevel;questions:string[];viewOnce?:boolean;doubleBlind?:boolean;matchQuestion?:string;timedMode?:boolean;creatorInterest?:boolean;expiresInHours?:12|24|48|72;packSlug?:"original"|"nightlife"|"creator"};
 export type CreatedQuiz={id:string;playUrl:string;adminUrl:string};
 
 async function responseKeys(){

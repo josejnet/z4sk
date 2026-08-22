@@ -67,6 +67,10 @@ test("ships privacy, defensibility and PWA assets", async () => {
   ]);
   assert.match(builder, /Share once & remove ads/);
   assert.match(builder, /Secret match/);
+  assert.match(builder, /YOUR SECRET MATCH QUESTION/);
+  assert.match(builder, /matchQuestion/);
+  assert.match(builder, /id="match-question"/);
+  assert.match(builder, /maxLength=\{180\}/);
   assert.match(builder, /You answer first/);
   assert.match(builder, /30-second challenge/);
   assert.match(builder, /must confirm it twice before starting/);
@@ -90,6 +94,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(sdk, /creatorEmail/);
   assert.match(sdk, /ECDH/);
   assert.match(gameRoute, /encryption_public_key/);
+  assert.match(gameRoute, /match_question/);
   assert.match(qrCard, /import\("qrcode"\)/);
   assert.match(qrCard, /QRCode\.toCanvas/);
   assert.match(qrCard, /"image\/png"\|"image\/jpeg"/);
@@ -103,6 +108,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameClient, /selectionStart/);
   assert.match(gameClient, /setSelectionRange\(cursor,cursor\)/);
   assert.match(gameClient, /INSERT_EMOJI_AT_CURSOR/);
+  assert.match(gameClient, /game\.matchQuestion\.trim\(\)/);
   assert.match(gameClient, /timed-confirm-one/);
   assert.match(gameClient, /timed-confirm-two/);
   assert.match(gameClient, /deadline=Date\.now\(\)\+30_000/);
@@ -118,6 +124,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(dashboardClient, /<a className=\{styles\.backHomeLink\} href="\/" target="_top">/);
   assert.match(dashboardClient, /decryptPrivateResponse/);
   assert.match(dashboardClient, /verifyPrivateDecryptionKey/);
+  assert.match(dashboardClient, /matchQuestion=\{data\.game\.matchQuestion\}/);
   assert.match(dashboardClient, /history\.replaceState\(\{\}, "", `\/p\/\$\{id\}`\)/);
   assert.match(dashboardClient, /setPrivateKey\(""\)/);
   assert.match(brand, /<a className="brand" href="\/" target="_top" aria-label=\{navCopy\[locale\]\.home\}>/);
@@ -149,6 +156,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameRoute, /"zh", "hi"/);
   assert.match(sdk, /"zh"\|"hi"/);
   assert.match(sdk, /timedMode\?:boolean/);
+  assert.match(sdk, /matchQuestion\?:string/);
   assert.match(builder, /expiresInHours/);
   assert.match(consume, /deleteGameData/);
   assert.match(consume, /DELETE FROM responses/);
@@ -170,6 +178,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(proofRoute, /Private decryption keys never enter D1/);
   assert.match(proofRoute, /Every active response is ciphertext only/);
   assert.match(runtime, /timed_mode INTEGER NOT NULL DEFAULT 0/);
+  assert.match(runtime, /match_question TEXT NOT NULL DEFAULT ''/);
   assert.match(runtime, /UPDATE games SET creator_email = ''/);
   assert.match(runtime, /DELETE FROM responses WHERE game_id IN/);
   assert.match(runtime, /encrypted_payload = ''/);

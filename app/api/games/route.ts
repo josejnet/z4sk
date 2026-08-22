@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     const locale = locales.has(cleanText(body.locale, 5)) ? cleanText(body.locale, 5) : "en";
     const libraryVersion = cleanText(body.libraryVersion, 20) || "2026.08";
     const doubleBlind = body.doubleBlind === true ? 1 : 0;
+    const matchQuestion = doubleBlind ? cleanText(body.matchQuestion, 180) : "";
     const timedMode = body.timedMode === true ? 1 : 0;
     const encryptionPublicKey = body.encryptionPublicKey;
     const packSlug = packs.has(cleanText(body.packSlug, 20)) ? cleanText(body.packSlug, 20) : "original";
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     const createdAt = new Date();
     const expiresAt = new Date(createdAt.getTime() + expiresInHours * 60 * 60 * 1000);
     const viewOnce = body.viewOnce === true ? 1 : 0;
-    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, premium, view_once, double_blind, timed_mode, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, 0, ?, 0, ?, ?)`).bind(id, tokenHash, creatorName, recipientName, `${recipientName} · Z4SK`, level, locale, libraryVersion, JSON.stringify(questions), JSON.stringify(encryptionPublicKey), viewOnce, doubleBlind, timedMode, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
+    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, premium, view_once, double_blind, match_question, timed_mode, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, 0, ?, ?)`).bind(id, tokenHash, creatorName, recipientName, `${recipientName} · Z4SK`, level, locale, libraryVersion, JSON.stringify(questions), JSON.stringify(encryptionPublicKey), viewOnce, doubleBlind, matchQuestion, timedMode, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
     const metricStatements = await Promise.all(questions.map(async (question) => db.prepare(`INSERT INTO question_metrics (question_hash, locale, level, library_version, selected_count, completed_count, total_answer_chars) VALUES (?, ?, ?, ?, 1, 0, 0) ON CONFLICT(question_hash, locale, level, library_version) DO UPDATE SET selected_count = selected_count + 1`).bind(await hashQuestion(question), locale, level, libraryVersion)));
     if (metricStatements.length) await db.batch(metricStatements);
     const country = String((request as Request & { cf?: { country?: string } }).cf?.country || request.headers.get("cf-ipcountry") || "XX").slice(0, 2).toUpperCase();

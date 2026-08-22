@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { bearerToken, deleteGameData, ensureSchema, getDatabase, hashToken, recordEvent } from "../../../../db/runtime";
 
 type Context = { params: Promise<{ id: string }> };
-type GameRow = { id: string; creator_name: string; recipient_name: string; title: string; level: string; locale: string; library_version: string; questions_json: string; encryption_public_key: string; premium: number; view_once: number; double_blind: number; timed_mode: number; pack_slug: string; opened_at: string | null; closed: number; created_at: string; expires_at: string; creator_token_hash: string };
+type GameRow = { id: string; creator_name: string; recipient_name: string; title: string; level: string; locale: string; library_version: string; questions_json: string; encryption_public_key: string; premium: number; view_once: number; double_blind: number; match_question: string; timed_mode: number; pack_slug: string; opened_at: string | null; closed: number; created_at: string; expires_at: string; creator_token_hash: string };
 
 export async function GET(_request: Request, context: Context) {
   try {
@@ -14,7 +14,7 @@ export async function GET(_request: Request, context: Context) {
     const count = await db.prepare(`SELECT COUNT(*) AS count FROM responses WHERE game_id = ?`).bind(id).first<{ count: number }>();
     if (game.view_once && Number(count?.count || 0) > 0) return NextResponse.json({ error: "Esta invitación era de una sola respuesta y ya ha sido contestada." }, { status: 410 });
     if (!game.opened_at) { const openedAt = new Date().toISOString(); const updated = await db.prepare(`UPDATE games SET opened_at = ? WHERE id = ? AND opened_at IS NULL`).bind(openedAt, id).run(); if (updated.meta.changes) { const country = String((_request as Request & { cf?: { country?: string } }).cf?.country || _request.headers.get("cf-ipcountry") || "XX").slice(0,2).toUpperCase(); await recordEvent({ eventType:"opened", gameId:id, locale:game.locale, level:game.level, country, packSlug:game.pack_slug, libraryVersion:game.library_version }); } }
-    return NextResponse.json({ id: game.id, creatorName: game.creator_name, recipientName: game.recipient_name, title: game.title, level: game.level, locale: game.locale, libraryVersion: game.library_version, questions: JSON.parse(game.questions_json), encryptionPublicKey: JSON.parse(game.encryption_public_key), premium: Boolean(game.premium), viewOnce: Boolean(game.view_once), doubleBlind: Boolean(game.double_blind), timedMode: Boolean(game.timed_mode), packSlug: game.pack_slug, openedAt: game.opened_at || new Date().toISOString(), createdAt: game.created_at, expiresAt: game.expires_at }, { headers: { "cache-control": "no-store" } });
+    return NextResponse.json({ id: game.id, creatorName: game.creator_name, recipientName: game.recipient_name, title: game.title, level: game.level, locale: game.locale, libraryVersion: game.library_version, questions: JSON.parse(game.questions_json), encryptionPublicKey: JSON.parse(game.encryption_public_key), premium: Boolean(game.premium), viewOnce: Boolean(game.view_once), doubleBlind: Boolean(game.double_blind), matchQuestion: game.match_question, timedMode: Boolean(game.timed_mode), packSlug: game.pack_slug, openedAt: game.opened_at || new Date().toISOString(), createdAt: game.created_at, expiresAt: game.expires_at }, { headers: { "cache-control": "no-store" } });
   } catch (error) { console.error("get-game", error); return NextResponse.json({ error: "No se pudo abrir el cuestionario." }, { status: 500 }); }
 }
 

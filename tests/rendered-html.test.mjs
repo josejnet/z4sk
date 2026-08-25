@@ -314,6 +314,9 @@ test("requires complete translations and hard navigation for every supported loc
   assert.match(flowCopy, /Missing flow translation:/);
   assert.match(legalCopy, /Record<Locale,LegalLocale>/);
   assert.match(legalCopy, /const OWNER_BLINDNESS_COPY:Record<Locale/);
+  assert.doesNotMatch(legalCopy, /Z4SK minimiza los datos de la invitación/);
+  assert.doesNotMatch(legalCopy, /no se garantiza el borrado físico en 24 horas/);
+  assert.doesNotMatch(legalCopy, /Vercel y Neon procesan metadatos operativos en infraestructura estadounidense/);
   for (const locale of locales) assert.match(legalCopy, new RegExp(`(?:^|\\s)${locale}:\\{`));
   for (const locale of locales) assert.match(legalCopy, new RegExp(`${locale}:\\{access:`));
   for (const source of [builder, game]) assert.match(source, /Record<Locale,T>/);

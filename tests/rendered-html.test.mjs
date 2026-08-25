@@ -186,6 +186,16 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(pwa, /Z4SK इंस्टॉल करें/);
   assert.match(questions, /你对我的第一印象是什么/);
   assert.match(questions, /मेरे बारे में आपकी पहली राय क्या थी/);
+  const noFilterBanks = [...questions.matchAll(/sinfiltro:\s*\[(.*?)\]/gs)].map((match) => match[1].match(/"(?:[^"\\]|\\.)*"/g) ?? []).filter((bank) => bank.length > 2);
+  assert.equal(noFilterBanks.length, 13);
+  for (const bank of noFilterBanks) { assert.equal(bank.length, 10); assert.equal(new Set(bank).size, 10); }
+  assert.match(questions, /¿Te gustaría tener sexo oral conmigo\?/);
+  assert.match(questions, /mutual_consent=true/);
+  assert.doesNotMatch(questions, /¿Qué fantasía nunca le has contado a nadie\?/);
+  assert.doesNotMatch(questions, /¿Cuál ha sido tu pensamiento más atrevido sobre mí\?/);
+  assert.doesNotMatch(questions, /¿Qué es lo más provocador que alguien puede decirte\?/);
+  assert.doesNotMatch(questions, /¿Prefieres tener el control o que te sorprendan\?/);
+  assert.doesNotMatch(questions, /¿Cuál es tu mayor debilidad cuando alguien te atrae\?/);
   assert.match(gameRoute, /"zh", "hi"/);
   assert.match(sdk, /"zh"\|"hi"/);
   assert.match(sdk, /timedMode\?:boolean/);

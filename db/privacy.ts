@@ -4,6 +4,16 @@ export async function hashToken(token: string) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+export async function hashRateLimitIdentifier(identifier: string, at = new Date()) {
+  const configuredSecret = process.env.RATE_LIMIT_HMAC_SECRET;
+  if (!configuredSecret && process.env.NODE_ENV === "production") throw new Error("RATE_LIMIT_HMAC_SECRET is required in production.");
+  const secret = configuredSecret || "z4sk-local-rate-limit-hmac-only";
+  const rotationBucket = at.toISOString().slice(0, 10);
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${rotationBucket}:${identifier}`));
+  return [...new Uint8Array(signature)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export async function deleteGameData(db: Database, id: string) {
   const pseudonymousGameId = await hashToken(`event:${id}`);
   return db.batch([
@@ -19,8 +29,8 @@ export async function purgeExpiredData(db: Database, source = "cron", now = new 
   let expiredGames = 0;
   let deletedResponses = 0;
 
-  for (let batch = 0; batch < 20; batch += 1) {
-    const expired = await db.prepare(`SELECT id FROM games WHERE expires_at <= ? LIMIT 100`).bind(runAt).all<{ id: string }>();
+  while (true) {
+    const expired = await db.prepare(`SELECT id FROM games WHERE expires_at <= ? LIMIT 250`).bind(runAt).all<{ id: string }>();
     if (!expired.results.length) break;
     const ids = expired.results.map((row) => row.id);
     const placeholders = ids.map(() => "?").join(",");

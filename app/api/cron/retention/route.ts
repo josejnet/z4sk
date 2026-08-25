@@ -4,7 +4,7 @@ import { ensureSchema, getDatabase, purgeExpiredData } from "../../../../db/runt
 export async function GET(request: Request) {
   const configuredSecret = process.env.CRON_SECRET;
   const supplied = request.headers.get("authorization");
-  if (configuredSecret && supplied !== `Bearer ${configuredSecret}`) {
+  if (!configuredSecret || supplied !== `Bearer ${configuredSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -13,7 +13,7 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 - founder metrics require a Vercel and Neon secret and return aggregate data only
 - new creator links keep the secret in the URL fragment and private APIs receive it in an authorization header
 - response APIs and private dashboards send `cache-control: no-store`
-- rate-limit identifiers hash the request IP with the route scope before storage
+- rate-limit identifiers use HMAC-SHA-256 with a server-only secret and a daily rotation bucket; raw IP addresses are not stored
 - payments, push and WhatsApp Business integrations are disabled
 
 ## Known risks
@@ -22,19 +22,20 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 - invitation metadata (creator/recipient display names, selected questions, locale and expiry) is not end-to-end encrypted
 - a compromised page, browser, extension, device, clipboard, screenshot or complete creator URL can expose decrypted answers
 - JavaScript can clear application state and mutable byte buffers after view-once consumption, but cannot prove physical erasure from browser memory managed by the runtime
-- legacy query-string creator secrets remain accepted for backward compatibility and can appear in infrastructure logs
+- creator secrets are accepted only through the `Authorization` header; URL query-string keys are rejected
 - there is no creator-link recovery or revocation independent of deleting the invitation
 - Provider backups may retain recoverable ciphertext according to the configured Neon retention policy after active deletion; ciphertext remains unreadable without the private creator key
 
 ## Required production controls
 
 - use a long random `FOUNDER_DASHBOARD_KEY` stored only in Vercel environment variables
+- use a separate long random `RATE_LIMIT_HMAC_SECRET` stored only in Vercel environment variables and rotate it after a suspected disclosure
 - keep the GitHub repository private and require MFA for GitHub, Vercel and Neon and domain accounts
 - enable secret scanning, dependency alerts and branch protection where available
 - avoid third-party analytics on `/p/*`, `/g/*` and private API responses
-- retain the minute-level expiry purge and atomic view-once consume path; never export private creator URLs with database backups
+- retain exact expiry checks on every public/private response path, the daily background purge and the single-statement view-once consume path; never export private creator URLs with database backups
 - perform a focused security and privacy review before public promotion or payment activation
-- monitor `/api/privacy-proof` and the minute-level Cron purge heartbeat
+- monitor `/api/privacy-proof` and investigate when the daily Cron heartbeat is older than 36 hours
 
 ## Supported versions
 

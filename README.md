@@ -27,7 +27,7 @@ Production is deployed from `main` to Vercel.
 - sponsor packs, HTML/PNG/JPG invitation export, public/private QR cards and share-to-unlock ad removal
 - installable PWA, founder metrics and reusable `packages/z4sk-sdk`
 - abuse reporting, automatic closure and IP-based rate limits
-- daily scheduled expiry purging, atomic view-once deletion-before-return, immediate creator deletion and public live privacy proof
+- exact expiry access cut-off, uncapped daily background purging, database-enforced single response, atomic view-once deletion-before-return, creator/recipient deletion and public live privacy proof
 - payment surface intentionally disabled until commercial launch
 
 ## Local development

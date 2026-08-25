@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sponsor, TopNav } from "../../components/Brand";
 import type { Game, GameResponse, StoredEncryptedResponse } from "../../lib/types";
 import type { Locale } from "../../lib/i18n";
@@ -31,6 +32,7 @@ const dashboardUi:Record<Locale,{missing:string;loadError:string;opened:string;a
 };
 
 export function DashboardClient({ id }: { id: string }) {
+  const router = useRouter();
   const [key, setKey] = useState("");
   const [privateKey, setPrivateKey] = useState("");
   const [creatorInterest, setCreatorInterest] = useState(false);
@@ -60,7 +62,7 @@ export function DashboardClient({ id }: { id: string }) {
   async function revealOnce() { setConfirmRevealOpen(false); setLoading(true); setError(""); try { const response = await fetch(`/api/games/${id}/consume`, { method: "POST", headers: { authorization: `Bearer ${key}` } }); const result = await response.json() as { questions: string[]; encryptionPublicKey: Game["encryptionPublicKey"]; doubleBlind: boolean; matchQuestion: string; response: StoredEncryptedResponse; error?: string }; if (!response.ok) throw new Error(result.error); const decrypted = await decryptPrivateResponse(result.response.encryptedPayload, result.encryptionPublicKey, privateKey); if (decrypted.answers.length !== result.questions.length || decrypted.reactions.length !== result.questions.length) throw new Error(dashboardUi[locale].loadError); setRevealed({ questions: result.questions, matchQuestion: result.matchQuestion, response: { id: result.response.id, respondentName: decrypted.respondentName, answers: decrypted.answers, reactions: decrypted.reactions, matched: Boolean(result.doubleBlind && creatorInterest && decrypted.matchInterest), createdAt: result.response.createdAt } }); setData(null); history.replaceState({}, "", `/p/${id}`); setKey(""); setPrivateKey(""); setCreatorInterest(false); } catch (cause) { setError(cause instanceof Error ? cause.message : flow(locale, "panelError")); } finally { setLoading(false); } }
   async function copyShare() { const url = `${window.location.origin}/g/${id}`; await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1600); }
   async function enableNotifications() { if (!("Notification" in window)) return; const permission = await Notification.requestPermission(); setNotifications(permission === "granted"); }
-  async function remove() { if (!confirm(flow(locale, "confirmDelete"))) return; const response = await fetch(`/api/games/${id}`, { method: "DELETE", headers: { authorization: `Bearer ${key}` } }); if (response.ok) window.location.href = "/"; }
+  async function remove() { if (!confirm(flow(locale, "confirmDelete"))) return; const response = await fetch(`/api/games/${id}`, { method: "DELETE", headers: { authorization: `Bearer ${key}` } }); if (response.ok) router.push("/"); }
 
   if (loading) return <main className="experience-page"><TopNav minimal /><div className="center-state"><div className="loader" /><p>{flow(locale, "panelLoading")}</p></div></main>;
   if (revealed) return <main className="dashboard-page"><TopNav minimal /><section className="revealed-head"><span className="eyebrow">{flow(locale, "onceDeleted")}</span><h1>{flow(locale, "onlyRead")}</h1><p>{flow(locale, "dontClose")}</p></section><section className="responses-wrap"><ResponseCard response={revealed.response} questions={revealed.questions} matchQuestion={revealed.matchQuestion} locale={locale} once /></section></main>;

@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
-    "verify:e2ee": "node scripts/verify-e2ee.mjs",
+    "verify:e2ee": "node --env-file-if-exists=.env.local scripts/verify-e2ee.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },
   "dependencies": {

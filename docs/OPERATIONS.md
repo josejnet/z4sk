@@ -6,7 +6,7 @@
 - watch Vercel Function errors, latency and Neon Postgres usage
 - review founder conversion funnel and unusual country/source spikes
 - review abuse-report volume and automatically closed invitations
-- verify the public privacy proof reports a purge within the last three minutes and zero expired responses
+- verify the public privacy proof reports a daily purge heartbeat no older than 36 hours and zero expired responses
 - keep dependencies, question-library changes and releases attributable in Git
 
 ## Synthetic smoke test
@@ -23,7 +23,7 @@ With a local server on port 3001, run `npm run verify:e2ee` to execute the repro
 2. Preserve only the minimum logs needed for investigation.
 3. Identify affected game IDs and time window without copying answer text.
 4. Delete exposed content when appropriate and document the decision.
-5. Rotate the founder key and any infrastructure credentials involved.
+5. Rotate the founder key, `RATE_LIMIT_HMAC_SECRET` and any infrastructure credentials involved.
 6. Obtain legal/privacy advice on notification obligations.
 
 ### Elevated errors
@@ -42,7 +42,7 @@ With a local server on port 3001, run `npm run verify:e2ee` to execute the repro
 
 ## Backup and export
 
-Do not create long-lived exports containing private answers. Neon backups follow the configured provider retention policy after active-row deletion. If an operational export is ever unavoidable, encrypt it, restrict access, document a short retention deadline and test secure deletion.
+Do not create long-lived exports containing private answers. Neon recovery history follows the restore window configured for the production project after active-row deletion. Verify that exact value in Neon, publish it through `NEON_RESTORE_WINDOW_HOURS`, and re-check it after plan or database changes. If an operational export is ever unavoidable, encrypt it, restrict access, document a short retention deadline and test secure deletion.
 
 ## Ownership handover
 

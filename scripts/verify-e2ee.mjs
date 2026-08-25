@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { neon } from "@neondatabase/serverless";
 
 const baseUrl = (process.env.Z4SK_VERIFY_URL || "http://localhost:3001").replace(/\/$/, "");
 const context = new TextEncoder().encode("z4sk-response-v1");
@@ -67,8 +68,8 @@ assert.ok(gameId && bearer);
 
 const privatePayload = { respondentName: "Synthetic respondent", answers: ["private alpha", "private beta", "private gamma"], reactions: ["🔥", "", "❤️"], matchInterest: true };
 const envelope = await encrypt(privatePayload, { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y, ext: true });
-const submitted = await json(`/api/games/${gameId}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedResponse: envelope, answerCount: questions.length }) });
-assert.equal(submitted.response.status, 201, JSON.stringify(submitted.body));
+const concurrentSubmissions = await Promise.all([1, 2].map(() => json(`/api/games/${gameId}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedResponse: envelope, answerCount: questions.length }) })));
+assert.deepEqual(concurrentSubmissions.map(({ response }) => response.status).sort(), [201, 409], "Concurrent single-use submissions were both accepted.");
 
 const beforeConsume = await json(`/api/games/${gameId}/responses`, { headers: { authorization: `Bearer ${bearer}` } });
 assert.equal(beforeConsume.body.sealed, true);
@@ -83,4 +84,43 @@ assert.equal(afterConsume.response.status, 404, "The invitation still exists aft
 const secondConsume = await json(`/api/games/${gameId}/consume`, { method: "POST", headers: { authorization: `Bearer ${bearer}` } });
 assert.equal(secondConsume.response.status, 403, "Consumed ciphertext was returned twice.");
 
-console.log(JSON.stringify({ ok: true, baseUrl, algorithm: envelope.alg, plaintextSentToDatabase: false, activeGameAfterConsume: false, ciphertextReadableWithCreatorKey: true }));
+const recipientDeleteGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Delete verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+assert.equal(recipientDeleteGame.response.status, 201, JSON.stringify(recipientDeleteGame.body));
+const recipientAdmin = new URL(recipientDeleteGame.body.adminUrl);
+const recipientGameId = recipientAdmin.pathname.split("/").pop();
+const recipientBearer = new URLSearchParams(recipientAdmin.hash.slice(1)).get("key");
+assert.ok(recipientGameId && recipientBearer);
+const recipientSubmission = await json(`/api/games/${recipientGameId}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedResponse: envelope, answerCount: questions.length }) });
+assert.equal(recipientSubmission.response.status, 201, JSON.stringify(recipientSubmission.body));
+assert.ok(recipientSubmission.body.responseId && recipientSubmission.body.deletionToken);
+const queryKeyAttempt = await json(`/api/games/${recipientGameId}/responses?key=legacy-query-token-must-not-work`);
+assert.equal(queryKeyAttempt.response.status, 403, "A legacy query-string creator key was accepted.");
+const recipientDeleted = await json(`/api/games/${recipientGameId}/responses`, { method: "DELETE", headers: { "content-type": "application/json", authorization: `Bearer ${recipientSubmission.body.deletionToken}` }, body: JSON.stringify({ responseId: recipientSubmission.body.responseId }) });
+assert.equal(recipientDeleted.response.status, 200, JSON.stringify(recipientDeleted.body));
+const afterRecipientDelete = await json(`/api/games/${recipientGameId}/responses`, { headers: { authorization: `Bearer ${recipientBearer}` } });
+assert.equal(afterRecipientDelete.body.game.responseCount, 0, "Recipient-deleted ciphertext remains in the creator dashboard.");
+const cleanup = await json(`/api/games/${recipientGameId}`, { method: "DELETE", headers: { authorization: `Bearer ${recipientBearer}` } });
+assert.equal(cleanup.response.status, 200, JSON.stringify(cleanup.body));
+
+let exactExpiryCutoff = false;
+if (process.env.DATABASE_URL) {
+  const expiryGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Expiry verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+  assert.equal(expiryGame.response.status, 201, JSON.stringify(expiryGame.body));
+  const expiryAdmin = new URL(expiryGame.body.adminUrl);
+  const expiryGameId = expiryAdmin.pathname.split("/").pop();
+  const expiryBearer = new URLSearchParams(expiryAdmin.hash.slice(1)).get("key");
+  assert.ok(expiryGameId && expiryBearer);
+  const expirySubmission = await json(`/api/games/${expiryGameId}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedResponse: envelope, answerCount: questions.length }) });
+  assert.equal(expirySubmission.response.status, 201, JSON.stringify(expirySubmission.body));
+  const sql = neon(process.env.DATABASE_URL);
+  await sql`UPDATE games SET expires_at = ${new Date(Date.now() - 1_000).toISOString()} WHERE id = ${expiryGameId}`;
+  const expiredPrivateRead = await json(`/api/games/${expiryGameId}/responses`, { headers: { authorization: `Bearer ${expiryBearer}` } });
+  assert.equal(expiredPrivateRead.response.status, 410, "The creator dashboard could read an expired response.");
+  const [activeExpiredGame] = await sql`SELECT COUNT(*)::int AS count FROM games WHERE id = ${expiryGameId}`;
+  const [activeExpiredResponse] = await sql`SELECT COUNT(*)::int AS count FROM responses WHERE game_id = ${expiryGameId}`;
+  assert.equal(activeExpiredGame.count, 0, "Expired invitation was not opportunistically deleted.");
+  assert.equal(activeExpiredResponse.count, 0, "Expired response remained in the active database.");
+  exactExpiryCutoff = true;
+}
+
+console.log(JSON.stringify({ ok: true, baseUrl, algorithm: envelope.alg, plaintextSentToDatabase: false, activeGameAfterConsume: false, ciphertextReadableWithCreatorKey: true, concurrentSingleUseAccepted: 1, recipientSelfDeletion: true, queryStringKeysRejected: true, exactExpiryCutoff }));

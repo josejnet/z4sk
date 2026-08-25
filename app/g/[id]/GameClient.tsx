@@ -33,6 +33,10 @@ const reportCopy = localized<{button:string;confirm:string;sent:string}>({
 const gameUi=localized<{openError:string;sendError:string}>({
   en:{openError:"Could not open this questionnaire.",sendError:"Could not send your answers."},es:{openError:"No se pudo abrir este cuestionario.",sendError:"No se pudieron enviar tus respuestas."},it:{openError:"Impossibile aprire questo questionario.",sendError:"Impossibile inviare le risposte."},fr:{openError:"Impossible d’ouvrir ce questionnaire.",sendError:"Impossible d’envoyer vos réponses."},de:{openError:"Dieser Fragebogen konnte nicht geöffnet werden.",sendError:"Deine Antworten konnten nicht gesendet werden."},nl:{openError:"Deze vragenlijst kon niet worden geopend.",sendError:"Je antwoorden konden niet worden verstuurd."},eo:{openError:"Ne eblis malfermi ĉi tiun demandaron.",sendError:"Ne eblis sendi viajn respondojn."},pt:{openError:"Não foi possível abrir este questionário.",sendError:"Não foi possível enviar as tuas respostas."},zh:{openError:"无法打开这份问卷。",sendError:"无法发送你的回答。"},hi:{openError:"यह प्रश्नपत्र नहीं खुल सका।",sendError:"आपके जवाब नहीं भेजे जा सके।"},ja:{openError:"この質問を開けませんでした。",sendError:"回答を送信できませんでした。"},tr:{openError:"Bu soru formu açılamadı.",sendError:"Yanıtların gönderilemedi."},machine:{openError:"ERR_QUESTIONNAIRE_OPEN",sendError:"ERR_ANSWERS_POST"}
 });
+const responseDeletionUi:Partial<Record<Locale,{button:string;confirm:string;deleted:string;error:string}>>={
+  en:{button:"Delete my response",confirm:"Permanently delete your encrypted response now? This cannot be undone.",deleted:"Your response has been permanently deleted.",error:"Your response could not be deleted."},
+  es:{button:"Borrar mi respuesta",confirm:"¿Eliminar ahora tu respuesta cifrada de forma permanente? No se puede deshacer.",deleted:"Tu respuesta se ha eliminado de forma permanente.",error:"No se pudo eliminar tu respuesta."}
+};
 const emojiPickerLabel=localized<string>({
   en:"ADD TO YOUR ANSWER",es:"AÑADIR A TU RESPUESTA",it:"AGGIUNGI ALLA RISPOSTA",fr:"AJOUTER À VOTRE RÉPONSE",de:"ZUR ANTWORT HINZUFÜGEN",nl:"AAN JE ANTWOORD TOEVOEGEN",eo:"ALDONI AL VIA RESPONDO",pt:"ADICIONAR À RESPOSTA",zh:"添加到回答",hi:"जवाब में जोड़ें",ja:"回答に追加",tr:"YANITA EKLE",machine:"INSERT_EMOJI_AT_CURSOR"
 });
@@ -76,6 +80,7 @@ export function GameClient({ id }: { id: string }) {
   const [timedConsentOne, setTimedConsentOne] = useState(false);
   const [timedConsentTwo, setTimedConsentTwo] = useState(false);
   const [questionSeconds, setQuestionSeconds] = useState(30);
+  const [deletionCredential, setDeletionCredential] = useState<{responseId:string;deletionToken:string}|null>(null);
   const answerRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
@@ -85,7 +90,7 @@ export function GameClient({ id }: { id: string }) {
   async function submit(finalAnswers=answers,finalReactions=reactions) {
     if (!game) return;
     setPhase("sending"); setMessage("");
-    try { const encryptedResponse = await encryptPrivateResponse({ respondentName, answers:finalAnswers, reactions:finalReactions, matchInterest }, game.encryptionPublicKey); const response = await fetch(`/api/games/${id}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedResponse, answerCount: finalAnswers.length }) }); const data = await response.json() as { error?: string }; if (!response.ok) throw new Error(data.error); setRespondentName(""); setAnswers([]); setReactions([]); setMatchInterest(null); setPhase("done"); }
+    try { const encryptedResponse = await encryptPrivateResponse({ respondentName, answers:finalAnswers, reactions:finalReactions, matchInterest }, game.encryptionPublicKey); const response = await fetch(`/api/games/${id}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedResponse, answerCount: finalAnswers.length }) }); const data = await response.json() as { responseId?:string; deletionToken?:string; error?: string }; if (!response.ok) throw new Error(data.error); if(data.responseId&&data.deletionToken)setDeletionCredential({responseId:data.responseId,deletionToken:data.deletionToken}); setRespondentName(""); setAnswers([]); setReactions([]); setMatchInterest(null); setPhase("done"); }
     catch { setMessage(gameUi[locale].sendError); setQuestionSeconds(30); setPhase("questions"); }
   }
 
@@ -111,6 +116,15 @@ export function GameClient({ id }: { id: string }) {
     if (response.ok) setReportSent(true);
   }
 
+  async function deleteOwnResponse() {
+    if(!deletionCredential)return;
+    const copy=responseDeletionUi[locale]||responseDeletionUi.en!;
+    if(!window.confirm(copy.confirm))return;
+    const response=await fetch(`/api/games/${id}/responses`,{method:"DELETE",headers:{"content-type":"application/json",authorization:`Bearer ${deletionCredential.deletionToken}`},body:JSON.stringify({responseId:deletionCredential.responseId})});
+    if(!response.ok){setMessage(copy.error);return;}
+    setDeletionCredential(null);setMessage(copy.deleted);
+  }
+
   function insertEmoji(emoji:string) {
     const textarea=answerRef.current;
     const current=answers[index]||"";
@@ -129,7 +143,7 @@ export function GameClient({ id }: { id: string }) {
   const locale = game?.locale || preferredLocale;
   if (phase === "loading") return <main className="experience-page"><TopNav minimal /><div className="center-state"><div className="loader" /><p>{flow(locale, "loading")}</p></div></main>;
   if (phase === "error") return <main className="experience-page"><TopNav minimal /><div className="center-state"><span className="large-symbol">×</span><h1>{flow(locale, "closed")}</h1><p>{message}</p><a href="/" target="_top">{flow(locale, "createOwn")}</a></div></main>;
-  if (phase === "done" && game) return <main className="experience-page"><TopNav minimal /><div className="center-state success-state"><span className="large-symbol">✓</span><div className="eyebrow">{flow(locale, "sent")}</div><h1>{flow(locale, "now", { name: game.creatorName })}</h1><p>{flow(locale, game.viewOnce ? "sentOnce" : "sentCopy")}</p><a className="primary-link" href="/" target="_top">{flow(locale, "createOther")} →</a><Sponsor compact /></div></main>;
+  if (phase === "done" && game) {const deletionCopy=responseDeletionUi[locale]||responseDeletionUi.en!;return <main className="experience-page"><TopNav minimal /><div className="center-state success-state"><span className="large-symbol">✓</span><div className="eyebrow">{flow(locale, "sent")}</div><h1>{flow(locale, "now", { name: game.creatorName })}</h1><p>{flow(locale, game.viewOnce ? "sentOnce" : "sentCopy")}</p>{deletionCredential&&<button type="button" className="text-button" onClick={deleteOwnResponse}>{deletionCopy.button}</button>}{message&&<p role="status">{message}</p>}<a className="primary-link" href="/" target="_top">{flow(locale, "createOther")} →</a><Sponsor compact /></div></main>};
   if (phase === "match" && game) return <main className="experience-page"><TopNav minimal /><div className="center-state blind-question"><span className="large-symbol">◐</span><div className="eyebrow">{matchCopy[locale].blind}</div><h1>{game.matchQuestion.trim()||matchCopy[locale].question.replace("{name}",game.creatorName)}</h1><p>{matchCopy[locale].private}</p><div className="blind-actions"><button onClick={()=>{setMatchInterest(false);setPhase("questions")}}>{matchCopy[locale].no}</button><button className="yes" onClick={()=>{setMatchInterest(true);setPhase("questions")}}>{matchCopy[locale].yes} 🔥</button></div></div></main>;
   if (!game) return null;
 

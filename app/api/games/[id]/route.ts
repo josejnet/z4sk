@@ -10,7 +10,9 @@ export async function GET(_request: Request, context: Context) {
     const { id } = await context.params;
     const db = getDatabase();
     const game = await db.prepare(`SELECT * FROM games WHERE id = ?`).bind(id).first<GameRow>();
-    if (!game || game.closed || new Date(game.expires_at) < new Date()) return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 404 });
+    if (!game) return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 404 });
+    if (new Date(game.expires_at) <= new Date()) { await deleteGameData(db, id); return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 410 }); }
+    if (game.closed) return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 404 });
     const count = await db.prepare(`SELECT COUNT(*) AS count FROM responses WHERE game_id = ?`).bind(id).first<{ count: number }>();
     if (game.view_once && Number(count?.count || 0) > 0) return NextResponse.json({ error: "Esta invitación era de una sola respuesta y ya ha sido contestada." }, { status: 410 });
     if (!game.opened_at) { const openedAt = new Date().toISOString(); const updated = await db.prepare(`UPDATE games SET opened_at = ? WHERE id = ? AND opened_at IS NULL`).bind(openedAt, id).run(); if (updated.meta.changes) { const country = String((_request as Request & { cf?: { country?: string } }).cf?.country || _request.headers.get("cf-ipcountry") || "XX").slice(0,2).toUpperCase(); await recordEvent({ eventType:"opened", gameId:id, locale:game.locale, level:game.level, country, packSlug:game.pack_slug, libraryVersion:game.library_version }); } }
@@ -27,7 +29,6 @@ export async function DELETE(request: Request, context: Context) {
     const db = getDatabase();
     const game = await db.prepare(`SELECT creator_token_hash, locale, level, pack_slug, library_version FROM games WHERE id = ?`).bind(id).first<{ creator_token_hash:string; locale:string; level:string; pack_slug:string; library_version:string }>();
     if (!game || game.creator_token_hash !== hash) return NextResponse.json({ error: "Enlace privado no válido." }, { status: 403 });
-    await recordEvent({ eventType:"deleted", gameId:id, locale:game.locale, level:game.level, packSlug:game.pack_slug, libraryVersion:game.library_version });
     await deleteGameData(db, id);
     return NextResponse.json({ ok: true }, { headers: { "cache-control": "no-store" } });
   } catch (error) { console.error("delete-game", error); return NextResponse.json({ error: "No se pudo eliminar." }, { status: 500 }); }

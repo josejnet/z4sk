@@ -36,12 +36,12 @@ Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK nev
 | Table | Purpose | Sensitive content |
 | --- | --- | --- |
 | `games` | configuration, expiry, public encryption key and hashed creator token; legacy email column forced empty | display names and selected questions |
-| `responses` | per-response authenticated ciphertext envelope; legacy plaintext columns forced empty | encrypted private payload only |
+| `responses` | per-response authenticated ciphertext envelope, single-use marker and hashed recipient deletion token; legacy plaintext columns forced empty | encrypted private payload only |
 | `question_metrics` | aggregate selection/completion signals | no answer text |
 | `trend_metrics` | aggregate country/language performance | no answer text |
 | `product_events` | funnel and attribution events | pseudonymous game ID |
 | `abuse_reports` | moderation reports | reason and game ID |
-| `rate_limits` | hashed IP-derived request counters | hashed identifier |
+| `rate_limits` | daily-rotating HMAC IP-derived request counters | keyed pseudonymous identifier |
 | `privacy_status` | latest purge heartbeat and aggregate deletion counts | no personal data |
 
 ## API map
@@ -50,9 +50,10 @@ Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK nev
 | --- | --- | --- |
 | `POST /api/games` | create an invitation | public, rate limited |
 | `GET /api/games/:id` | load public questionnaire | public ID |
-| `DELETE /api/games/:id?key=` | delete invitation and responses | creator token |
+| `DELETE /api/games/:id` | delete invitation and responses | creator bearer token |
 | `POST /api/games/:id/responses` | store a browser-encrypted response | public, rate limited |
 | `GET /api/games/:id/responses` | return ciphertext for local creator decryption | creator bearer token |
+| `DELETE /api/games/:id/responses` | delete one submitted ciphertext | recipient deletion bearer token |
 | `POST /api/games/:id/consume` | atomically delete and return one ciphertext, then delete the invitation | creator bearer token |
 | `POST /api/games/:id/unlock` | record share unlock | public |
 | `POST /api/games/:id/report` | report abuse and trigger closure threshold | public, rate limited |
@@ -81,4 +82,4 @@ Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK nev
 - No answer-text, answer-length or match-choice analytics: strategic datasets use question hashes and aggregate completion counters.
 - Vercel-managed Neon: one deployment surface, standard PostgreSQL and portable SQL data.
 - Payments off by default: growth is validated before adding checkout friction and compliance scope.
-- A Vercel Cron runs daily on the Hobby plan and removes expired games, ciphertext responses and abuse reports. Explicit deletion is immediate. View-once consumption uses `DELETE … RETURNING` so the active response row is removed before its ciphertext is returned; the invitation is then deleted and the browser removes the secret fragment and key state after local decryption.
+- A Vercel Cron runs daily on the Hobby plan and removes expired games, ciphertext responses and abuse reports without a fixed 2,000-row cap. Every public and private response route independently blocks access at the exact expiry deadline and opportunistically deletes expired rows. Hobby does not guarantee exact Cron timing or retries, so the product makes no 24-hour physical-deletion promise. Explicit creator deletion is an analytics-independent transaction. View-once consumption locks and deletes the response and complete invitation graph in one PostgreSQL statement before returning the ciphertext. A partial unique index prevents concurrent single-use submissions. New recipients receive a separate per-response deletion secret whose hash alone is stored.

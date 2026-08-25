@@ -3,7 +3,7 @@
 ## Daily/weekly checks
 
 - confirm homepage and invitation creation are responding
-- watch Cloudflare Worker errors, latency and D1 usage
+- watch Vercel Function errors, latency and Neon Postgres usage
 - review founder conversion funnel and unusual country/source spikes
 - review abuse-report volume and automatically closed invitations
 - verify the public privacy proof reports a purge within the last three minutes and zero expired responses
@@ -29,21 +29,21 @@ With a local server on port 3001, run `npm run verify:e2ee` to execute the repro
 ### Elevated errors
 
 1. Inspect Worker logs and deployment version.
-2. Test homepage, D1 query and one API route independently.
+2. Test homepage, Neon Postgres query and one API route independently.
 3. Roll back application code if the latest version caused the fault.
-4. Do not roll back or manually edit D1 until the migration impact is understood.
+4. Do not roll back or manually edit Neon Postgres until the migration impact is understood.
 
 ### Abuse campaign
 
-1. Tighten scoped rate limits or Cloudflare rules.
+1. Tighten scoped rate limits or Vercel Firewall rules.
 2. Review aggregate report counts and affected game IDs.
 3. Close abusive invitations; avoid inspecting answer text unless required and authorized.
 4. Record action, rationale and retention/deletion outcome.
 
 ## Backup and export
 
-Do not create long-lived exports containing private answers. Cloudflare D1 Time Travel remains available for 7 days on Free or 30 days on Paid even after active-row deletion. If an operational export is ever unavoidable, encrypt it, restrict access, document a short retention deadline and test secure deletion.
+Do not create long-lived exports containing private answers. Neon backups follow the configured provider retention policy after active-row deletion. If an operational export is ever unavoidable, encrypt it, restrict access, document a short retention deadline and test secure deletion.
 
 ## Ownership handover
 
-An acquisition handover must transfer the GitHub repository, Cloudflare account/resources, domains, trademark records, dependency/license inventory, founder-secret rotation procedure and access to aggregate metrics. Transfer credentials through a password manager, never through GitHub issues or repository files.
+An acquisition handover must transfer the GitHub repository, Vercel project and Neon database, domains, trademark records, dependency/license inventory, founder-secret rotation procedure and access to aggregate metrics. Transfer credentials through a password manager, never through GitHub issues or repository files.

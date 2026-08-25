@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { QUESTION_BANK } from "../../lib/questions";
+import { getQuestions } from "../../lib/questions";
 import type { Locale } from "../../lib/i18n";
 import type { Level } from "../../lib/types";
 import { ensureSchema, getDatabase, hashQuestion } from "../../../db/runtime";
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url); const locale = (locales.has(url.searchParams.get("locale") || "") ? url.searchParams.get("locale") : "en") as Locale; const country = (url.searchParams.get("country") || "US").slice(0, 2).toUpperCase();
     await ensureSchema(); const db = getDatabase();
-    const catalog = (Object.keys(QUESTION_BANK[locale]) as Level[]).flatMap((level) => QUESTION_BANK[locale][level].map((question) => ({ level, question })));
+    const catalog = (["curioso", "coqueto", "picante", "sinfiltro"] as Level[]).flatMap((level) => getQuestions(locale, level).map((question) => ({ level, question })));
     const hashes = await Promise.all(catalog.map((item) => hashQuestion(item.question))); const placeholders = hashes.map(() => "?").join(",");
     const rows = await db.prepare(`SELECT question_hash, level, completed_count, total_answer_chars FROM trend_metrics WHERE country = ? AND locale = ? AND completed_count >= 5 AND question_hash IN (${placeholders}) ORDER BY completed_count DESC LIMIT 10`).bind(country, locale, ...hashes).all<{ question_hash:string; level:string; completed_count:number; total_answer_chars:number }>();
     const byHash = new Map(hashes.map((hash, index) => [hash, catalog[index]]));

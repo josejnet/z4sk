@@ -2,10 +2,10 @@
 
 ## Runtime
 
-- UI and API: React 19 with vinext/App Router
-- edge runtime: Cloudflare Workers
-- persistence: Cloudflare D1 (SQLite)
-- schema management: Drizzle definitions and SQL migrations
+- UI and API: React 19 with Next.js App Router
+- runtime: Vercel Functions
+- persistence: Neon Postgres
+- schema management: idempotent SQL initialization
 - PWA: web manifest and service worker
 - integration asset: framework-neutral TypeScript client in `packages/z4sk-sdk`
 
@@ -15,7 +15,7 @@
 Creator browser: ECDH P-256 key pair
         | public key only
         v
-Cloudflare Worker <--> D1: invitation metadata + response ciphertext
+Vercel Function <--> Neon Postgres: invitation metadata + response ciphertext
         ^
         | ephemeral ECDH + HKDF-SHA-256 + AES-256-GCM ciphertext
 Recipient browser
@@ -25,7 +25,7 @@ Creator secret URL fragment: bearer token + private decryption key
         +--> creator browser decrypts responses locally
 ```
 
-The public URL contains only a random game ID. The creator URL fragment contains a 24-byte API bearer token plus the ECDH private key. Fragments are not included in HTTP requests. The client sends only the bearer token to private APIs in an `Authorization: Bearer` header; D1 stores its SHA-256 hash. The decryption key is never sent to the API. API responses use `cache-control: no-store` for private or mutable data.
+The public URL contains only a random game ID. The creator URL fragment contains a 24-byte API bearer token plus the ECDH private key. Fragments are not included in HTTP requests. The client sends only the bearer token to private APIs in an `Authorization: Bearer` header; Postgres stores its SHA-256 hash. The decryption key is never sent to the API. API responses use `cache-control: no-store` for private or mutable data.
 
 The creator browser generates an extractable ECDH P-256 key pair at invitation creation. Only the public point is stored with the game. The optional custom secret-match question is invitation metadata (`match_question`) and is never treated as private answer content; the two interest choices remain inside the encrypted response flow. Timed mode is invitation metadata (`timed_mode`); the browser enforces each question with an absolute deadline so background-tab throttling cannot pause the clock. At zero it preserves the text already entered, inserts a localized timeout marker when blank, and advances. For each submission, the recipient browser creates an ephemeral ECDH key pair, derives a per-response AES-256-GCM key using HKDF-SHA-256 with a random salt, and encrypts respondent name, answers, reactions and double-blind interest locally. The server receives an authenticated ciphertext envelope containing the ephemeral public point, salt, IV and ciphertext. The creator dashboard derives the same content key and decrypts locally.
 
@@ -71,14 +71,14 @@ Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK nev
 - `app/lib/questions.ts`: versioned question library
 - `app/lib/i18n.tsx` and `flow-copy.ts`: localization
 - `db/schema.ts` and `drizzle/`: data model and migrations
-- `db/runtime.ts`: D1 access, hashing, events and rate limits
-- `worker/index.ts` and `wrangler.jsonc`: Cloudflare entry and bindings
+- `db/runtime.ts`: Neon access, hashing, events and rate limits
+- `vercel.json`: Vercel framework and retention-cron configuration
 
 ## Architecture decisions
 
 - No user account database: possession of a high-entropy URL fragment grants creator access.
-- End-to-end response encryption: the application server and D1 never receive the private decryption key or answer plaintext.
+- End-to-end response encryption: the application server and database never receive the private decryption key or answer plaintext.
 - No answer-text, answer-length or match-choice analytics: strategic datasets use question hashes and aggregate completion counters.
-- D1 over external SaaS: one deployment surface, low initial cost and portable SQL data.
+- Vercel-managed Neon: one deployment surface, standard PostgreSQL and portable SQL data.
 - Payments off by default: growth is validated before adding checkout friction and compliance scope.
-- A Worker Cron runs every minute and removes expired games, ciphertext responses and abuse reports from active D1. Explicit deletion is immediate. View-once consumption uses `DELETE … RETURNING` so the active response row is removed before its ciphertext is returned; the invitation is then deleted and the browser removes the secret fragment and key state after local decryption.
+- A Vercel Cron runs daily on the Hobby plan and removes expired games, ciphertext responses and abuse reports. Explicit deletion is immediate. View-once consumption uses `DELETE … RETURNING` so the active response row is removed before its ciphertext is returned; the invitation is then deleted and the browser removes the secret fragment and key state after local decryption.

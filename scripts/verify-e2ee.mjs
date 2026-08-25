@@ -83,4 +83,4 @@ assert.equal(afterConsume.response.status, 404, "The invitation still exists aft
 const secondConsume = await json(`/api/games/${gameId}/consume`, { method: "POST", headers: { authorization: `Bearer ${bearer}` } });
 assert.equal(secondConsume.response.status, 403, "Consumed ciphertext was returned twice.");
 
-console.log(JSON.stringify({ ok: true, baseUrl, algorithm: envelope.alg, plaintextSentToD1: false, activeGameAfterConsume: false, ciphertextReadableWithCreatorKey: true }));
+console.log(JSON.stringify({ ok: true, baseUrl, algorithm: envelope.alg, plaintextSentToDatabase: false, activeGameAfterConsume: false, ciphertextReadableWithCreatorKey: true }));

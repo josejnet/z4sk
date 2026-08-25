@@ -20,19 +20,19 @@ const extraFlow:Partial<Record<Locale,Record<string,string>>>={
 };
 Object.assign(FLOW_COPY,extraFlow);
 const E2EE_FLOW:Record<Locale,string>={
-  en:"Encrypted in this browser before sending. D1 receives only ciphertext; only the creator's secret link can decrypt it.",
-  es:"Se cifra en este navegador antes de enviarse. D1 solo recibe texto cifrado; únicamente el enlace secreto del creador puede descifrarlo.",
-  it:"Cifrato in questo browser prima dell'invio. D1 riceve solo testo cifrato; solo il link segreto del creatore può decifrarlo.",
-  fr:"Chiffré dans ce navigateur avant l’envoi. D1 ne reçoit que le texte chiffré ; seul le lien secret du créateur peut le déchiffrer.",
-  de:"Vor dem Senden in diesem Browser verschlüsselt. D1 erhält nur Ciphertext; nur der geheime Link des Erstellers kann ihn entschlüsseln.",
-  nl:"Voor verzending in deze browser versleuteld. D1 ontvangt alleen cijfertekst; alleen de geheime link van de maker kan die ontsleutelen.",
-  eo:"Ĉifrita en ĉi tiu retumilo antaŭ sendo. D1 ricevas nur ĉifrotekston; nur la sekreta ligilo de la kreinto povas deĉifri ĝin.",
-  pt:"Cifrado neste navegador antes do envio. O D1 recebe apenas texto cifrado; só o link secreto do criador consegue decifrá-lo.",
-  zh:"发送前已在此浏览器中加密。D1 只接收密文；只有创建者的秘密链接才能解密。",
-  hi:"भेजने से पहले इसी ब्राउज़र में एन्क्रिप्ट किया जाता है। D1 को केवल सिफरटेक्स्ट मिलता है; सिर्फ निर्माता का गुप्त लिंक इसे डिक्रिप्ट कर सकता है।",
-  ja:"送信前にこのブラウザ内で暗号化します。D1が受け取るのは暗号文だけで、作成者の秘密リンクだけが復号できます。",
-  tr:"Gönderilmeden önce bu tarayıcıda şifrelenir. D1 yalnızca şifreli metni alır; yalnızca oluşturucunun gizli bağlantısı çözebilir.",
-  machine:"encrypt.location=recipient_browser; D1.payload=ciphertext_only; decrypt.key=creator_url_fragment_only"
+  en:"Encrypted in this browser before sending. The database receives only ciphertext; only the creator's secret link can decrypt it.",
+  es:"Se cifra en este navegador antes de enviarse. La base de datos solo recibe texto cifrado; únicamente el enlace secreto del creador puede descifrarlo.",
+  it:"Cifrato in questo browser prima dell'invio. Il database riceve solo testo cifrato; solo il link segreto del creatore può decifrarlo.",
+  fr:"Chiffré dans ce navigateur avant l’envoi. La base de données ne reçoit que le texte chiffré ; seul le lien secret du créateur peut le déchiffrer.",
+  de:"Vor dem Senden in diesem Browser verschlüsselt. Die Datenbank erhält nur Ciphertext; nur der geheime Link des Erstellers kann ihn entschlüsseln.",
+  nl:"Voor verzending in deze browser versleuteld. De database ontvangt alleen cijfertekst; alleen de geheime link van de maker kan die ontsleutelen.",
+  eo:"Ĉifrita en ĉi tiu retumilo antaŭ sendo. La datumbazo ricevas nur ĉifrotekston; nur la sekreta ligilo de la kreinto povas deĉifri ĝin.",
+  pt:"Cifrado neste navegador antes do envio. A base de dados recebe apenas texto cifrado; só o link secreto do criador consegue decifrá-lo.",
+  zh:"发送前已在此浏览器中加密。数据库只接收密文；只有创建者的秘密链接才能解密。",
+  hi:"भेजने से पहले इसी ब्राउज़र में एन्क्रिप्ट किया जाता है। डेटाबेस को केवल सिफरटेक्स्ट मिलता है; सिर्फ निर्माता का गुप्त लिंक इसे डिक्रिप्ट कर सकता है।",
+  ja:"送信前にこのブラウザ内で暗号化します。データベースが受け取るのは暗号文だけで、作成者の秘密リンクだけが復号できます。",
+  tr:"Gönderilmeden önce bu tarayıcıda şifrelenir. Veritabanı yalnızca şifreli metni alır; yalnızca oluşturucunun gizli bağlantısı çözebilir.",
+  machine:"encrypt.location=recipient_browser; database.payload=ciphertext_only; decrypt.key=creator_url_fragment_only"
 };
 for(const locale of Object.keys(E2EE_FLOW) as Locale[])FLOW_COPY[locale]!.encrypted=E2EE_FLOW[locale];
 const requiredFlowKeys=Object.keys(FLOW_COPY.en!);

@@ -1,12 +1,31 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { access, readFile, stat } from "node:fs/promises";
-import test from "node:test";
+import { fileURLToPath } from "node:url";
+import test, { after, before } from "node:test";
+
+const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+const port = 3123;
+let server;
+
+before(async () => {
+  server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(port)], { cwd: projectRoot, stdio: "ignore" });
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    try {
+      const response = await fetch(`http://localhost:${port}/`);
+      if (response.ok) return;
+    } catch {
+      // The server may still be starting; retry until the deadline.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error("Next.js test server did not start.");
+});
+
+after(() => server?.kill());
 
 async function render(path = "/") {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-  return worker.fetch(new Request(`http://localhost${path}`, { headers: { accept: "text/html", host: "localhost" } }), { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } }, { waitUntil() {}, passThroughOnException() {} });
+  return fetch(`http://localhost:${port}${path}`, { headers: { accept: "text/html" } });
 }
 
 test("server-renders the English-first Z4SK product", async () => {
@@ -30,7 +49,7 @@ test("server-renders the English-first Z4SK product", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, qrCard, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, runtime, responseCrypto, encryptionTypes, wrangler, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
+  const [builder, qrCard, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, runtime, responseCrypto, encryptionTypes, vercel, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/QrCard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/g/[id]/GameClient.tsx", import.meta.url), "utf8"),
@@ -52,7 +71,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
     readFile(new URL("../db/runtime.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/lib/response-crypto.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/lib/encryption-types.ts", import.meta.url), "utf8"),
-    readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8"),
+    readFile(new URL("../vercel.json", import.meta.url), "utf8"),
     readFile(new URL("../SELLABLE_ASSETS.md", import.meta.url), "utf8"),
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
     readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
@@ -175,8 +194,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(metricsRoute, /timed_mode/);
   assert.match(metricsRoute, /authorization/);
   assert.match(proofRoute, /live runtime self-audit/);
-  assert.match(proofRoute, /Creator email never reaches active D1/);
-  assert.match(proofRoute, /Private decryption keys never enter D1/);
+  assert.match(proofRoute, /Creator email never reaches the active database/);
+  assert.match(proofRoute, /Private decryption keys never enter the database/);
   assert.match(proofRoute, /Every active response is ciphertext only/);
   assert.match(runtime, /timed_mode INTEGER NOT NULL DEFAULT 0/);
   assert.match(runtime, /match_question TEXT NOT NULL DEFAULT ''/);
@@ -189,10 +208,10 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(responseCrypto, /shared\.fill\(0\)/);
   assert.match(responseCrypto, /private decryption key does not match this invitation/);
   assert.match(encryptionTypes, /ECDH-P256\+HKDF-SHA256\+A256GCM/);
-  assert.match(proofRoute, /No expired answers remain in active D1/);
+  assert.match(proofRoute, /No expired answers remain in the active database/);
   assert.match(privacyEngine, /purgeExpiredData/);
   assert.match(privacyEngine, /DELETE FROM responses WHERE game_id IN/);
-  assert.match(wrangler, /"crons": \["\* \* \* \* \*"\]/);
+  assert.match(vercel, /"schedule": "0 3 \* \* \*"/);
   assert.match(builder, /hash\.slice\(1\)/);
   assert.doesNotMatch(builder, /localStorage/);
   assert.match(manifest, /"display":"standalone"/);
@@ -216,7 +235,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
 test("publishes plain-language privacy and safety pages", async () => {
   const [privacy, safety, terms] = await Promise.all([render("/privacy"), render("/safety"), render("/terms")]);
   const legalPage = await readFile(new URL("../app/components/LegalPage.tsx", import.meta.url), "utf8");
-  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /end-to-end encrypted/); assert.match(privacyHtml, /Cloudflare Time Travel/); assert.match(privacyHtml, /What the founder can see/);
+  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /end-to-end encrypted/); assert.match(privacyHtml, /Neon Postgres/); assert.match(privacyHtml, /What the founder can see/);
   assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect creator access/);
   assert.equal(terms.status, 200); assert.match(await terms.text(), /Payments are disabled/);
   assert.doesNotMatch(legalPage, /next\/link|<Link/);

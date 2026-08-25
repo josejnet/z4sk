@@ -4,6 +4,7 @@ import type { EncryptedResponseEnvelope, EncryptionPublicKey, PrivateResponsePay
 import { isEncryptedResponseEnvelope } from "./encryption-types";
 
 const CONTEXT = new TextEncoder().encode("z4sk-response-v1");
+const asBufferSource = (bytes: Uint8Array) => bytes as unknown as BufferSource;
 
 function toBase64Url(bytes: Uint8Array) {
   let binary = "";
@@ -25,7 +26,7 @@ async function deriveContentKey(privateKey: CryptoKey, peerPublicKey: CryptoKey,
   const shared = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: peerPublicKey }, privateKey, 256));
   try {
     const material = await crypto.subtle.importKey("raw", shared, "HKDF", false, ["deriveKey"]);
-    return await crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt, info: CONTEXT }, material, { name: "AES-GCM", length: 256 }, false, [usage]);
+    return await crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt: asBufferSource(salt), info: asBufferSource(CONTEXT) }, material, { name: "AES-GCM", length: 256 }, false, [usage]);
   } finally {
     shared.fill(0);
   }
@@ -83,7 +84,7 @@ export async function encryptPrivateResponse(payload: PrivateResponsePayload, re
   const contentKey = await deriveContentKey(ephemeral.privateKey, recipientKey, salt, "encrypt");
   const plaintext = new TextEncoder().encode(JSON.stringify(payload));
   try {
-    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: CONTEXT, tagLength: 128 }, contentKey, plaintext);
+    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv: asBufferSource(iv), additionalData: asBufferSource(CONTEXT), tagLength: 128 }, contentKey, asBufferSource(plaintext));
     return {
       v: 1,
       alg: "ECDH-P256+HKDF-SHA256+A256GCM",
@@ -109,7 +110,7 @@ export async function decryptPrivateResponse(envelope: EncryptedResponseEnvelope
   const contentKey = await deriveContentKey(privateKey, ephemeralKey, salt, "decrypt");
   let clear = new Uint8Array();
   try {
-    clear = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv, additionalData: CONTEXT, tagLength: 128 }, contentKey, ciphertext));
+    clear = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: asBufferSource(iv), additionalData: asBufferSource(CONTEXT), tagLength: 128 }, contentKey, asBufferSource(ciphertext)));
     const payload = JSON.parse(new TextDecoder().decode(clear)) as Partial<PrivateResponsePayload>;
     if (typeof payload.respondentName !== "string" || payload.respondentName.length < 2 || payload.respondentName.length > 40 || !Array.isArray(payload.answers) || payload.answers.some((answer) => typeof answer !== "string" || !answer || answer.length > 800) || !Array.isArray(payload.reactions) || payload.reactions.some((reaction) => typeof reaction !== "string") || !(payload.matchInterest === null || typeof payload.matchInterest === "boolean")) throw new Error("Invalid decrypted response.");
     return payload as PrivateResponsePayload;

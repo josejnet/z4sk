@@ -1,13 +1,79 @@
-import { env } from "cloudflare:workers";
+import { neon, type FullQueryResults, type NeonQueryFunction } from "@neondatabase/serverless";
 import { hashToken } from "./privacy";
 
 export { deleteGameData, hashToken, purgeExpiredData } from "./privacy";
 
 let schemaReady: Promise<void> | null = null;
+let client: NeonQueryFunction<false, true> | null = null;
 
-export function getDatabase(): D1Database {
-  if (!env.DB) throw new Error("La base de datos no está disponible");
-  return env.DB;
+export type DatabaseResult<T = Record<string, unknown>> = {
+  results: T[];
+  success: true;
+  meta: { changes: number };
+};
+
+export class PreparedStatement {
+  constructor(readonly sql: string, readonly args: unknown[] = []) {}
+
+  bind(...args: unknown[]) {
+    return new PreparedStatement(this.sql, args);
+  }
+
+  private async execute() {
+    return getClient().query(numberPlaceholders(this.sql), this.args, { fullResults: true });
+  }
+
+  async run<T = Record<string, unknown>>() {
+    return toDatabaseResult<T>(await this.execute());
+  }
+
+  async all<T = Record<string, unknown>>() {
+    return toDatabaseResult<T>(await this.execute());
+  }
+
+  async first<T = Record<string, unknown>>() {
+    const result = await this.execute();
+    return (result.rows[0] as T | undefined) ?? null;
+  }
+}
+
+export type Database = {
+  prepare(sql: string): PreparedStatement;
+  batch<T = Record<string, unknown>>(statements: PreparedStatement[]): Promise<DatabaseResult<T>[]>;
+};
+
+function getClient() {
+  if (client) return client;
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL is required.");
+  client = neon<false, true>(url, { fullResults: true });
+  return client;
+}
+
+function numberPlaceholders(sql: string) {
+  let index = 0;
+  return sql.replace(/\?/g, () => `$${++index}`);
+}
+
+function toDatabaseResult<T>(result: FullQueryResults<false>): DatabaseResult<T> {
+  return { results: result.rows as unknown as T[], success: true, meta: { changes: result.rowCount } };
+}
+
+const database: Database = {
+  prepare(sql) {
+    return new PreparedStatement(sql);
+  },
+  async batch<T>(statements: PreparedStatement[]) {
+    const results = await getClient().transaction(
+      (tx) => statements.map((statement) => tx.query(numberPlaceholders(statement.sql), statement.args)),
+      { fullResults: true },
+    );
+    return results.map((result) => toDatabaseResult<T>(result));
+  },
+};
+
+export function getDatabase(): Database {
+  return database;
 }
 
 export async function ensureSchema() {
@@ -23,10 +89,11 @@ export async function ensureSchema() {
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_product_events_type_created ON product_events(event_type, created_at)`),
       db.prepare(`CREATE TABLE IF NOT EXISTS abuse_reports (id TEXT PRIMARY KEY, game_id TEXT NOT NULL, reason TEXT NOT NULL, country TEXT NOT NULL, created_at TEXT NOT NULL)`),
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_abuse_reports_game ON abuse_reports(game_id)`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS rate_limits (identifier_hash TEXT NOT NULL, scope TEXT NOT NULL, window_start INTEGER NOT NULL, request_count INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (identifier_hash, scope, window_start))`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS rate_limits (identifier_hash TEXT NOT NULL, scope TEXT NOT NULL, window_start BIGINT NOT NULL, request_count INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (identifier_hash, scope, window_start))`),
       db.prepare(`CREATE TABLE IF NOT EXISTS privacy_status (id TEXT PRIMARY KEY, last_run_at TEXT NOT NULL, last_source TEXT NOT NULL, last_expired_games INTEGER NOT NULL DEFAULT 0, last_deleted_responses INTEGER NOT NULL DEFAULT 0, total_expired_games INTEGER NOT NULL DEFAULT 0, total_deleted_responses INTEGER NOT NULL DEFAULT 0)`),
     ]);
-    const columns = await db.prepare(`PRAGMA table_info(games)`).all<{ name: string }>();
+    await db.prepare(`ALTER TABLE rate_limits ALTER COLUMN window_start TYPE BIGINT`).run();
+    const columns = await db.prepare(`SELECT column_name AS name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'games'`).all<{ name: string }>();
     if (!columns.results.some((column) => column.name === "view_once")) await db.prepare(`ALTER TABLE games ADD COLUMN view_once INTEGER NOT NULL DEFAULT 0`).run();
     if (!columns.results.some((column) => column.name === "creator_email")) await db.prepare(`ALTER TABLE games ADD COLUMN creator_email TEXT NOT NULL DEFAULT ''`).run();
     await db.prepare(`UPDATE games SET creator_email = '' WHERE creator_email <> ''`).run();
@@ -39,7 +106,7 @@ export async function ensureSchema() {
     if (!columns.results.some((column) => column.name === "creator_interest")) await db.prepare(`ALTER TABLE games ADD COLUMN creator_interest INTEGER NOT NULL DEFAULT 0`).run();
     if (!columns.results.some((column) => column.name === "pack_slug")) await db.prepare(`ALTER TABLE games ADD COLUMN pack_slug TEXT NOT NULL DEFAULT 'original'`).run();
     if (!columns.results.some((column) => column.name === "opened_at")) await db.prepare(`ALTER TABLE games ADD COLUMN opened_at TEXT`).run();
-    const responseColumns = await db.prepare(`PRAGMA table_info(responses)`).all<{ name: string }>();
+    const responseColumns = await db.prepare(`SELECT column_name AS name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'responses'`).all<{ name: string }>();
     if (!responseColumns.results.some((column) => column.name === "reactions_json")) await db.prepare(`ALTER TABLE responses ADD COLUMN reactions_json TEXT NOT NULL DEFAULT '[]'`).run();
     if (!responseColumns.results.some((column) => column.name === "matched")) await db.prepare(`ALTER TABLE responses ADD COLUMN matched INTEGER NOT NULL DEFAULT 0`).run();
     if (!responseColumns.results.some((column) => column.name === "encrypted_payload")) await db.prepare(`ALTER TABLE responses ADD COLUMN encrypted_payload TEXT NOT NULL DEFAULT ''`).run();
@@ -75,7 +142,7 @@ export async function recordEvent(input: { eventType: string; gameId: string; lo
 export async function checkRateLimit(request: Request, scope: string, maximum: number, windowMinutes = 10) {
   const ip = String((request as Request & { cf?: { connectingIp?: string } }).cf?.connectingIp || request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0] || "local");
   const identifierHash = await hashToken(`${scope}:${ip}`); const windowMs = windowMinutes * 60_000; const windowStart = Math.floor(Date.now() / windowMs) * windowMs; const db = getDatabase();
-  await db.prepare(`INSERT INTO rate_limits (identifier_hash, scope, window_start, request_count) VALUES (?, ?, ?, 1) ON CONFLICT(identifier_hash, scope, window_start) DO UPDATE SET request_count = request_count + 1`).bind(identifierHash, scope, windowStart).run();
+  await db.prepare(`INSERT INTO rate_limits (identifier_hash, scope, window_start, request_count) VALUES (?, ?, ?, 1) ON CONFLICT(identifier_hash, scope, window_start) DO UPDATE SET request_count = rate_limits.request_count + 1`).bind(identifierHash, scope, windowStart).run();
   const row = await db.prepare(`SELECT request_count FROM rate_limits WHERE identifier_hash = ? AND scope = ? AND window_start = ?`).bind(identifierHash, scope, windowStart).first<{ request_count:number }>();
   return { allowed:Number(row?.request_count||0)<=maximum, remaining:Math.max(0,maximum-Number(row?.request_count||0)), retryAfterSeconds:Math.ceil((windowStart+windowMs-Date.now())/1000) };
 }

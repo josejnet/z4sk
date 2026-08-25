@@ -4,7 +4,7 @@ export async function hashToken(token: string) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-export async function deleteGameData(db: D1Database, id: string) {
+export async function deleteGameData(db: Database, id: string) {
   const pseudonymousGameId = await hashToken(`event:${id}`);
   return db.batch([
     db.prepare(`DELETE FROM responses WHERE game_id = ?`).bind(id),
@@ -14,7 +14,7 @@ export async function deleteGameData(db: D1Database, id: string) {
   ]);
 }
 
-export async function purgeExpiredData(db: D1Database, source = "cron", now = new Date()) {
+export async function purgeExpiredData(db: Database, source = "cron", now = new Date()) {
   const runAt = now.toISOString();
   let expiredGames = 0;
   let deletedResponses = 0;
@@ -40,8 +40,9 @@ export async function purgeExpiredData(db: D1Database, source = "cron", now = ne
   const staleRateLimitBefore = now.getTime() - 24 * 60 * 60 * 1000;
   await db.batch([
     db.prepare(`DELETE FROM rate_limits WHERE window_start < ?`).bind(staleRateLimitBefore),
-    db.prepare(`INSERT INTO privacy_status (id, last_run_at, last_source, last_expired_games, last_deleted_responses, total_expired_games, total_deleted_responses) VALUES ('retention', ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET last_run_at = excluded.last_run_at, last_source = excluded.last_source, last_expired_games = excluded.last_expired_games, last_deleted_responses = excluded.last_deleted_responses, total_expired_games = total_expired_games + excluded.total_expired_games, total_deleted_responses = total_deleted_responses + excluded.total_deleted_responses`).bind(runAt, source.slice(0, 20), expiredGames, deletedResponses, expiredGames, deletedResponses),
+    db.prepare(`INSERT INTO privacy_status (id, last_run_at, last_source, last_expired_games, last_deleted_responses, total_expired_games, total_deleted_responses) VALUES ('retention', ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET last_run_at = excluded.last_run_at, last_source = excluded.last_source, last_expired_games = excluded.last_expired_games, last_deleted_responses = excluded.last_deleted_responses, total_expired_games = privacy_status.total_expired_games + excluded.total_expired_games, total_deleted_responses = privacy_status.total_deleted_responses + excluded.total_deleted_responses`).bind(runAt, source.slice(0, 20), expiredGames, deletedResponses, expiredGames, deletedResponses),
   ]);
 
   return { runAt, expiredGames, deletedResponses };
 }
+import type { Database } from "./runtime";

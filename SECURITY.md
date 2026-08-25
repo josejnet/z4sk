@@ -7,10 +7,10 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 ## Security model
 
 - creator dashboard URLs contain two independent secrets: an API bearer token and the only private response-decryption key; anyone possessing the complete URL can read that invitation's responses
-- creator browsers generate ECDH P-256 key pairs with Web Crypto; D1 receives only the public key, while the private key remains in the creator URL fragment/QR
-- recipient browsers encrypt the complete private payload with ephemeral ECDH P-256, HKDF-SHA-256 and AES-256-GCM before transmission; active D1 stores only the ciphertext envelope
+- creator browsers generate ECDH P-256 key pairs with Web Crypto; Neon Postgres receives only the public key, while the private key remains in the creator URL fragment/QR
+- recipient browsers encrypt the complete private payload with ephemeral ECDH P-256, HKDF-SHA-256 and AES-256-GCM before transmission; active Neon Postgres stores only the ciphertext envelope
 - creator bearer tokens are generated with Web Crypto and stored only as SHA-256 hashes
-- founder metrics require a Cloudflare secret and return aggregate data only
+- founder metrics require a Vercel and Neon secret and return aggregate data only
 - new creator links keep the secret in the URL fragment and private APIs receive it in an authorization header
 - response APIs and private dashboards send `cache-control: no-store`
 - rate-limit identifiers hash the request IP with the route scope before storage
@@ -24,12 +24,12 @@ This is a private pre-launch repository. Report vulnerabilities privately to the
 - JavaScript can clear application state and mutable byte buffers after view-once consumption, but cannot prove physical erasure from browser memory managed by the runtime
 - legacy query-string creator secrets remain accepted for backward compatibility and can appear in infrastructure logs
 - there is no creator-link recovery or revocation independent of deleting the invitation
-- D1 Time Travel may retain recoverable ciphertext and legacy pre-encryption history for 7 days on Free or 30 days on Paid after active deletion; ciphertext remains unreadable without the private creator key
+- Provider backups may retain recoverable ciphertext according to the configured Neon retention policy after active deletion; ciphertext remains unreadable without the private creator key
 
 ## Required production controls
 
-- use a long random `FOUNDER_DASHBOARD_KEY` stored only in Cloudflare Secrets
-- keep the GitHub repository private and require MFA for GitHub, Cloudflare and domain accounts
+- use a long random `FOUNDER_DASHBOARD_KEY` stored only in Vercel environment variables
+- keep the GitHub repository private and require MFA for GitHub, Vercel and Neon and domain accounts
 - enable secret scanning, dependency alerts and branch protection where available
 - avoid third-party analytics on `/p/*`, `/g/*` and private API responses
 - retain the minute-level expiry purge and atomic view-once consume path; never export private creator URLs with database backups

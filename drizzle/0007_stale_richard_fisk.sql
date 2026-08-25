@@ -1,1 +1,0 @@
-ALTER TABLE `games` ADD `timed_mode` integer DEFAULT 0 NOT NULL;

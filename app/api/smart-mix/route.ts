@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { QUESTION_BANK } from "../../lib/questions";
+import { getQuestions } from "../../lib/questions";
 import type { Locale } from "../../lib/i18n";
 import type { Level } from "../../lib/types";
 import { ensureSchema, getDatabase, hashQuestion } from "../../../db/runtime";
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     const version = "2026.08";
     await ensureSchema();
     const db = getDatabase();
-    const candidates = QUESTION_BANK[locale][level];
+    const candidates = getQuestions(locale, level);
     const hashes = await Promise.all(candidates.map(hashQuestion));
     const placeholders = hashes.map(() => "?").join(",");
     const rows = await db.prepare(`SELECT question_hash, selected_count, completed_count, total_answer_chars FROM question_metrics WHERE locale = ? AND level = ? AND library_version = ? AND question_hash IN (${placeholders})`).bind(locale, level, version, ...hashes).all<{ question_hash: string; selected_count: number; completed_count: number; total_answer_chars: number }>();

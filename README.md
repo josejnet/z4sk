@@ -2,13 +2,13 @@
 
 Z4SK is an English-first, mobile-first viral questionnaire web app. A creator makes a private invitation, sends the public link through WhatsApp, and reads responses through a separate secret dashboard link.
 
-Production: [z4sk.z4sk-app.workers.dev](https://z4sk.z4sk-app.workers.dev)
+Production is deployed from `main` to Vercel.
 
 ## Documentation
 
 - [Product and growth model](docs/PRODUCT.md)
 - [System architecture and data model](docs/ARCHITECTURE.md)
-- [Cloudflare deployment and rollback](docs/DEPLOYMENT.md)
+- [Vercel deployment and rollback](docs/DEPLOYMENT.md)
 - [Security, privacy and threat model](SECURITY.md)
 - [Operations and incident runbook](docs/OPERATIONS.md)
 - [Commercial roadmap](docs/ROADMAP.md)
@@ -21,13 +21,13 @@ Production: [z4sk.z4sk-app.workers.dev](https://z4sk.z4sk-app.workers.dev)
 - optional one-response, view-and-destroy mode
 - double-blind interest match with a creator-customizable match question
 - optional 30-second-per-question challenge with two mandatory recipient acknowledgements, automatic advance and no backtracking
-- end-to-end encrypted response payloads using ECDH P-256, HKDF-SHA-256 and AES-256-GCM; the only private key stays in the creator URL fragment/QR and never enters D1
+- end-to-end encrypted response payloads using ECDH P-256, HKDF-SHA-256 and AES-256-GCM; the only private key stays in the creator URL fragment/QR and never enters the database
 - private creator dashboard and emoji reactions
 - Smart Mix question ranking based only on aggregate completion signals
 - sponsor packs, HTML/PNG/JPG invitation export, public/private QR cards and share-to-unlock ad removal
 - installable PWA, founder metrics and reusable `packages/z4sk-sdk`
 - abuse reporting, automatic closure and IP-based rate limits
-- one-minute expiry purging, atomic view-once deletion-before-return, immediate creator deletion and public live privacy proof
+- daily scheduled expiry purging, atomic view-once deletion-before-return, immediate creator deletion and public live privacy proof
 - payment surface intentionally disabled until commercial launch
 
 ## Local development
@@ -41,15 +41,13 @@ npm run dev
 
 The site runs at `http://localhost:3000`. In local development, the founder dashboard key defaults to `dev-founder`. Production must set a long random `FOUNDER_DASHBOARD_KEY`.
 
-## Cloudflare deployment
+## Vercel deployment
 
-Production uses a Cloudflare Worker backed by D1. The temporary launch URL is `https://z4sk.z4sk-app.workers.dev`; attach the branded domain before public launch.
+Production uses Next.js functions on Vercel backed by Neon Postgres. GitHub `main` is connected to automatic production deployments.
 
 ```bash
-npm run deploy:cloudflare
+vercel --prod
 ```
-
-Apply new D1 migrations with `npx wrangler d1 migrations apply z4sk-db --remote` before deploying application code that depends on them.
 
 ## Verification
 

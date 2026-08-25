@@ -32,6 +32,10 @@ test("server-renders the English-first Z4SK product", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+  assert.match(response.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
+  assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+  assert.equal(response.headers.get("x-frame-options"), "DENY");
+  assert.match(response.headers.get("permissions-policy") ?? "", /camera=\(\)/);
   const html = await response.text();
   assert.match(html, /Z4SK — Ask\. Answer\. Dare\./i);
   assert.match(html, /Some things you only/);
@@ -197,13 +201,21 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(reportRoute, /automaticallyClosed/);
   assert.match(reportRoute, /reported/);
   assert.match(metricsRoute, /FOUNDER_DASHBOARD_KEY/);
+  assert.match(metricsRoute, /founder-dashboard/);
+  assert.match(metricsRoute, /expected\.length < 32/);
   assert.match(metricsRoute, /Aggregate metrics only/);
   assert.match(metricsRoute, /timed_mode/);
   assert.match(metricsRoute, /authorization/);
   assert.match(proofRoute, /live runtime self-audit/);
   assert.match(proofRoute, /Creator email never reaches the active database/);
   assert.match(proofRoute, /Private decryption keys never enter the database/);
-  assert.match(proofRoute, /Every active response is ciphertext only/);
+  assert.match(proofRoute, /Every active response is authenticated ciphertext only/);
+  assert.match(proofRoute, /TECHNICAL CONTROLS PASS|technicalOverall/);
+  assert.match(proofRoute, /Database tables are not readable by the Postgres PUBLIC role/);
+  assert.match(proofRoute, /Founder access uses a strong server-only secret/);
+  assert.match(gameRoute, /randomToken\(16\)/);
+  assert.match(runtime, /hashMetricIdentifier/);
+  assert.match(privacyEngine, /metric:/);
   assert.match(runtime, /timed_mode INTEGER NOT NULL DEFAULT 0/);
   assert.match(runtime, /match_question TEXT NOT NULL DEFAULT ''/);
   assert.match(runtime, /UPDATE games SET creator_email = ''/);
@@ -242,7 +254,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
 test("publishes plain-language privacy and safety pages", async () => {
   const [privacy, safety, terms] = await Promise.all([render("/privacy"), render("/safety"), render("/terms")]);
   const legalPage = await readFile(new URL("../app/components/LegalPage.tsx", import.meta.url), "utf8");
-  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /end-to-end encrypted/); assert.match(privacyHtml, /Neon Postgres/); assert.match(privacyHtml, /What the founder can see/);
+  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /end-to-end encrypted/); assert.match(privacyHtml, /Neon Postgres/); assert.match(privacyHtml, /What the founder can see/); assert.match(privacyHtml, /audited access matrix/); assert.match(privacyHtml, /There is no “superadmin” back door/); assert.match(privacyHtml, /us-east-1/);
   assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect creator access/);
   assert.equal(terms.status, 200); assert.match(await terms.text(), /Payments are disabled/);
   assert.doesNotMatch(legalPage, /next\/link|<Link/);

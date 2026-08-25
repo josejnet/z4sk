@@ -5,21 +5,29 @@ export async function hashToken(token: string) {
 }
 
 export async function hashRateLimitIdentifier(identifier: string, at = new Date()) {
+  const rotationBucket = at.toISOString().slice(0, 10);
+  return keyedHash(`rate-limit:${rotationBucket}:${identifier}`);
+}
+
+export async function hashMetricIdentifier(identifier: string) {
+  return keyedHash(`metric:${identifier}`);
+}
+
+async function keyedHash(value: string) {
   const configuredSecret = process.env.RATE_LIMIT_HMAC_SECRET;
   if (!configuredSecret && process.env.NODE_ENV === "production") throw new Error("RATE_LIMIT_HMAC_SECRET is required in production.");
   const secret = configuredSecret || "z4sk-local-rate-limit-hmac-only";
-  const rotationBucket = at.toISOString().slice(0, 10);
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${rotationBucket}:${identifier}`));
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value));
   return [...new Uint8Array(signature)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export async function deleteGameData(db: Database, id: string) {
-  const pseudonymousGameId = await hashToken(`event:${id}`);
+  const [pseudonymousGameId, legacyPseudonymousGameId] = await Promise.all([hashMetricIdentifier(`event:${id}`), hashToken(`event:${id}`)]);
   return db.batch([
     db.prepare(`DELETE FROM responses WHERE game_id = ?`).bind(id),
     db.prepare(`DELETE FROM abuse_reports WHERE game_id = ?`).bind(id),
-    db.prepare(`UPDATE product_events SET game_id = '' WHERE game_id IN (?, ?)`).bind(id, pseudonymousGameId),
+    db.prepare(`UPDATE product_events SET game_id = '' WHERE game_id IN (?, ?, ?)`).bind(id, pseudonymousGameId, legacyPseudonymousGameId),
     db.prepare(`DELETE FROM games WHERE id = ?`).bind(id),
   ]);
 }
@@ -35,12 +43,15 @@ export async function purgeExpiredData(db: Database, source = "cron", now = new 
     const ids = expired.results.map((row) => row.id);
     const placeholders = ids.map(() => "?").join(",");
     const responseCount = await db.prepare(`SELECT COUNT(*) AS count FROM responses WHERE game_id IN (${placeholders})`).bind(...ids).first<{ count: number }>();
-    const eventIds = await Promise.all(ids.map((id) => hashToken(`event:${id}`)));
-    const eventPlaceholders = [...ids, ...eventIds].map(() => "?").join(",");
+    const [eventIds, legacyEventIds] = await Promise.all([
+      Promise.all(ids.map((id) => hashMetricIdentifier(`event:${id}`))),
+      Promise.all(ids.map((id) => hashToken(`event:${id}`))),
+    ]);
+    const eventPlaceholders = [...ids, ...eventIds, ...legacyEventIds].map(() => "?").join(",");
     await db.batch([
       db.prepare(`DELETE FROM responses WHERE game_id IN (${placeholders})`).bind(...ids),
       db.prepare(`DELETE FROM abuse_reports WHERE game_id IN (${placeholders})`).bind(...ids),
-      db.prepare(`UPDATE product_events SET game_id = '' WHERE game_id IN (${eventPlaceholders})`).bind(...ids, ...eventIds),
+      db.prepare(`UPDATE product_events SET game_id = '' WHERE game_id IN (${eventPlaceholders})`).bind(...ids, ...eventIds, ...legacyEventIds),
       db.prepare(`DELETE FROM games WHERE id IN (${placeholders})`).bind(...ids),
     ]);
     expiredGames += ids.length;

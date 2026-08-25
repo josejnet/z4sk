@@ -121,8 +121,8 @@ const accessCopy=localized<{email:string;placeholder:string;security:string;inva
   machine:{email:"creator.email? // OPTIONAL",placeholder:"user@example.net",security:"SECURITY: Z4SK_receive=false; database_store=false; mailto.local_compose=true; on_send=>email_provider_process=true; display_name.visible=true",invalid:"ASSERT email==null OR email.valid",send:"OPEN mailto: WITH admin_url",subject:"Z4SK_PRIVATE_ACCESS_URL",body:"admin_url follows; classification=SECRET:"}
 });
 const encryptionCopy=localized<Record<"notice",string>>({
-  en:{notice:"End-to-end encrypted: the private decryption key was created on this device and exists only inside your secret link and QR. Z4SK cannot read your answers or recover a lost key."},
-  es:{notice:"Cifrado de extremo a extremo: la clave privada se ha creado en este dispositivo y solo existe dentro de tu enlace y QR secretos. Z4SK no puede leer las respuestas ni recuperar una clave perdida."},
+  en:{notice:"End-to-end encrypted: the current audited servers receive ciphertext only. The private key was created on this device and exists only inside your secret link and QR. A lost key cannot be recovered."},
+  es:{notice:"Cifrado de extremo a extremo: los servidores de la versión auditada solo reciben texto cifrado. La clave privada se ha creado en este dispositivo y solo existe dentro de tu enlace y QR secretos. Una clave perdida no puede recuperarse."},
   it:{notice:"Crittografia end-to-end: la chiave privata è stata creata su questo dispositivo ed esiste solo nel link e nel QR segreti. Z4SK non può leggere le risposte né recuperare una chiave persa."},
   fr:{notice:"Chiffrement de bout en bout : la clé privée a été créée sur cet appareil et n’existe que dans votre lien et QR secrets. Z4SK ne peut ni lire les réponses ni récupérer une clé perdue."},
   de:{notice:"Ende-zu-Ende-verschlüsselt: Der private Schlüssel wurde auf diesem Gerät erstellt und existiert nur im geheimen Link und QR. Z4SK kann Antworten weder lesen noch einen verlorenen Schlüssel wiederherstellen."},

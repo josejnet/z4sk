@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
+import { securityHeaders } from "./app/lib/security-headers";
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
+export default function nextConfig(phase: string): NextConfig {
+  return {
+    async headers() {
+      return [{ source: "/:path*", headers: [...securityHeaders(phase === PHASE_DEVELOPMENT_SERVER)] }];
+    },
+  };
+}

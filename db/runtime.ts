@@ -1,7 +1,7 @@
 import { neon, type FullQueryResults, type NeonQueryFunction } from "@neondatabase/serverless";
-import { hashRateLimitIdentifier, hashToken } from "./privacy";
+import { hashMetricIdentifier, hashRateLimitIdentifier } from "./privacy";
 
-export { deleteGameData, hashRateLimitIdentifier, hashToken, purgeExpiredData } from "./privacy";
+export { deleteGameData, hashMetricIdentifier, hashRateLimitIdentifier, hashToken, purgeExpiredData } from "./privacy";
 
 let schemaReady: Promise<void> | null = null;
 let client: NeonQueryFunction<false, true> | null = null;
@@ -125,7 +125,9 @@ export async function ensureSchema() {
   await schemaReady;
 }
 
-export const hashQuestion = hashToken;
+export async function hashQuestion(question: string) {
+  return hashMetricIdentifier(`question:${question}`);
+}
 
 export function randomToken(bytes = 18) {
   const data = crypto.getRandomValues(new Uint8Array(bytes));
@@ -140,7 +142,7 @@ export function bearerToken(request: Request) {
 
 export async function recordEvent(input: { eventType: string; gameId: string; locale?: string; level?: string; country?: string; packSlug?: string; source?: string; libraryVersion?: string }) {
   const db = getDatabase();
-  const pseudonymousGameId = input.gameId ? await hashToken(`event:${input.gameId}`) : "";
+  const pseudonymousGameId = input.gameId ? await hashMetricIdentifier(`event:${input.gameId}`) : "";
   await db.prepare(`INSERT INTO product_events (id, event_type, game_id, locale, level, country, pack_slug, source, library_version, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(randomToken(10), input.eventType, pseudonymousGameId, input.locale || "en", input.level || "unknown", input.country || "XX", input.packSlug || "original", input.source || "web", input.libraryVersion || "2026.08", new Date().toISOString()).run();
 }
 

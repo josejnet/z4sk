@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const rateLimit = await checkRateLimit(request, "create-game", 10, 10);
     if (!rateLimit.allowed) return NextResponse.json({ error: "Too many questionnaires created. Try again shortly." }, { status: 429, headers: { "retry-after": String(rateLimit.retryAfterSeconds) } });
     const db = getDatabase();
-    const id = randomToken(8);
+    const id = randomToken(16);
     const creatorToken = randomToken(24);
     const tokenHash = await hashToken(creatorToken);
     const createdAt = new Date();

@@ -120,6 +120,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /window\.location\.origin.*#key=/);
   assert.match(builder, /attachPrivateDecryptionKey/);
   assert.match(builder, /encryptionPublicKey: encryptionKeys\.publicKey/);
+  assert.match(builder, /creatorName\.trim\(\)\.length >= 1 && recipientName\.trim\(\)\.length >= 1/);
+  assert.match(gameRoute, /creatorName\.length < 1 \|\| recipientName\.length < 1/);
   assert.doesNotMatch(gameRoute, /body\.creatorEmail/);
   assert.doesNotMatch(gameRoute, /body\.creatorInterest/);
   assert.doesNotMatch(sdk, /creatorEmail/);
@@ -148,6 +150,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameClient, /useEffectEvent/);
   assert.match(gameClient, /handleQuestionTimeout\(\)/);
   assert.match(gameClient, /navigation\.back=false/);
+  assert.match(gameClient, /respondentName\.trim\(\)\.length < 1/);
   assert.doesNotMatch(gameClient, /JSON\.stringify\(\{ respondentName, answers, reactions, matchInterest \}\)/);
   assert.match(dashboardClient, /role="alertdialog"/);
   assert.match(dashboardClient, /aria-modal="true"/);
@@ -253,6 +256,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(responseCrypto, /shared\.fill\(0\)/);
   assert.match(responseCrypto, /private decryption key does not match this invitation/);
   assert.match(responseCrypto, /generateCreatorAccessCredential/);
+  assert.match(responseCrypto, /payload\.respondentName\.length < 1/);
   assert.match(encryptionTypes, /ECDH-P256\+HKDF-SHA256\+A256GCM/);
   assert.match(proofRoute, /No expired answers remain in the active database/);
   assert.match(privacyEngine, /purgeExpiredData/);

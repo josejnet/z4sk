@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     const requestedHours = Number(body.expiresInHours);
     const expiresInHours = [12, 24, 48, 72].includes(requestedHours) ? requestedHours : 12;
     const questions = Array.isArray(body.questions) ? body.questions.map((item) => cleanText(item, 180)).filter((item) => item.length >= 5) : [];
-    if (creatorName.length < 2 || recipientName.length < 2 || !levels.has(level) || questions.length < 3 || questions.length > 12 || !isEncryptionPublicKey(encryptionPublicKey) || !/^[0-9a-f]{64}$/.test(creatorTokenHash)) return NextResponse.json({ error: "Check the names, private access credential, encryption support and choose 3 to 12 questions." }, { status: 400 });
+    if (creatorName.length < 1 || recipientName.length < 1 || !levels.has(level) || questions.length < 3 || questions.length > 12 || !isEncryptionPublicKey(encryptionPublicKey) || !/^[0-9a-f]{64}$/.test(creatorTokenHash)) return NextResponse.json({ error: "Check the names, private access credential, encryption support and choose 3 to 12 questions." }, { status: 400 });
     if (new Set(questions).size !== questions.length) return NextResponse.json({ error: "No puede haber preguntas repetidas." }, { status: 400 });
 
     await ensureSchema();

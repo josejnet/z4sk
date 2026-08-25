@@ -164,7 +164,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [mixing, setMixing] = useState(false);
   const questions = getQuestions(locale, level);
   const emailValid = !creatorEmail.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail);
-  const identityValid = creatorName.trim().length >= 2 && recipientName.trim().length >= 2 && emailValid;
+  const identityValid = creatorName.trim().length >= 1 && recipientName.trim().length >= 1 && emailValid;
   const intensityValid = level !== "sinfiltro" || adultConfirmed;
 
   function chooseLevel(next: Level) { setLevel(next); setSelected(getDefaultQuestions(locale, next)); }

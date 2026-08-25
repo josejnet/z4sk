@@ -53,7 +53,7 @@ test("server-renders the English-first Z4SK product", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, qrCard, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, runtime, responseCrypto, encryptionTypes, vercel, assetRegister, manifest, sw, og, favicon, icon192, icon512] = await Promise.all([
+  const [builder, qrCard, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, runtime, responseCrypto, encryptionTypes, vercel, assetRegister, manifest, sw, og, favicon, icon192, icon512, nameCopy] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/QrCard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/g/[id]/GameClient.tsx", import.meta.url), "utf8"),
@@ -83,6 +83,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
     stat(new URL("../public/favicon-32.png", import.meta.url)),
     stat(new URL("../public/icon-192.png", import.meta.url)),
     stat(new URL("../public/icon-512.png", import.meta.url)),
+    readFile(new URL("../app/lib/name-copy.ts", import.meta.url), "utf8"),
   ]);
   const [brand, faviconIco, founderAuth, founderAds, publicAds, founderDashboard] = await Promise.all([
     readFile(new URL("../app/components/Brand.tsx", import.meta.url), "utf8"),
@@ -121,7 +122,12 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /attachPrivateDecryptionKey/);
   assert.match(builder, /encryptionPublicKey: encryptionKeys\.publicKey/);
   assert.match(builder, /creatorName\.trim\(\)\.length >= 1 && recipientName\.trim\(\)\.length >= 1/);
+  assert.match(builder, /id="creator" required minLength=\{1\} maxLength=\{40\}/);
+  assert.match(builder, /id="recipient" required minLength=\{1\} maxLength=\{40\}/);
+  assert.match(builder, /normalizedCreatorName/);
+  assert.match(builder, /normalizedRecipientName/);
   assert.match(gameRoute, /creatorName\.length < 1 \|\| recipientName\.length < 1/);
+  for (const locale of ["en", "es", "it", "fr", "de", "nl", "eo", "pt", "zh", "hi", "ja", "tr", "machine"]) assert.match(nameCopy, new RegExp(`\\b${locale}:`));
   assert.doesNotMatch(gameRoute, /body\.creatorEmail/);
   assert.doesNotMatch(gameRoute, /body\.creatorInterest/);
   assert.doesNotMatch(sdk, /creatorEmail/);
@@ -151,6 +157,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameClient, /handleQuestionTimeout\(\)/);
   assert.match(gameClient, /navigation\.back=false/);
   assert.match(gameClient, /respondentName\.trim\(\)\.length < 1/);
+  assert.match(gameClient, /id="respondent" required minLength=\{1\} maxLength=\{40\}/);
+  assert.match(gameClient, /respondentName:respondentName\.trim\(\)\.replace/);
   assert.doesNotMatch(gameClient, /JSON\.stringify\(\{ respondentName, answers, reactions, matchInterest \}\)/);
   assert.match(dashboardClient, /role="alertdialog"/);
   assert.match(dashboardClient, /aria-modal="true"/);
@@ -256,7 +264,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(responseCrypto, /shared\.fill\(0\)/);
   assert.match(responseCrypto, /private decryption key does not match this invitation/);
   assert.match(responseCrypto, /generateCreatorAccessCredential/);
-  assert.match(responseCrypto, /payload\.respondentName\.length < 1/);
+  assert.match(responseCrypto, /payload\.respondentName\.trim\(\)\.length < 1/);
   assert.match(encryptionTypes, /ECDH-P256\+HKDF-SHA256\+A256GCM/);
   assert.match(proofRoute, /No expired answers remain in the active database/);
   assert.match(privacyEngine, /purgeExpiredData/);

@@ -66,6 +66,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
     stat(new URL("../public/favicon.ico", import.meta.url)),
   ]);
   assert.match(builder, /Share once & remove ads/);
+  assert.match(builder, /<a href=\{created\.adminUrl\} target="_blank" rel="noopener noreferrer">\{t\("openPanel"\)\}<\/a>/);
   assert.match(builder, /Secret match/);
   assert.match(builder, /YOUR SECRET MATCH QUESTION/);
   assert.match(builder, /matchQuestion/);

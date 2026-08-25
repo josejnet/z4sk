@@ -12,6 +12,21 @@ function toBase64Url(bytes: Uint8Array) {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
+export async function generateCreatorAccessCredential() {
+  const bytes = crypto.getRandomValues(new Uint8Array(24));
+  try {
+    const token = toBase64Url(bytes);
+    const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token)));
+    try {
+      return { token, tokenHash: [...digest].map((byte) => byte.toString(16).padStart(2, "0")).join("") };
+    } finally {
+      digest.fill(0);
+    }
+  } finally {
+    bytes.fill(0);
+  }
+}
+
 function fromBase64Url(value: string) {
   const padded = value.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - value.length % 4) % 4);
   const binary = atob(padded);

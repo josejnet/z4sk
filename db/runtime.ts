@@ -91,6 +91,8 @@ export async function ensureSchema() {
       db.prepare(`CREATE INDEX IF NOT EXISTS idx_abuse_reports_game ON abuse_reports(game_id)`),
       db.prepare(`CREATE TABLE IF NOT EXISTS rate_limits (identifier_hash TEXT NOT NULL, scope TEXT NOT NULL, window_start BIGINT NOT NULL, request_count INTEGER NOT NULL DEFAULT 1, PRIMARY KEY (identifier_hash, scope, window_start))`),
       db.prepare(`CREATE TABLE IF NOT EXISTS privacy_status (id TEXT PRIMARY KEY, last_run_at TEXT NOT NULL, last_source TEXT NOT NULL, last_expired_games INTEGER NOT NULL DEFAULT 0, last_deleted_responses INTEGER NOT NULL DEFAULT 0, total_expired_games INTEGER NOT NULL DEFAULT 0, total_deleted_responses INTEGER NOT NULL DEFAULT 0)`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS sponsor_config (id TEXT PRIMARY KEY, enabled INTEGER NOT NULL DEFAULT 0, label TEXT NOT NULL DEFAULT 'Sponsor', headline TEXT NOT NULL DEFAULT '', cta_label TEXT NOT NULL DEFAULT '', destination_url TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL)`),
+      db.prepare(`INSERT INTO sponsor_config (id, enabled, label, headline, cta_label, destination_url, updated_at) VALUES ('primary', 0, 'Sponsor', '', '', '', ?) ON CONFLICT(id) DO NOTHING`).bind(new Date().toISOString()),
     ]);
     await db.prepare(`ALTER TABLE rate_limits ALTER COLUMN window_start TYPE BIGINT`).run();
     const columns = await db.prepare(`SELECT column_name AS name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'games'`).all<{ name: string }>();

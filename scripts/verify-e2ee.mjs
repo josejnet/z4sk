@@ -12,6 +12,12 @@ async function json(path, init) {
   return { response, body };
 }
 
+async function creatorCredential() {
+  const token = b64(crypto.getRandomValues(new Uint8Array(24)));
+  const tokenHash = Buffer.from(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token))).toString("hex");
+  return { token, tokenHash };
+}
+
 async function derive(privateKey, publicKey, salt, usage) {
   const shared = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: publicKey }, privateKey, 256));
   try {
@@ -59,11 +65,15 @@ const publicJwk = await crypto.subtle.exportKey("jwk", creatorKeys.publicKey);
 const privateJwk = await crypto.subtle.exportKey("jwk", creatorKeys.privateKey);
 const questions = ["Synthetic privacy check one?", "Synthetic privacy check two?", "Synthetic privacy check three?"];
 
-const created = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "E2EE verifier", recipientName: "Synthetic recipient", title: "Synthetic E2EE verification", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, viewOnce: true, doubleBlind: true, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+const missingClientSecret = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "No secret verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y } }) });
+assert.equal(missingClientSecret.response.status, 400, "Creation succeeded without a browser-generated creator credential hash.");
+
+const createdAccess = await creatorCredential();
+const created = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "E2EE verifier", recipientName: "Synthetic recipient", title: "Synthetic E2EE verification", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, creatorTokenHash: createdAccess.tokenHash, viewOnce: true, doubleBlind: true, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
 assert.equal(created.response.status, 201, JSON.stringify(created.body));
-const admin = new URL(created.body.adminUrl);
-const gameId = admin.pathname.split("/").pop();
-const bearer = new URLSearchParams(admin.hash.slice(1)).get("key");
+assert.equal(created.body.adminUrl, undefined, "The creation API returned a complete private link.");
+const gameId = created.body.id;
+const bearer = createdAccess.token;
 assert.ok(gameId && bearer);
 
 const privatePayload = { respondentName: "Synthetic respondent", answers: ["private alpha", "private beta", "private gamma"], reactions: ["🔥", "", "❤️"], matchInterest: true };
@@ -84,11 +94,11 @@ assert.equal(afterConsume.response.status, 404, "The invitation still exists aft
 const secondConsume = await json(`/api/games/${gameId}/consume`, { method: "POST", headers: { authorization: `Bearer ${bearer}` } });
 assert.equal(secondConsume.response.status, 403, "Consumed ciphertext was returned twice.");
 
-const recipientDeleteGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Delete verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+const recipientAccess = await creatorCredential();
+const recipientDeleteGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Delete verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, creatorTokenHash: recipientAccess.tokenHash, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
 assert.equal(recipientDeleteGame.response.status, 201, JSON.stringify(recipientDeleteGame.body));
-const recipientAdmin = new URL(recipientDeleteGame.body.adminUrl);
-const recipientGameId = recipientAdmin.pathname.split("/").pop();
-const recipientBearer = new URLSearchParams(recipientAdmin.hash.slice(1)).get("key");
+const recipientGameId = recipientDeleteGame.body.id;
+const recipientBearer = recipientAccess.token;
 assert.ok(recipientGameId && recipientBearer);
 const recipientSubmission = await json(`/api/games/${recipientGameId}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedResponse: envelope, answerCount: questions.length }) });
 assert.equal(recipientSubmission.response.status, 201, JSON.stringify(recipientSubmission.body));
@@ -104,11 +114,11 @@ assert.equal(cleanup.response.status, 200, JSON.stringify(cleanup.body));
 
 let exactExpiryCutoff = false;
 if (process.env.DATABASE_URL) {
-  const expiryGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Expiry verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+  const expiryAccess = await creatorCredential();
+  const expiryGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Expiry verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, creatorTokenHash: expiryAccess.tokenHash, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
   assert.equal(expiryGame.response.status, 201, JSON.stringify(expiryGame.body));
-  const expiryAdmin = new URL(expiryGame.body.adminUrl);
-  const expiryGameId = expiryAdmin.pathname.split("/").pop();
-  const expiryBearer = new URLSearchParams(expiryAdmin.hash.slice(1)).get("key");
+  const expiryGameId = expiryGame.body.id;
+  const expiryBearer = expiryAccess.token;
   assert.ok(expiryGameId && expiryBearer);
   const expirySubmission = await json(`/api/games/${expiryGameId}/responses`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedResponse: envelope, answerCount: questions.length }) });
   assert.equal(expirySubmission.response.status, 201, JSON.stringify(expirySubmission.body));
@@ -123,4 +133,4 @@ if (process.env.DATABASE_URL) {
   exactExpiryCutoff = true;
 }
 
-console.log(JSON.stringify({ ok: true, baseUrl, algorithm: envelope.alg, plaintextSentToDatabase: false, activeGameAfterConsume: false, ciphertextReadableWithCreatorKey: true, concurrentSingleUseAccepted: 1, recipientSelfDeletion: true, queryStringKeysRejected: true, exactExpiryCutoff }));
+console.log(JSON.stringify({ ok: true, baseUrl, algorithm: envelope.alg, plaintextSentToDatabase: false, completeCreatorLinkReturnedByApi: false, creationRequiresClientTokenHash: true, activeGameAfterConsume: false, ciphertextReadableWithCreatorKey: true, concurrentSingleUseAccepted: 1, recipientSelfDeletion: true, queryStringKeysRejected: true, exactExpiryCutoff }));

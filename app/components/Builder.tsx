@@ -7,7 +7,7 @@ import { downloadInvitationHtml } from "../lib/html-invite";
 import { interpolate, type Locale, useLanguage } from "../lib/i18n";
 import { QrCard } from "./QrCard";
 import { ShareInvitation } from "./ShareInvitation";
-import { attachPrivateDecryptionKey, generateResponseKeyPair } from "../lib/response-crypto";
+import { attachPrivateDecryptionKey, generateCreatorAccessCredential, generateResponseKeyPair } from "../lib/response-crypto";
 const localized=<T,>(base:Record<Locale,T>)=>base;
 
 type Created = { id: string; playUrl: string; adminUrl: string };
@@ -174,11 +174,12 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   async function createGame() {
     setLoading(true); setError("");
     try {
-      const encryptionKeys = await generateResponseKeyPair();
-      const response = await fetch("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName, recipientName, level, questions: selected, viewOnce, locale, libraryVersion: "2026.08", doubleBlind, matchQuestion, timedMode, expiresInHours, packSlug, encryptionPublicKey: encryptionKeys.publicKey }) });
-      const data = await response.json() as Created & { error?: string };
+      const [encryptionKeys, access] = await Promise.all([generateResponseKeyPair(), generateCreatorAccessCredential()]);
+      const response = await fetch("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName, recipientName, level, questions: selected, viewOnce, locale, libraryVersion: "2026.08", doubleBlind, matchQuestion, timedMode, expiresInHours, packSlug, encryptionPublicKey: encryptionKeys.publicKey, creatorTokenHash: access.tokenHash }) });
+      const data = await response.json() as Omit<Created,"adminUrl"> & { error?: string };
       if (!response.ok) throw new Error(t("formError"));
-      setCreated({ ...data, adminUrl: attachPrivateDecryptionKey(data.adminUrl, encryptionKeys.privateSecret, doubleBlind && creatorInterest) });
+      const privateUrl = `${window.location.origin}/p/${data.id}#key=${encodeURIComponent(access.token)}`;
+      setCreated({ ...data, adminUrl: attachPrivateDecryptionKey(privateUrl, encryptionKeys.privateSecret, doubleBlind && creatorInterest) });
       setStep(4);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t("formError")); } finally { setLoading(false); }
   }

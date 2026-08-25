@@ -9,6 +9,7 @@ import "./modal.css";
 import "./wizard.css";
 import "./logo.css";
 import "./share.css";
+import "./ads.css";
 import { LanguageProvider } from "./lib/i18n";
 import { PwaRegister } from "./components/PwaRegister";
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });

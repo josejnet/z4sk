@@ -22,4 +22,4 @@ const quiz = await z4sk.createQuiz({
 z4sk.mount(document.querySelector("#z4sk-widget")!);
 ```
 
-The SDK generates an ECDH P-256 key pair locally. Only the public key is sent to Z4SK; the private decryption key is appended to the `adminUrl` fragment and never reaches the API or Neon Postgres. The complete `adminUrl` is therefore both a bearer secret and the only response-decryption key: never log, index or send it to analytics providers.
+The SDK generates both a random creator-access token and an ECDH P-256 key pair locally. It sends only the token's SHA-256 hash and the public ECDH key to Z4SK, then assembles the complete `adminUrl` in the browser. The complete URL never reaches the creation API or Neon Postgres and is the only response-decryption capability: never log, index or send it to analytics providers.

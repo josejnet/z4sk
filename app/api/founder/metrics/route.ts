@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
-import { checkRateLimit, ensureSchema, getDatabase, hashToken } from "../../../../db/runtime";
+import { ensureSchema, getDatabase } from "../../../../db/runtime";
+import { authorizeFounder } from "../../../lib/founder-auth";
 
 export async function GET(request: Request) {
   try {
     await ensureSchema();
-    const rateLimit = await checkRateLimit(request, "founder-dashboard", 12, 15);
-    if (!rateLimit.allowed) return NextResponse.json({ error:"Too many access attempts. Try again later." }, { status:429, headers:{"retry-after":String(rateLimit.retryAfterSeconds)} });
-    const url = new URL(request.url); const configured = process.env.FOUNDER_DASHBOARD_KEY?.trim(); const expected = configured || (url.hostname === "localhost" ? "dev-founder" : ""); const authorization = request.headers.get("authorization") || ""; const supplied = authorization.toLowerCase().startsWith("bearer ") ? authorization.slice(7).trim() : "";
-    if (!expected || (url.hostname !== "localhost" && expected.length < 32)) return NextResponse.json({ error:"Set a FOUNDER_DASHBOARD_KEY of at least 32 characters to enable this dashboard." }, { status:503 });
-    if (await hashToken(supplied) !== await hashToken(expected)) return NextResponse.json({ error:"Invalid founder key." }, { status:403 });
+    const denied = await authorizeFounder(request);
+    if (denied) return denied;
     const db=getDatabase();
     const results=await db.batch([
       db.prepare(`SELECT event_type AS label, COUNT(*) AS value FROM product_events GROUP BY event_type ORDER BY value DESC`),
@@ -23,8 +21,10 @@ export async function GET(request: Request) {
       db.prepare(`SELECT last_run_at, last_source, last_expired_games, last_deleted_responses, total_expired_games, total_deleted_responses FROM privacy_status WHERE id='retention'`),
       db.prepare(`SELECT COUNT(*) AS active_responses FROM responses`),
       db.prepare(`SELECT event_type AS label, COUNT(*) AS value FROM product_events WHERE created_at >= (NOW() - INTERVAL '24 hours')::text GROUP BY event_type ORDER BY value DESC`),
+      db.prepare(`SELECT enabled, label, headline, cta_label, destination_url, updated_at FROM sponsor_config WHERE id='primary'`),
     ]);
     const rows=(index:number)=>results[index].results as Record<string,string|number>[];
-    return NextResponse.json({ generatedAt:new Date().toISOString(), events:rows(0), locales:rows(1), countries:rows(2), packs:rows(3), sources:rows(4), libraryVersions:rows(5), daily:rows(6), inventory:{...rows(7)[0],...rows(10)[0]}, questionSegments:rows(8), privacyHealth:rows(9)[0]||{}, last24Hours:rows(11), privacy:"Aggregate metrics only. Answer text, names, emails and private links are never included." }, { headers:{"cache-control":"no-store"} });
+    const adRow=rows(12)[0]||{};
+    return NextResponse.json({ generatedAt:new Date().toISOString(), events:rows(0), locales:rows(1), countries:rows(2), packs:rows(3), sources:rows(4), libraryVersions:rows(5), daily:rows(6), inventory:{...rows(7)[0],...rows(10)[0]}, questionSegments:rows(8), privacyHealth:rows(9)[0]||{}, last24Hours:rows(11), adConfig:{enabled:Boolean(adRow.enabled),label:String(adRow.label||"Sponsor"),headline:String(adRow.headline||""),ctaLabel:String(adRow.cta_label||""),destinationUrl:String(adRow.destination_url||""),updatedAt:String(adRow.updated_at||"")}, privacy:"Aggregate metrics only. Answer text, names, emails and private links are never included." }, { headers:{"cache-control":"no-store"} });
   } catch(error){console.error("founder-metrics",error);return NextResponse.json({error:"Metrics unavailable."},{status:500})}
 }

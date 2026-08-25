@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { checkRateLimit, ensureSchema, getDatabase, hashQuestion, hashToken, randomToken, recordEvent } from "../../../db/runtime";
+import { checkRateLimit, ensureSchema, getDatabase, hashQuestion, randomToken, recordEvent } from "../../../db/runtime";
 import { isEncryptionPublicKey } from "../../lib/encryption-types";
 
 const levels = new Set(["curioso", "coqueto", "picante", "sinfiltro"]);
@@ -22,11 +22,12 @@ export async function POST(request: Request) {
     const matchQuestion = doubleBlind ? cleanText(body.matchQuestion, 180) : "";
     const timedMode = body.timedMode === true ? 1 : 0;
     const encryptionPublicKey = body.encryptionPublicKey;
+    const creatorTokenHash = cleanText(body.creatorTokenHash, 64).toLowerCase();
     const packSlug = packs.has(cleanText(body.packSlug, 20)) ? cleanText(body.packSlug, 20) : "original";
     const requestedHours = Number(body.expiresInHours);
     const expiresInHours = [12, 24, 48, 72].includes(requestedHours) ? requestedHours : 12;
     const questions = Array.isArray(body.questions) ? body.questions.map((item) => cleanText(item, 180)).filter((item) => item.length >= 5) : [];
-    if (creatorName.length < 2 || recipientName.length < 2 || !levels.has(level) || questions.length < 3 || questions.length > 12 || !isEncryptionPublicKey(encryptionPublicKey)) return NextResponse.json({ error: "Check the names, encryption support and choose 3 to 12 questions." }, { status: 400 });
+    if (creatorName.length < 2 || recipientName.length < 2 || !levels.has(level) || questions.length < 3 || questions.length > 12 || !isEncryptionPublicKey(encryptionPublicKey) || !/^[0-9a-f]{64}$/.test(creatorTokenHash)) return NextResponse.json({ error: "Check the names, private access credential, encryption support and choose 3 to 12 questions." }, { status: 400 });
     if (new Set(questions).size !== questions.length) return NextResponse.json({ error: "No puede haber preguntas repetidas." }, { status: 400 });
 
     await ensureSchema();
@@ -34,18 +35,16 @@ export async function POST(request: Request) {
     if (!rateLimit.allowed) return NextResponse.json({ error: "Too many questionnaires created. Try again shortly." }, { status: 429, headers: { "retry-after": String(rateLimit.retryAfterSeconds) } });
     const db = getDatabase();
     const id = randomToken(16);
-    const creatorToken = randomToken(24);
-    const tokenHash = await hashToken(creatorToken);
     const createdAt = new Date();
     const expiresAt = new Date(createdAt.getTime() + expiresInHours * 60 * 60 * 1000);
     const viewOnce = body.viewOnce === true ? 1 : 0;
-    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, premium, view_once, double_blind, match_question, timed_mode, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, 0, ?, ?)`).bind(id, tokenHash, creatorName, recipientName, `${recipientName} · Z4SK`, level, locale, libraryVersion, JSON.stringify(questions), JSON.stringify(encryptionPublicKey), viewOnce, doubleBlind, matchQuestion, timedMode, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
+    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, premium, view_once, double_blind, match_question, timed_mode, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, 0, ?, ?)`).bind(id, creatorTokenHash, creatorName, recipientName, `${recipientName} · Z4SK`, level, locale, libraryVersion, JSON.stringify(questions), JSON.stringify(encryptionPublicKey), viewOnce, doubleBlind, matchQuestion, timedMode, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
     const metricStatements = await Promise.all(questions.map(async (question) => db.prepare(`INSERT INTO question_metrics (question_hash, locale, level, library_version, selected_count, completed_count, total_answer_chars) VALUES (?, ?, ?, ?, 1, 0, 0) ON CONFLICT(question_hash, locale, level, library_version) DO UPDATE SET selected_count = question_metrics.selected_count + 1`).bind(await hashQuestion(question), locale, level, libraryVersion)));
     if (metricStatements.length) await db.batch(metricStatements);
     const country = String((request as Request & { cf?: { country?: string } }).cf?.country || request.headers.get("cf-ipcountry") || "XX").slice(0, 2).toUpperCase();
     await recordEvent({ eventType: "created", gameId: id, locale, level, country, packSlug, source: body.source === "sdk" ? "sdk" : "web", libraryVersion });
     const origin = new URL(request.url).origin;
-    return NextResponse.json({ id, playUrl: `${origin}/g/${id}`, adminUrl: `${origin}/p/${id}#key=${creatorToken}` }, { status: 201, headers: { "cache-control": "no-store" } });
+    return NextResponse.json({ id, playUrl: `${origin}/g/${id}` }, { status: 201, headers: { "cache-control": "no-store" } });
   } catch (error) {
     console.error("create-game", error);
     return NextResponse.json({ error: "No se pudo crear. Inténtalo de nuevo." }, { status: 500 });

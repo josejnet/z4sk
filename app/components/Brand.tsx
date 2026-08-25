@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { LOCALES, type Locale, useLanguage } from "../lib/i18n";
 
 const navCopy:Record<Locale,{home:string;language:string;advertisement:string}>={
@@ -17,8 +20,9 @@ export function TopNav({ minimal = false }: { minimal?: boolean }) {
 }
 
 export function Sponsor({ compact = false }: { compact?: boolean }) {
-  const { locale,t } = useLanguage();
-  // A hard navigation avoids the client-router failure already observed in production.
-  // eslint-disable-next-line @next/next/no-html-link-for-pages
-  return <aside className={`sponsor ${compact ? "sponsor-compact" : ""}`} aria-label={navCopy[locale].advertisement}><span>{t("sponsorSpace")}</span><p>{t("sponsorCopy")}</p><a href="/?sponsor=1#crear" target="_top">{t("advertise")} →</a></aside>;
+  const { locale } = useLanguage();
+  const [placement, setPlacement] = useState<{enabled:boolean;label?:string;headline?:string;ctaLabel?:string;destinationUrl?:string}|null>(null);
+  useEffect(() => { let active=true; void fetch("/api/ads").then((response)=>response.json()).then((result)=>{if(active)setPlacement(result)}).catch(()=>{if(active)setPlacement({enabled:false})}); return()=>{active=false}; }, []);
+  if (!placement?.enabled || !placement.headline || !placement.ctaLabel || !placement.destinationUrl) return null;
+  return <aside className={`sponsor sponsor-live ${compact ? "sponsor-compact" : ""}`} aria-label={navCopy[locale].advertisement}><span>{placement.label||navCopy[locale].advertisement}</span><p>{placement.headline}</p><a href={placement.destinationUrl} target="_blank" rel="noopener noreferrer sponsored nofollow">{placement.ctaLabel} <span aria-hidden="true">↗</span></a></aside>;
 }

@@ -84,9 +84,13 @@ test("ships privacy, defensibility and PWA assets", async () => {
     stat(new URL("../public/icon-192.png", import.meta.url)),
     stat(new URL("../public/icon-512.png", import.meta.url)),
   ]);
-  const [brand, faviconIco] = await Promise.all([
+  const [brand, faviconIco, founderAuth, founderAds, publicAds, founderDashboard] = await Promise.all([
     readFile(new URL("../app/components/Brand.tsx", import.meta.url), "utf8"),
     stat(new URL("../public/favicon.ico", import.meta.url)),
+    readFile(new URL("../app/lib/founder-auth.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/founder/ads/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/ads/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/founder/FounderDashboard.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(builder, /Share once & remove ads/);
   assert.match(builder, /<a href=\{created\.adminUrl\} target="_blank" rel="noopener noreferrer">\{t\("openPanel"\)\}<\/a>/);
@@ -111,6 +115,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /<QrCard kind="invitation"/);
   assert.match(builder, /<QrCard kind="dashboard"/);
   assert.match(builder, /generateResponseKeyPair/);
+  assert.match(builder, /generateCreatorAccessCredential/);
+  assert.match(builder, /creatorTokenHash: access\.tokenHash/);
+  assert.match(builder, /window\.location\.origin.*#key=/);
   assert.match(builder, /attachPrivateDecryptionKey/);
   assert.match(builder, /encryptionPublicKey: encryptionKeys\.publicKey/);
   assert.doesNotMatch(gameRoute, /body\.creatorEmail/);
@@ -118,6 +125,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(sdk, /creatorEmail/);
   assert.match(sdk, /ECDH/);
   assert.match(gameRoute, /encryption_public_key/);
+  assert.match(gameRoute, /creatorTokenHash/);
+  assert.doesNotMatch(gameRoute, /creatorToken\s*=|adminUrl:/);
   assert.match(gameRoute, /match_question/);
   assert.match(qrCard, /import\("qrcode"\)/);
   assert.match(qrCard, /QRCode\.toCanvas/);
@@ -200,12 +209,19 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(runtime, /searchParams\.get\("key"\)/);
   assert.match(reportRoute, /automaticallyClosed/);
   assert.match(reportRoute, /reported/);
-  assert.match(metricsRoute, /FOUNDER_DASHBOARD_KEY/);
-  assert.match(metricsRoute, /founder-dashboard/);
-  assert.match(metricsRoute, /expected\.length < 32/);
+  assert.match(founderAuth, /FOUNDER_DASHBOARD_KEY/);
+  assert.match(founderAuth, /founder-dashboard/);
+  assert.match(founderAuth, /expected\.length < 32/);
   assert.match(metricsRoute, /Aggregate metrics only/);
   assert.match(metricsRoute, /timed_mode/);
-  assert.match(metricsRoute, /authorization/);
+  assert.match(founderAuth, /authorization/);
+  assert.match(metricsRoute, /sponsor_config/);
+  assert.match(founderAds, /authorizeFounder/);
+  assert.match(founderAds, /parsed\.protocol !== "https:"/);
+  assert.match(publicAds, /enabled: false/);
+  assert.match(founderDashboard, /Sponsor placement/);
+  assert.match(founderDashboard, /No tracking or targeting/);
+  assert.match(brand, /rel="noopener noreferrer sponsored nofollow"/);
   assert.match(proofRoute, /live runtime self-audit/);
   assert.match(proofRoute, /Creator email never reaches the active database/);
   assert.match(proofRoute, /Private decryption keys never enter the database/);
@@ -226,6 +242,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(responseCrypto, /HKDF/);
   assert.match(responseCrypto, /shared\.fill\(0\)/);
   assert.match(responseCrypto, /private decryption key does not match this invitation/);
+  assert.match(responseCrypto, /generateCreatorAccessCredential/);
   assert.match(encryptionTypes, /ECDH-P256\+HKDF-SHA256\+A256GCM/);
   assert.match(proofRoute, /No expired answers remain in the active database/);
   assert.match(privacyEngine, /purgeExpiredData/);

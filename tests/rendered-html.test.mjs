@@ -303,7 +303,9 @@ test("requires complete translations and hard navigation for every supported loc
   assert.match(i18n, /Missing translation:/);
   assert.match(flowCopy, /Missing flow translation:/);
   assert.match(legalCopy, /Record<Locale,LegalLocale>/);
+  assert.match(legalCopy, /const OWNER_BLINDNESS_COPY:Record<Locale/);
   for (const locale of locales) assert.match(legalCopy, new RegExp(`(?:^|\\s)${locale}:\\{`));
+  for (const locale of locales) assert.match(legalCopy, new RegExp(`${locale}:\\{access:`));
   for (const source of [builder, game]) assert.match(source, /Record<Locale,T>/);
   for (const source of [pwa, htmlInvite, dashboard]) assert.match(source, /Record<Locale,/);
   assert.doesNotMatch(builder + game + pwa + htmlInvite, /new Proxy/);

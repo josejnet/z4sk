@@ -21,7 +21,7 @@ Production is deployed from `main` to Vercel.
 - optional one-response, view-and-destroy mode
 - double-blind interest match with a creator-customizable match question
 - optional 30-second-per-question challenge with two mandatory recipient acknowledgements, automatic advance and no backtracking
-- end-to-end encrypted response payloads using ECDH P-256, HKDF-SHA-256 and AES-256-GCM; the only private key stays in the creator URL fragment/QR and never enters the database
+- end-to-end encrypted response payloads using ECDH P-256, HKDF-SHA-256 and AES-256-GCM; the only private key stays in the creator URL fragment/QR, while the public answer link pins the original public-key fingerprint
 - private creator dashboard and emoji reactions
 - Smart Mix question ranking based only on aggregate completion signals
 - sponsor packs, HTML/PNG/JPG invitation export, public/private QR cards and share-to-unlock ad removal

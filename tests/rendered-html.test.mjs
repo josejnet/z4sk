@@ -85,13 +85,15 @@ test("ships privacy, defensibility and PWA assets", async () => {
     stat(new URL("../public/icon-512.png", import.meta.url)),
     readFile(new URL("../app/lib/name-copy.ts", import.meta.url), "utf8"),
   ]);
-  const [brand, faviconIco, founderAuth, founderAds, publicAds, founderDashboard] = await Promise.all([
+  const [brand, faviconIco, founderAuth, founderAds, publicAds, founderDashboard, cancellationCopy, cancellationClient] = await Promise.all([
     readFile(new URL("../app/components/Brand.tsx", import.meta.url), "utf8"),
     stat(new URL("../public/favicon.ico", import.meta.url)),
     readFile(new URL("../app/lib/founder-auth.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/founder/ads/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/ads/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/founder/FounderDashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/cancellation-copy.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/cancel/[id]/CancelResponseClient.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(builder, /Share once & remove ads/);
   assert.match(builder, /<a href=\{created\.adminUrl\} target="_blank" rel="noopener noreferrer">\{t\("openPanel"\)\}<\/a>/);
@@ -120,6 +122,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /creatorTokenHash: access\.tokenHash/);
   assert.match(builder, /window\.location\.origin.*#key=/);
   assert.match(builder, /attachPrivateDecryptionKey/);
+  assert.match(builder, /fingerprintEncryptionPublicKey/);
+  assert.match(builder, /attachPublicKeyFingerprint/);
   assert.match(builder, /encryptionPublicKey: encryptionKeys\.publicKey/);
   assert.match(builder, /creatorName\.trim\(\)\.length >= 1 && recipientName\.trim\(\)\.length >= 1/);
   assert.match(builder, /id="creator" required minLength=\{1\} maxLength=\{40\}/);
@@ -132,6 +136,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(gameRoute, /body\.creatorInterest/);
   assert.doesNotMatch(sdk, /creatorEmail/);
   assert.match(sdk, /ECDH/);
+  assert.match(sdk, /keyFingerprint/);
+  assert.match(sdk, /attachFingerprint\(created\.playUrl,fingerprint\)/);
   assert.match(gameRoute, /encryption_public_key/);
   assert.match(gameRoute, /creatorTokenHash/);
   assert.doesNotMatch(gameRoute, /creatorToken\s*=|adminUrl:/);
@@ -144,6 +150,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(qrCard, /qr\.contains=ONLY_PRIVATE_DECRYPTION_KEY/);
   assert.match(gameClient, /setRespondentName\(data\.recipientName\)/);
   assert.match(gameClient, /encryptPrivateResponse/);
+  assert.match(gameClient, /verifyEncryptionPublicKeyFingerprint/);
+  assert.match(gameClient, /window\.history\.replaceState\(\{\},"",cancelUrl\)/);
   assert.match(gameClient, /useRef<HTMLTextAreaElement>/);
   assert.match(gameClient, /emojiSets\[game\.level\]/);
   assert.match(gameClient, /selectionStart/);
@@ -277,6 +285,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(responseCrypto, /shared\.fill\(0\)/);
   assert.match(responseCrypto, /private decryption key does not match this invitation/);
   assert.match(responseCrypto, /generateCreatorAccessCredential/);
+  assert.match(responseCrypto, /fingerprintEncryptionPublicKey/);
+  assert.match(responseCrypto, /The invitation encryption key has changed/);
   assert.match(responseCrypto, /payload\.respondentName\.trim\(\)\.length < 1/);
   assert.match(encryptionTypes, /ECDH-P256\+HKDF-SHA256\+A256GCM/);
   assert.match(proofRoute, /No expired answers remain in the active database/);
@@ -293,6 +303,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(manifest, /"src":"\/icon-512\.png"/);
   assert.match(sw, /z4sk-shell-v4/);
   assert.match(sw, /\/favicon\.ico/);
+  for (const locale of ["en", "es", "it", "fr", "de", "nl", "eo", "pt", "zh", "hi", "ja", "tr", "machine"]) assert.match(cancellationCopy, new RegExp(`\\b${locale}:`));
+  assert.match(cancellationClient, /authorization:\s*`Bearer \$\{credential\.deletionToken\}`/);
+  assert.match(cancellationClient, /history\.replaceState\(\{\}, "", `\/cancel\/\$\{id\}`\)/);
   assert.match(assetRegister, /Smart Mix™/);
   assert.match(assetRegister, /chain-of-title/);
   assert.ok(og.size > 100_000);
@@ -306,7 +319,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
 test("publishes plain-language privacy and safety pages", async () => {
   const [privacy, safety, terms] = await Promise.all([render("/privacy"), render("/safety"), render("/terms")]);
   const legalPage = await readFile(new URL("../app/components/LegalPage.tsx", import.meta.url), "utf8");
-  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /end-to-end encrypted/); assert.match(privacyHtml, /Neon Postgres/); assert.match(privacyHtml, /What the founder can see/); assert.match(privacyHtml, /audited access matrix/); assert.match(privacyHtml, /There is no “superadmin” back door/); assert.match(privacyHtml, /us-east-1/);
+  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /end-to-end encrypted/); assert.match(privacyHtml, /Neon Postgres/); assert.match(privacyHtml, /What the founder can see/); assert.match(privacyHtml, /audited access matrix/); assert.match(privacyHtml, /There is no “superadmin” back door/); assert.match(privacyHtml, /public-key substitution detectable/); assert.match(privacyHtml, /processed transiently/); assert.match(privacyHtml, /private cancellation link/); assert.match(privacyHtml, /us-east-1/);
   assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect creator access/);
   assert.equal(terms.status, 200); assert.match(await terms.text(), /Payments are disabled/);
   assert.doesNotMatch(legalPage, /next\/link|<Link/);

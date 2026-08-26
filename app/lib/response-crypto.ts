@@ -60,6 +60,28 @@ export async function generateResponseKeyPair() {
   };
 }
 
+export async function fingerprintEncryptionPublicKey(key: EncryptionPublicKey) {
+  const canonical = JSON.stringify({ kty: key.kty, crv: key.crv, x: key.x, y: key.y });
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical)));
+  return toBase64Url(digest);
+}
+
+export async function verifyEncryptionPublicKeyFingerprint(key: EncryptionPublicKey, expected: string) {
+  if (!/^[A-Za-z0-9_-]{43}$/.test(expected)) throw new Error("The invitation is missing a valid encryption-key fingerprint.");
+  const actual = await fingerprintEncryptionPublicKey(key);
+  let difference = actual.length ^ expected.length;
+  for (let index = 0; index < Math.min(actual.length, expected.length); index += 1) difference |= actual.charCodeAt(index) ^ expected.charCodeAt(index);
+  if (difference !== 0) throw new Error("The invitation encryption key has changed.");
+}
+
+export function attachPublicKeyFingerprint(urlValue: string, fingerprint: string) {
+  const url = new URL(urlValue);
+  const fragment = new URLSearchParams(url.hash.slice(1));
+  fragment.set("verify", fingerprint);
+  url.hash = fragment.toString();
+  return url.toString();
+}
+
 export function attachPrivateDecryptionKey(adminUrl: string, privateSecret: string, creatorInterest: boolean) {
   const url = new URL(adminUrl);
   const fragment = new URLSearchParams(url.hash.slice(1));

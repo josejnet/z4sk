@@ -7,7 +7,7 @@ import { downloadInvitationHtml } from "../lib/html-invite";
 import { interpolate, type Locale, useLanguage } from "../lib/i18n";
 import { QrCard } from "./QrCard";
 import { ShareInvitation } from "./ShareInvitation";
-import { attachPrivateDecryptionKey, generateCreatorAccessCredential, generateResponseKeyPair } from "../lib/response-crypto";
+import { attachPrivateDecryptionKey, attachPublicKeyFingerprint, fingerprintEncryptionPublicKey, generateCreatorAccessCredential, generateResponseKeyPair } from "../lib/response-crypto";
 import { NAME_RULE_COPY } from "../lib/name-copy";
 const localized=<T,>(base:Record<Locale,T>)=>base;
 
@@ -178,13 +178,15 @@ export function Builder({ onClose }: { onClose?: () => void }) {
       const normalizedCreatorName = creatorName.trim().replace(/\s+/g, " ");
       const normalizedRecipientName = recipientName.trim().replace(/\s+/g, " ");
       const [encryptionKeys, access] = await Promise.all([generateResponseKeyPair(), generateCreatorAccessCredential()]);
+      const publicKeyFingerprint = await fingerprintEncryptionPublicKey(encryptionKeys.publicKey);
       const response = await fetch("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: normalizedCreatorName, recipientName: normalizedRecipientName, level, questions: selected, viewOnce, locale, libraryVersion: "2026.08", doubleBlind, matchQuestion, timedMode, expiresInHours, packSlug, encryptionPublicKey: encryptionKeys.publicKey, creatorTokenHash: access.tokenHash }) });
       const data = await response.json() as Omit<Created,"adminUrl"> & { error?: string };
       if (!response.ok) throw new Error(t("formError"));
-      const privateUrl = `${window.location.origin}/p/${data.id}#key=${encodeURIComponent(access.token)}`;
+      const playUrl = attachPublicKeyFingerprint(data.playUrl, publicKeyFingerprint);
+      const privateUrl = attachPublicKeyFingerprint(`${window.location.origin}/p/${data.id}#key=${encodeURIComponent(access.token)}`, publicKeyFingerprint);
       setCreatorName(normalizedCreatorName);
       setRecipientName(normalizedRecipientName);
-      setCreated({ ...data, adminUrl: attachPrivateDecryptionKey(privateUrl, encryptionKeys.privateSecret, doubleBlind && creatorInterest) });
+      setCreated({ ...data, playUrl, adminUrl: attachPrivateDecryptionKey(privateUrl, encryptionKeys.privateSecret, doubleBlind && creatorInterest) });
       setStep(4);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t("formError")); } finally { setLoading(false); }
   }

@@ -60,7 +60,7 @@ export async function GET() {
       { id: "purge-heartbeat", label: "Daily background purge heartbeat is current", pass: lastRunAgeSeconds !== null && lastRunAgeSeconds <= 129_600, evidence: status ? `Last purge ran ${lastRunAgeSeconds}s ago via ${status.last_source}.` : "No scheduled purge has run yet." },
       { id: "operator-contact", label: "Controller identity and privacy contact are published", pass: operatorConfigured, evidence: operatorConfigured ? "Legal entity, postal address and privacy email are configured." : "Public launch is blocked until legal operator details are configured." },
       { id: "recovery-window", label: "The exact Neon restore window is published", pass: restoreWindowConfigured, evidence: restoreWindowConfigured ? `Configured Neon restore window: ${restoreWindowHours} hours.` : "NEON_RESTORE_WINDOW_HOURS has not been verified and published." },
-      { id: "tracking", label: "No third-party analytics or advertising SDK is configured", pass: true, evidence: "Sponsor content is a first-party text placement controlled by the founder; it has no targeting pixel, behavioral profile or click tracking." },
+      { id: "tracking", label: "No third-party analytics or advertising SDK is configured", pass: true, evidence: "Sponsor content is a first-party text placement. Viewable impressions and clicks are stored only as aggregate counters by campaign, day, language and placement, without user, device or invitation identifiers." },
       { id: "cookies", label: "Z4SK does not set application cookies", pass: true, evidence: "Access uses separate bearer links; there is no account session or cookie code." },
     ];
     const disclosureCheckIds = new Set(["operator-contact", "recovery-window"]);

@@ -137,3 +137,19 @@ const PRIVACY_DELETION_COPY:Record<Locale,string>={
 };
 for(const locale of Object.keys(PRIVACY_DELETION_COPY) as Locale[])LEGAL_COPY[locale].docs.privacy.points[2][1]=PRIVACY_DELETION_COPY[locale];
 LEGAL_COPY.es.docs.privacy.points[3]=["Métricas, infraestructura y derechos",OWNER_BLINDNESS_COPY.es.founder];
+const SPONSOR_METRICS_COPY:Record<Locale,string>={
+  en:" Sponsor statistics are first-party aggregate counters by campaign, day, language and placement; no user, device or invitation identifier is stored.",
+  es:" Las estadísticas de patrocinio son contadores agregados propios por campaña, día, idioma y ubicación; no se guarda ningún identificador de usuario, dispositivo o invitación.",
+  it:" Le statistiche sponsor sono contatori aggregati proprietari per campagna, giorno, lingua e posizione; non viene salvato alcun identificatore di utente, dispositivo o invito.",
+  fr:" Les statistiques sponsor sont des compteurs agrégés internes par campagne, jour, langue et emplacement ; aucun identifiant d’utilisateur, d’appareil ou d’invitation n’est stocké.",
+  de:" Sponsorstatistiken sind eigene aggregierte Zähler nach Kampagne, Tag, Sprache und Platzierung; es werden keine Nutzer-, Geräte- oder Einladungskennungen gespeichert.",
+  nl:" Sponsorstatistieken zijn eigen geaggregeerde tellers per campagne, dag, taal en plaatsing; er wordt geen gebruikers-, apparaat- of uitnodigings-ID opgeslagen.",
+  eo:" Sponsoraj statistikoj estas propraj agregitaj nombriloj laŭ kampanjo, tago, lingvo kaj loko; neniu uzanto-, aparato- aŭ invit-identigilo estas konservata.",
+  pt:" As estatísticas de patrocínio são contadores agregados próprios por campanha, dia, idioma e posição; não é guardado qualquer identificador de utilizador, dispositivo ou convite.",
+  zh:" 赞助统计仅按活动、日期、语言和展示位置保存第一方汇总计数，不保存用户、设备或邀请标识符。",
+  hi:" प्रायोजक आँकड़े अभियान, दिन, भाषा और स्थान के अनुसार केवल प्रथम-पक्ष समेकित काउंटर हैं; कोई उपयोगकर्ता, डिवाइस या निमंत्रण पहचानकर्ता संग्रहीत नहीं होता।",
+  ja:" スポンサー統計はキャンペーン、日、言語、表示位置ごとの自社集計値のみで、ユーザー・端末・招待の識別子は保存しません。",
+  tr:" Sponsor istatistikleri kampanya, gün, dil ve yerleşime göre yalnızca birinci taraf toplu sayaçlardır; kullanıcı, cihaz veya davet kimliği saklanmaz.",
+  machine:" sponsor_metrics=aggregate(campaign,day,locale,placement); store[user_id,device_id,invitation_id]=false"
+};
+for(const locale of Object.keys(SPONSOR_METRICS_COPY) as Locale[])LEGAL_COPY[locale].docs.privacy.points[3][1]+=SPONSOR_METRICS_COPY[locale];

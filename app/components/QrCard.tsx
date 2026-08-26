@@ -58,7 +58,7 @@ async function renderCard(canvas:HTMLCanvasElement,kind:QrKind,locale:Locale,nam
   const gradient=ctx.createRadialGradient(850,180,20,850,180,520);gradient.addColorStop(0,invitation?"rgba(255,90,31,.22)":"rgba(185,137,255,.2)");gradient.addColorStop(1,"rgba(11,11,11,0)");ctx.fillStyle=gradient;ctx.fillRect(0,0,1080,650);
   ctx.strokeStyle="#37312d";ctx.lineWidth=2;ctx.strokeRect(44,44,992,1262);ctx.fillStyle="#f4efe8";ctx.font="800 34px Arial, sans-serif";ctx.letterSpacing="8px";ctx.fillText("Z4SK",80,108);ctx.letterSpacing="0px";
   ctx.fillStyle=accent;ctx.font="700 22px Arial, sans-serif";ctx.fillText(invitation?c.inviteKicker:c.secretKicker,80,192);
-  ctx.fillStyle="#f4efe8";ctx.font="700 64px Arial, 'Noto Sans', sans-serif";const title=fillTemplate(invitation?c.inviteTitle:c.secretTitle,name);drawWrapped(ctx,title,80,278,920,72,3);
+  ctx.fillStyle="#f4efe8";ctx.font="700 64px Arial, 'Noto Sans', sans-serif";ctx.textAlign="center";const title=fillTemplate(invitation?c.inviteTitle:c.secretTitle,name);drawWrapped(ctx,title,540,278,880,72,3);ctx.textAlign="left";
   const qr=document.createElement("canvas");await QRCode.toCanvas(qr,url,{width:440,margin:3,errorCorrectionLevel:"H",color:{dark:"#080808",light:"#ffffff"}});
   ctx.fillStyle="#fff";ctx.fillRect(290,530,500,500);ctx.drawImage(qr,320,560,440,440);ctx.strokeStyle=accent;ctx.lineWidth=4;ctx.strokeRect(290,530,500,500);
   ctx.fillStyle="#aaa19a";ctx.font="400 28px Arial, 'Noto Sans', sans-serif";drawWrapped(ctx,invitation?c.inviteBody:c.secretBody,80,1110,920,40,3);

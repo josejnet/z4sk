@@ -144,6 +144,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameRoute, /match_question/);
   assert.match(qrCard, /import\("qrcode"\)/);
   assert.match(qrCard, /QRCode\.toCanvas/);
+  assert.match(qrCard, /ctx\.textAlign="center".*drawWrapped\(ctx,title,540,278,880,72,3\).*ctx\.textAlign="left"/);
   assert.match(qrCard, /"image\/png"\|"image\/jpeg"/);
   assert.match(qrCard, /SECRET · DO NOT SHARE/);
   assert.match(qrCard, /generation=device_local/);

@@ -85,3 +85,5 @@ Cambiar `RATE_LIMIT_HMAC_SECRET` solo invalida los seudónimos de límites y den
 ## Protección del repositorio
 
 El repositorio público protege `main` con el control `verify`, rama actualizada, una aprobación por pull request, revisión del propietario del código, descarte de aprobaciones antiguas, resolución de conversaciones, historial lineal, firmas verificadas y bloqueo de borrado/force-push. Para commits locales usa una clave GPG/SSH registrada y respaldada, o integra mediante squash firmado por GitHub. Las actualizaciones directas sin firma se rechazan. El propietario conserva el bypass administrativo para las demás reglas como recuperación de emergencia; es una frontera de confianza de un proyecto con un solo mantenedor, no una revisión independiente.
+
+Comprueba la procedencia con `gh api repos/josejnet/z4sk/branches/main/protection/required_signatures --jq .enabled` y `gh api repos/josejnet/z4sk/commits/<deployment.commitSha> --jq .commit.verification`. Tanto `enabled` como `verified` deben ser `true` para el commit que publica producción en `/api/privacy-proof`.

@@ -200,9 +200,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.ok((home.match(/target="_top"/g)?.length || 0) >= 4);
   assert.match(shareInvitation, /https:\/\/wa\.me/);
   assert.match(shareInvitation, /mailto:\?subject/);
-  assert.ok(shareInvitation.includes("mail.google.com"));
-  assert.ok(shareInvitation.includes("outlook.office.com"));
-  assert.ok(shareInvitation.includes("compose.mail.yahoo.com"));
+  assert.match(shareInvitation, /https:\/\/mail\.google\.com\/mail\/\?view=cm/);
+  assert.match(shareInvitation, /https:\/\/outlook\.office\.com\/mail\/deeplink\/compose\?/);
+  assert.match(shareInvitation, /https:\/\/compose\.mail\.yahoo\.com\/\?subject=/);
   assert.match(shareInvitation, /navigator\.share/);
   assert.match(shareInvitation, /adminUrl=REDACTED/);
   assert.match(shareInvitation, /Treat this link like a password/);

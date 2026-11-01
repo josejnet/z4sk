@@ -1,0 +1,28 @@
+name: OWASP ZAP passive audit
+
+on:
+  schedule:
+    - cron: "15 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    name: Passive production scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout rules and workflow context
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Scan public production surface
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
+        with:
+          target: https://z4sk.vercel.app
+          allow_issue_writing: false
+          fail_action: false
+          artifact_name: zap-passive-audit
+          cmd_options: -a -j -m 2

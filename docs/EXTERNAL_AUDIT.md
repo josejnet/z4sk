@@ -6,7 +6,7 @@
 
 **Conditional pass.** Independent automated scanners found no known dependency vulnerability, leaked secret, high-risk dynamic finding or open CodeQL code alert after remediation. The application passed its build, lint, unit/render checks, encrypted staging E2E suite and production deployment gate.
 
-One material governance item remains visible rather than being hidden: the `main` branch is not protected and the repository does not yet enforce independent pull-request review.
+The automated findings have been remediated or explicitly accepted. `main` is now protected and production has a manual release gate. Because the project still has one maintainer and the owner retains an emergency administrator bypass, this is not equivalent to independent human review.
 
 This is an automated independent-tool assessment, **not** a human penetration test, formal certification, legal opinion or cryptographic proof.
 
@@ -34,7 +34,8 @@ The baseline DAST run exercised public pages and public static/API discovery onl
 | EA-05 | Low | Resolved | Added `Cross-Origin-Embedder-Policy: require-corp` and disabled the `X-Powered-By` disclosure. |
 | EA-06 | Low | False positive | ZAP reported missing HSTS on three static assets during the baseline. Direct repeated checks show `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` on HTML, API, icon and service-worker responses. |
 | EA-07 | Informational | Validated | ZAP marked `lang` as potentially user-controlled. The value is accepted only when it exactly matches the fixed `LOCALES` allow-list before `document.documentElement.lang` is updated. |
-| EA-08 | Supply-chain high | Open | Branch protection and mandatory pull-request review are absent. This does not expose user plaintext by itself, but it weakens prevention of an unauthorized or mistaken production change. |
+| EA-08 | Supply-chain high | Mitigated / residual owner bypass | `main` requires the `verify` check, an up-to-date linear history, one approval, code-owner review and resolved conversations; force pushes and deletion are blocked. Production also requires a GitHub environment approval. The single owner retains an emergency administrator bypass, so a truly independent second reviewer is still an organisational requirement. |
+| EA-09 | Browser hardening | Implemented, monitoring | Enforced CSP now reports violations and Trusted Types runs in report-only mode. The first-party endpoint discards full URLs, identifiers, blocked resources, source files, samples and network/user identifiers before storing only daily aggregate counters. |
 
 ## Scanner totals
 
@@ -50,11 +51,14 @@ OpenSSF Scorecard reported **5.6/10**. Its positive checks were: no known vulner
 - corrected all CodeQL test findings;
 - removed `X-Powered-By`, added COEP and hardened `/api`;
 - removed every runtime React `style` attribute and replaced the CSS allowance with nonce-based `style-src` plus `style-src-attr 'none'`;
+- added privacy-preserving CSP reporting, report-only Trusted Types compatibility monitoring and public commit-to-deployment evidence;
+- protected `main`, added code ownership and placed production behind an explicit environment approval;
+- published a bilingual scope packet for a genuinely independent human cryptographic review and pentest;
 - verified `npm test`, `npm run lint`, `npm audit`, encrypted staging E2E and production deployment.
 
 ## Residual risk and recommended next step
 
-The highest-priority governance improvement is to protect `main`, require the production checks and require at least one independent reviewer. That changes the owner's release workflow, so it was not imposed silently during this audit. The previously identified browser hardening task, removing `style-src 'unsafe-inline'`, is complete and independently re-scanned.
+The technical branch and release gates are in place. The remaining governance work cannot be truthfully automated: add a second independent maintainer/reviewer, verify MFA personally on GitHub, Vercel, Neon and the domain account, register a safely backed-up signing key before enforcing signed commits, and commission the human review defined in [HUMAN_SECURITY_REVIEW.md](HUMAN_SECURITY_REVIEW.md).
 
 End-to-end encryption does not protect a leaked complete link, compromised device/browser/extension, malicious future deployment, screenshot or copied plaintext. Sharing a complete invitation link remains equivalent to sharing a password.
 

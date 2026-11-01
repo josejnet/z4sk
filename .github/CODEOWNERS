@@ -1,0 +1,7 @@
+# Security-sensitive application, workflow and documentation changes require owner review.
+* @josejnet
+/.github/ @josejnet
+/app/api/ @josejnet
+/app/lib/ @josejnet
+/db/ @josejnet
+/scripts/ @josejnet

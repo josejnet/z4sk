@@ -47,6 +47,8 @@ Los despliegues Git automáticos de Vercel están desactivados. Cada push a `mai
 4. migraciones versionadas de producción con la credencial propietaria del esquema;
 5. llamada al Deploy Hook de `main` solo si todo lo anterior termina correctamente.
 
+El entorno `Production` de GitHub exige aprobación explícita antes de iniciar migraciones y despliegue. Solo la rama protegida `main` puede usarlo.
+
 Para repetir manualmente el mismo flujo:
 
 ```bash
@@ -59,6 +61,8 @@ No ejecutes migraciones productivas con el `DATABASE_URL` de Vercel: ese rol no 
 
 - confirma que el despliegue está `READY` y asignado a `https://z4sk.vercel.app`;
 - comprueba que la CSP contiene un nonce por petición y no permite scripts `unsafe-inline`;
+- confirma que existen `Reporting-Endpoints`, los informes de la CSP aplicada y Trusted Types en modo informe;
+- compara `deployment.commitSha` de `/api/privacy-proof` con el commit público y los metadatos de Vercel;
 - crea, responde, descifra y elimina una invitación desechable;
 - revisa `/api/privacy-proof` y el pulso diario de retención;
 - inspecciona errores de producción sin imprimir cuerpos ni secretos.
@@ -80,4 +84,4 @@ Cambiar `RATE_LIMIT_HMAC_SECRET` solo invalida los seudónimos de límites y den
 
 ## Protección del repositorio
 
-El workflow usa permisos mínimos y Actions fijadas por commit. El plan actual del repositorio privado no ofrece reglas protegidas para ramas o entornos; por ello, el propietario debe limitar estrictamente la escritura en `main` y revisar cualquier cambio del workflow antes de integrarlo.
+El repositorio público protege `main` con el control `verify`, rama actualizada, una aprobación por pull request, revisión del propietario del código, descarte de aprobaciones antiguas, resolución de conversaciones, historial lineal y bloqueo de borrado/force-push. El propietario conserva el bypass administrativo de GitHub para recuperación de emergencia; es una frontera de confianza de un proyecto con un solo mantenedor, no una revisión independiente. La firma obligatoria queda pendiente hasta registrar y respaldar de forma segura una clave de firma.

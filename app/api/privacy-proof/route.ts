@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { ensureSchema, getDatabase } from "../../../db/runtime";
 
-const POLICY_VERSION = "2026.11.01-privacy.7";
+const POLICY_VERSION = "2026.11.02-privacy.8";
 
 type PrivacyStatus = {
   last_run_at: string;
@@ -17,7 +17,7 @@ export async function GET() {
     await ensureSchema();
     const db = getDatabase();
     const now = new Date().toISOString();
-    const [gameColumns, responseColumns, responseIndexes, status, expiredGames, expiredResponses, storedCreatorEmails, legacyPlaintextInvitations, invalidEncryptedInvitations, exposedEncryptedInvitationFields, plaintextResponses, invalidEncryptedEnvelopes, weakActiveIdentifiers, publicTableAccess] = await Promise.all([
+    const [gameColumns, responseColumns, responseIndexes, status, expiredGames, expiredResponses, storedCreatorEmails, legacyPlaintextInvitations, invalidEncryptedInvitations, exposedEncryptedInvitationFields, plaintextResponses, invalidEncryptedEnvelopes, weakActiveIdentifiers, publicTableAccess, cspReports] = await Promise.all([
       db.prepare(`SELECT column_name AS name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'games'`).all<{ name: string }>(),
       db.prepare(`SELECT column_name AS name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'responses'`).all<{ name: string }>(),
       db.prepare(`SELECT indexname AS name FROM pg_indexes WHERE schemaname = 'public' AND tablename = 'responses'`).all<{ name: string }>(),
@@ -32,6 +32,7 @@ export async function GET() {
       db.prepare(`SELECT COUNT(*) AS count FROM responses WHERE encrypted_payload = '' OR encrypted_payload::jsonb->>'alg' <> 'ECDH-P256+HKDF-SHA256+A256GCM' OR encrypted_payload::jsonb->>'v' <> '1'`).first<{ count: number }>(),
       db.prepare(`SELECT COUNT(*) AS count FROM games WHERE length(id) < 16 OR creator_token_hash !~ '^[0-9a-f]{64}$'`).first<{ count: number }>(),
       db.prepare(`SELECT COALESCE(BOOL_AND(NOT has_table_privilege('public', table_schema||'.'||table_name, 'SELECT')), TRUE) AS denied FROM information_schema.tables WHERE table_schema = 'public'`).first<{ denied: boolean }>(),
+      db.prepare(`SELECT COALESCE(SUM(event_count), 0) AS count FROM csp_violation_daily WHERE day >= CURRENT_DATE - INTERVAL '13 days'`).first<{ count: number }>(),
     ]);
     const gameColumnNames = new Set(gameColumns.results.map((column) => column.name));
     const responseColumnNames = new Set(responseColumns.results.map((column) => column.name));
@@ -75,6 +76,8 @@ export async function GET() {
       retention: { cron: "daily at 03:00 UTC; exact timing and retries are not guaranteed on Vercel Hobby", activeDatabaseDeadline: "all public and private access stops exactly at expiry; post-expiry access triggers active-row deletion", explicitDeletion: "immediate database transaction independent of analytics", providerRecoveryWindow: restoreWindowConfigured ? `${restoreWindowHours} hours` : "not yet verified", lastRunAt: status?.last_run_at || null, lastExpiredGames: Number(status?.last_expired_games || 0), lastDeletedResponses: Number(status?.last_deleted_responses || 0), totalExpiredGames: Number(status?.total_expired_games || 0), totalDeletedResponses: Number(status?.total_deleted_responses || 0) },
       encryption: { invitationCipher:"AES-256-GCM", responseCipher:"AES-256-GCM", keyAgreement:"ECDH P-256", keyDerivation:"HKDF-SHA-256", secretGeneration:"creator browser only", invitationKeyLocation:"public invitation and creator URL fragments only", responsePrivateKeyLocation:"creator URL fragment / private QR only", rawAccessTokenLocation:"creator URL fragment and authorization header only; never stored", databaseContent:"invitation ciphertext, response ciphertext, non-secret IVs and salts, token hash, expiry policy, state and minimal counters" },
       infrastructure: { application:"Vercel Functions", database:"Vercel Marketplace Neon Postgres", databaseRegion, databaseTls:"required with channel binding", publicDatabaseRoleCanReadTables: !publicTableAccess?.denied, requestLogs:"Vercel necessarily processes operational request metadata; application code does not log bodies, bearer secrets or decrypted answers." },
+      deployment: { repository:"https://github.com/josejnet/z4sk", commitSha:process.env.VERCEL_GIT_COMMIT_SHA || null, environment:process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown", proof:"The public commit is supplied by Vercel's immutable build environment; compare it with the commit shown on /audit and the deployment metadata." },
+      securityTelemetry: { cspReportsLast14Days:Number(cspReports?.count || 0), granularity:"daily count by CSP directive, route class and report/enforce disposition", excluded:["full URL", "invitation or response identifier", "query", "fragment", "blocked URI", "source file", "code sample", "line and column", "IP or user identifier"] },
       analytics: { invitationTextIncluded: false, answerTextIncluded: false, creatorEmailIncluded: false, respondentNameIncluded: false, matchInterestIncluded: false, measures: ["funnel event counts", "approximate country", "aggregate sponsor performance"] },
       limits: ["This endpoint is evidence generated by Z4SK itself, not an independent audit.", "Expiry, creation/open/submission timestamps, state, response mode, request paths and infrastructure metadata remain server-visible because they enforce retention and abuse controls.", "Sharing an invitation link is equivalent to sharing a password: anyone holding the complete link can decrypt its names, questions and settings and submit until expiry; anyone holding the complete creator link can also decrypt responses.", "Client-side encryption protects against a database or backup disclosure, not a compromised browser, leaked link, screenshots or malicious code served by the operator.", "Vercel and Neon process operational metadata under their own infrastructure controls; provider recovery history may retain encrypted history for the configured restore window."],
     }, { headers: { "cache-control": "public, s-maxage=300, stale-while-revalidate=600", "x-z4sk-privacy-proof": POLICY_VERSION } });

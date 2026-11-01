@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { contentSecurityPolicy } from "./app/lib/security-headers";
+import { contentSecurityPolicy, reportingEndpoints, trustedTypesReportOnlyPolicy } from "./app/lib/security-headers";
 
 export function proxy(request: NextRequest) {
   const nonce = randomBytes(16).toString("base64");
@@ -11,6 +11,8 @@ export function proxy(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
+  response.headers.set("Content-Security-Policy-Report-Only", trustedTypesReportOnlyPolicy());
+  response.headers.set("Reporting-Endpoints", reportingEndpoints(request.nextUrl.origin));
   return response;
 }
 

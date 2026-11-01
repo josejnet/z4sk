@@ -6,7 +6,7 @@
 
 **Aprobación condicionada.** Tras las correcciones, los analizadores automatizados independientes no encontraron vulnerabilidades conocidas en dependencias, secretos filtrados, hallazgos dinámicos de riesgo alto ni alertas de código CodeQL abiertas. La aplicación superó compilación, lint, pruebas unitarias/de renderizado, E2E cifrado en staging y la puerta de despliegue de producción.
 
-Se mantiene visible una mejora relevante de gobierno: la rama `main` no está protegida y el repositorio todavía no obliga a una revisión independiente mediante pull request.
+Los hallazgos automatizados están corregidos o aceptados de forma explícita. `main` queda protegida y producción incorpora aprobación manual. Como el proyecto sigue teniendo un único mantenedor y el propietario conserva un bypass administrativo de emergencia, esto no equivale a una revisión humana independiente.
 
 Es una evaluación con herramientas externas automatizadas, **no** un pentest humano, una certificación formal, un dictamen jurídico ni una prueba criptográfica.
 
@@ -34,7 +34,8 @@ El DAST solo recorrió páginas públicas y descubrió activos/API públicos. No
 | EA-05 | Baja | Resuelto | Se añadió `Cross-Origin-Embedder-Policy: require-corp` y se eliminó la cabecera `X-Powered-By`. |
 | EA-06 | Baja | Falso positivo | ZAP indicó que faltaba HSTS en tres activos estáticos durante la primera pasada. Comprobaciones directas repetidas muestran `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` en HTML, API, iconos y service worker. |
 | EA-07 | Informativa | Validado | ZAP marcó `lang` como potencialmente controlable. Solo se acepta si coincide exactamente con la lista cerrada `LOCALES` antes de modificar `document.documentElement.lang`. |
-| EA-08 | Alta de cadena de suministro | Abierta | No hay protección de `main` ni revisión obligatoria por pull request. No expone por sí misma el texto de usuarios, pero reduce la prevención ante un cambio de producción erróneo o no autorizado. |
+| EA-08 | Alta de cadena de suministro | Mitigada / bypass residual | `main` exige `verify`, historial lineal y actualizado, una aprobación, revisión del propietario del código y conversaciones resueltas; se bloquean borrado y force-push. Producción exige además aprobación del entorno de GitHub. El único propietario mantiene bypass administrativo de emergencia, por lo que un segundo revisor realmente independiente sigue siendo un requisito organizativo. |
+| EA-09 | Endurecimiento del navegador | Implementado y monitorizado | La CSP aplicada informa de infracciones y Trusted Types funciona en modo informe. El endpoint propio descarta URL, identificadores, recursos bloqueados, archivos fuente, muestras e identificadores de red/usuario antes de guardar únicamente contadores diarios agregados. |
 
 ## Totales de analizadores
 
@@ -50,11 +51,14 @@ OpenSSF Scorecard obtuvo **5,6/10**. Sus controles positivos fueron: cero vulner
 - corrección de todos los avisos de CodeQL en pruebas;
 - eliminación de `X-Powered-By`, incorporación de COEP y endurecimiento de `/api`;
 - eliminación de todos los atributos `style` de React y sustitución del permiso CSS por `style-src` con nonce y `style-src-attr 'none'`;
+- informes CSP con minimización, Trusted Types en modo informe y evidencia pública commit-despliegue;
+- protección de `main`, propiedad del código y aprobación explícita del entorno de producción;
+- publicación del alcance bilingüe para una revisión criptográfica y pentest humanos realmente independientes;
 - verificación de `npm test`, `npm run lint`, `npm audit`, E2E cifrado y despliegue.
 
 ## Riesgo residual y siguiente paso
 
-La mejora de gobierno prioritaria es proteger `main`, exigir los controles de producción y al menos una revisión independiente. Cambiaría el flujo de publicación del propietario, por lo que no se ha impuesto silenciosamente. El endurecimiento del navegador antes pendiente —eliminar `style-src 'unsafe-inline'`— está terminado y verificado de nuevo por una herramienta externa.
+Las barreras técnicas de rama y publicación quedan implantadas. Lo pendiente no puede automatizarse con rigor: añadir un segundo mantenedor/revisor independiente, comprobar personalmente MFA en GitHub, Vercel, Neon y el dominio, registrar y respaldar una clave antes de exigir commits firmados, y contratar la revisión humana definida en [HUMAN_SECURITY_REVIEW.es.md](HUMAN_SECURITY_REVIEW.es.md).
 
 El cifrado de extremo a extremo no protege un enlace completo filtrado, dispositivo/navegador/extensión comprometidos, un despliegue futuro malicioso, una captura o texto copiado. Compartir el enlace completo de invitación sigue equivaliendo a compartir una contraseña.
 

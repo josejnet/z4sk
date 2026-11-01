@@ -16,6 +16,7 @@ Report vulnerabilities privately through [GitHub private vulnerability reporting
 - The recipient browser decrypts the invitation locally. It then encrypts respondent name, written answers, reactions and match choice with an ephemeral ECDH P-256 key, HKDF-SHA-256 and AES-256-GCM before submission.
 - The creator dashboard link additionally contains the API token and the response private key. Postgres stores only the token's SHA-256 hash and never receives either decryption secret.
 - Response and private-dashboard APIs use `Cache-Control: no-store`. Application code does not log request bodies, authorization headers, URL fragments or decrypted content.
+- Enforced CSP violations and Trusted Types compatibility reports are reduced to daily counters by directive, coarse route class and disposition. Full URLs, identifiers, blocked resources, source files, code samples and user/network identifiers are discarded before storage.
 - New public identifiers contain 128 random bits. Creator and recipient-deletion secrets contain 192 random bits.
 - Rate-limit and event pseudonyms use HMAC-SHA-256 with a server-only secret and rotation. Raw IP addresses are not stored by application code.
 - The public [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof) endpoint checks the active schema and data for plaintext leakage, malformed envelopes, weak identifiers, expiry backlog and required production controls.
@@ -43,6 +44,9 @@ End-to-end encryption does not hide everything. The server and infrastructure ca
 - Keep exact expiry checks on every access path, daily purge, atomic view-once consumption and the database single-response constraint.
 - Run `npm run lint`, `npm test`, `npm audit` and `npm run verify:e2e:staging` before promotion.
 - Monitor `/api/privacy-proof`; investigate an old purge heartbeat or any failed plaintext/envelope check.
+- Compare the production commit in `/audit` and `/api/privacy-proof` with the public repository before reviewing a deployment. Use the [human review packet](docs/HUMAN_SECURITY_REVIEW.md) for an independent cryptographic review or pentest.
+
+Account-level MFA for GitHub, Vercel, Neon and the domain registrar must be verified by the account holder in each provider. It cannot be proved or enabled by repository code. Likewise, signed-commit enforcement must not be enabled until the maintainer has registered and backed up a signing key; otherwise it would lock out legitimate releases.
 
 ## Español
 
@@ -57,11 +61,14 @@ Comunica vulnerabilidades mediante los [avisos privados de seguridad de GitHub](
 - El navegador del destinatario descifra la invitación localmente y cifra la respuesta con ECDH P-256, HKDF-SHA-256 y AES-256-GCM antes de enviarla.
 - El enlace privado del creador añade un token de acceso y la única clave privada capaz de descifrar respuestas. La base de datos guarda únicamente el hash SHA-256 del token.
 - El servidor conserva texto cifrado y metadatos operativos mínimos: identificador aleatorio, fechas, estado, número de preguntas y política de lectura única/caducidad.
+- Los informes CSP y de compatibilidad Trusted Types se reducen antes de guardarse a contadores diarios por directiva y clase de ruta; se descartan URL, identificadores, recursos bloqueados, archivos fuente, muestras de código e identificadores de red.
 - La [auditoría pública en vivo](https://z4sk.vercel.app/audit) explica el diseño y enlaza las comprobaciones de la base activa.
 
 > **Compartir el enlace completo equivale a compartir una contraseña.** Quien tenga el enlace de la invitación puede descifrarla y responder mientras siga activa. Quien tenga el enlace del creador puede además abrir el panel y descifrar respuestas.
 
 El cifrado no protege frente a un navegador o despliegue malicioso, extensiones, malware, capturas de pantalla, portapapeles, copias realizadas por otra persona ni filtraciones del enlace. Tampoco convierte el servicio en anónimo: la infraestructura sigue tratando metadatos de red, rutas y fechas. Consulta [docs/CRYPTOGRAPHY.md](docs/CRYPTOGRAPHY.md) para el protocolo completo, los límites y las propiedades comprobables.
+
+La activación y comprobación de MFA en GitHub, Vercel, Neon y el registrador del dominio requiere al titular de cada cuenta y no puede demostrarse desde el código. El [paquete de revisión humana](docs/HUMAN_SECURITY_REVIEW.es.md) fija el alcance pendiente para un pentest o revisión criptográfica realmente independiente.
 
 ## Supported versions / Versiones compatibles
 

@@ -1,3 +1,11 @@
+export const CSP_REPORT_ENDPOINT = "/api/csp-report";
+export const CSP_REPORT_GROUP = "csp-endpoint";
+
+const reportingDirectives = [
+  `report-uri ${CSP_REPORT_ENDPOINT}`,
+  `report-to ${CSP_REPORT_GROUP}`,
+];
+
 export function contentSecurityPolicy(nonce: string, development = false) {
   return [
   "default-src 'self'",
@@ -17,7 +25,20 @@ export function contentSecurityPolicy(nonce: string, development = false) {
   "style-src-attr 'none'",
   "worker-src 'self' blob:",
   "upgrade-insecure-requests",
+  ...reportingDirectives,
   ].join("; ");
+}
+
+export function trustedTypesReportOnlyPolicy() {
+  return [
+    "require-trusted-types-for 'script'",
+    ...reportingDirectives,
+  ].join("; ");
+}
+
+export function reportingEndpoints(origin: string) {
+  const endpoint = new URL(CSP_REPORT_ENDPOINT, origin);
+  return `${CSP_REPORT_GROUP}="${endpoint.toString()}"`;
 }
 
 export function securityHeaders(development = false) {

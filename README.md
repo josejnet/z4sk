@@ -93,6 +93,7 @@ Z4SK keeps invitation and response plaintext out of its creation/response APIs a
 
 - [Public audit page](https://z4sk.vercel.app/audit): human-readable protocol, limits, source and live evidence.
 - [External automated audit](docs/EXTERNAL_AUDIT.md): CodeQL, OWASP ZAP and OpenSSF findings, remediation and residual risk.
+- [Human security review packet](docs/HUMAN_SECURITY_REVIEW.md): reproducible scope for an independent cryptography review and penetration test; it does not claim one has already occurred.
 - [Cryptographic design](docs/CRYPTOGRAPHY.md): algorithms, payloads, visible data and threat boundaries.
 - [Security policy](SECURITY.md): vulnerability reporting and production controls.
 - [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof): machine-readable runtime self-audit.
@@ -133,6 +134,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment setup, rollback and
 - [Operations and incident runbook](docs/OPERATIONS.md)
 - [Security, privacy and threat model](SECURITY.md)
 - [External automated security audit](docs/EXTERNAL_AUDIT.md)
+- [Human security review packet](docs/HUMAN_SECURITY_REVIEW.md)
 - [Cryptographic protocol and auditable data boundary](docs/CRYPTOGRAPHY.md)
 - [Commercial roadmap](docs/ROADMAP.md)
 - [Brand and domain activation](docs/BRAND.md)

@@ -72,6 +72,13 @@ const migrations = [
       `UPDATE games SET question_count = jsonb_array_length(questions_json::jsonb) WHERE encrypted_invitation = '' AND question_count = 0 AND jsonb_typeof(questions_json::jsonb) = 'array'`,
     ],
   },
+  {
+    id: "2026-11-02-privacy-preserving-csp-telemetry",
+    statements: [
+      `CREATE TABLE IF NOT EXISTS csp_violation_daily (day DATE NOT NULL, directive TEXT NOT NULL, route_group TEXT NOT NULL, disposition TEXT NOT NULL, event_count BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (day, directive, route_group, disposition))`,
+      `REVOKE ALL ON csp_violation_daily FROM PUBLIC`,
+    ],
+  },
 ];
 
 export async function runMigrations(databaseUrl) {

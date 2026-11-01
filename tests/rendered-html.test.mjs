@@ -38,6 +38,10 @@ test("server-renders the English-first Z4SK product", async () => {
   assert.match(response.headers.get("content-security-policy") ?? "", /style-src 'self' 'nonce-[^']+'/);
   assert.match(response.headers.get("content-security-policy") ?? "", /style-src-attr 'none'/);
   assert.doesNotMatch(response.headers.get("content-security-policy") ?? "", /style-src[^;]*'unsafe-inline'/);
+  assert.match(response.headers.get("content-security-policy") ?? "", /report-uri \/api\/csp-report/);
+  assert.match(response.headers.get("content-security-policy") ?? "", /report-to csp-endpoint/);
+  assert.match(response.headers.get("content-security-policy-report-only") ?? "", /require-trusted-types-for 'script'/);
+  assert.match(response.headers.get("reporting-endpoints") ?? "", /^csp-endpoint="http:\/\/localhost:3123\/api\/csp-report"$/);
   assert.equal(response.headers.get("referrer-policy"), "no-referrer");
   assert.equal(response.headers.get("cross-origin-embedder-policy"), "require-corp");
   assert.equal(response.headers.get("x-frame-options"), "DENY");
@@ -67,6 +71,29 @@ test("hardens the undocumented API root", async () => {
   assert.equal(response.headers.get("cache-control"), "no-store");
   assert.equal(response.headers.get("content-security-policy"), "default-src 'none'; base-uri 'none'; frame-ancestors 'none'");
   assert.equal(response.headers.get("x-powered-by"), null);
+});
+
+test("collects only privacy-preserving CSP aggregates", async () => {
+  const [route, headers, migrations, proof] = await Promise.all([
+    readFile(new URL("../app/api/csp-report/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/security-headers.ts", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/migrations.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/privacy-proof/route.ts", import.meta.url), "utf8"),
+  ]);
+  const invalid = await fetch(`http://localhost:${port}/api/csp-report`, { method: "POST", headers: { "content-type": "application/csp-report" }, body: "not-json" });
+  assert.equal(invalid.status, 204);
+  assert.equal(invalid.headers.get("cache-control"), "no-store");
+  assert.match(headers, /require-trusted-types-for 'script'/);
+  assert.match(headers, /report-uri \$\{CSP_REPORT_ENDPOINT\}/);
+  assert.match(route, /MAX_BODY_BYTES = 32_768/);
+  assert.match(route, /MAX_REPORTS_PER_REQUEST = 10/);
+  assert.match(route, /return "\/g\/:id"/);
+  assert.match(route, /Do not log their payload, URL, source or parse error/);
+  assert.doesNotMatch(route, /console\.(?:log|error|warn)/);
+  assert.match(migrations, /CREATE TABLE IF NOT EXISTS csp_violation_daily/);
+  assert.doesNotMatch(migrations, /csp_violation_daily[^`]*(?:document_uri|blocked_uri|source_file|sample|ip|user_id|game_id)/i);
+  assert.match(proof, /securityTelemetry/);
+  assert.match(proof, /VERCEL_GIT_COMMIT_SHA/);
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
@@ -309,7 +336,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(migrations, /CREATE TABLE IF NOT EXISTS sponsor_events/);
   assert.doesNotMatch(migrations, /sponsor_events[^`]*(?:user_id|device_id|game_id)/);
   assert.match(proofRoute, /live runtime self-audit/);
-  assert.match(proofRoute, /const POLICY_VERSION = "2026\.11\.01-privacy\.7"/);
+  assert.match(proofRoute, /const POLICY_VERSION = "2026\.11\.02-privacy\.8"/);
   assert.match(proofRoute, /policyVersion: POLICY_VERSION/);
   assert.match(proofRoute, /"x-z4sk-privacy-proof": POLICY_VERSION/);
   assert.match(proofRoute, /Creator email never reaches the active database/);
@@ -352,6 +379,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.ok(auditPage.includes("github.com/josejnet/z4sk"));
   assert.match(auditPage, /docs\/EXTERNAL_AUDIT\.md/);
   assert.match(auditPage, /docs\/EXTERNAL_AUDIT\.es\.md/);
+  assert.match(auditPage, /docs\/HUMAN_SECURITY_REVIEW\.md/);
   assert.match(auditPage, /PrivacyProof/);
   assert.match(cryptographyDoc, /Sharing the complete invitation link is equivalent to sharing a password/);
   assert.match(cryptographyDoc, /Server-visible data/);

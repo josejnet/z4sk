@@ -93,6 +93,7 @@ Para las nuevas invitaciones, Z4SK evita que el contenido legible de invitacione
 
 - [Auditoría pública](https://z4sk.vercel.app/audit): protocolo, límites, código y evidencia en vivo.
 - [Auditoría externa automatizada](docs/EXTERNAL_AUDIT.es.md): hallazgos de CodeQL, OWASP ZAP y OpenSSF, correcciones y riesgo residual.
+- [Paquete de revisión humana](docs/HUMAN_SECURITY_REVIEW.es.md): alcance reproducible para una revisión criptográfica y un pentest independientes; no afirma que ya se hayan realizado.
 - [Diseño criptográfico](docs/CRYPTOGRAPHY.md): algoritmos, payloads, datos visibles y amenazas.
 - [Política de seguridad](SECURITY.md): notificación de vulnerabilidades y controles.
 - [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof): autoauditoría de ejecución en JSON.
@@ -133,6 +134,7 @@ Consulta [docs/DEPLOYMENT.es.md](docs/DEPLOYMENT.es.md) para configurar variable
 - [Operaciones y respuesta a incidentes](docs/OPERATIONS.md)
 - [Seguridad, privacidad y modelo de amenazas](SECURITY.md)
 - [Auditoría externa automatizada de seguridad](docs/EXTERNAL_AUDIT.es.md)
+- [Paquete para revisión humana de seguridad](docs/HUMAN_SECURITY_REVIEW.es.md)
 - [Protocolo criptográfico y frontera de datos auditable](docs/CRYPTOGRAPHY.md)
 - [Hoja de ruta comercial](docs/ROADMAP.md)
 - [Marca y activación del dominio](docs/BRAND.md)

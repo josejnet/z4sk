@@ -47,6 +47,8 @@ Automatic Vercel Git deployments are disabled. Every push to `main` runs `.githu
 4. versioned production migrations with the schema-owner credential;
 5. the `main` Deploy Hook only after every previous step succeeds.
 
+The GitHub `Production` environment requires an explicit approval before the migration/deploy job can start. Only the protected `main` branch may use that environment.
+
 To rerun the same pipeline manually:
 
 ```bash
@@ -59,6 +61,8 @@ Do not run production migrations with Vercel's runtime `DATABASE_URL`; that role
 
 - confirm the production deployment is `READY` and assigned to `https://z4sk.vercel.app`;
 - check the homepage CSP contains a per-request nonce and no `unsafe-inline` script permission;
+- confirm `Reporting-Endpoints`, enforced CSP reporting and the report-only Trusted Types policy are present;
+- compare `deployment.commitSha` from `/api/privacy-proof` with the public GitHub commit and Vercel deployment metadata;
 - create, answer, decrypt, and delete a disposable invitation;
 - check `/api/privacy-proof` and the daily retention heartbeat;
 - inspect production errors without printing request bodies or secrets.
@@ -80,4 +84,4 @@ Changing `RATE_LIMIT_HMAC_SECRET` invalidates only pseudonymous rate-limit and r
 
 ## Repository protection
 
-The workflow uses least-privilege permissions and pinned third-party Actions. The current private-repository plan does not expose protected-branch or protected-environment rules, so the repository owner must keep `main` write access tightly limited and review workflow changes before merging.
+The public repository protects `main` with the required `verify` check, an up-to-date branch, one pull-request approval, code-owner review, stale-review dismissal, conversation resolution, linear history, and force-push/deletion denial. The repository owner retains GitHub's administrator bypass for emergency recovery; this is a documented single-maintainer trust boundary, not independent review. Signed commits remain unenforced until the owner registers and safely backs up a signing key.

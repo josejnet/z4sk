@@ -10,6 +10,7 @@ import "./wizard.css";
 import "./logo.css";
 import "./share.css";
 import "./ads.css";
+import "./csp-progress.css";
 import { LanguageProvider } from "./lib/i18n";
 import { site } from "./lib/site";
 import { PwaRegister } from "./components/PwaRegister";

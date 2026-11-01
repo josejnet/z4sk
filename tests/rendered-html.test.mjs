@@ -35,6 +35,9 @@ test("server-renders the English-first Z4SK product", async () => {
   assert.match(response.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
   assert.match(response.headers.get("content-security-policy") ?? "", /script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
   assert.doesNotMatch(response.headers.get("content-security-policy") ?? "", /script-src[^;]*'unsafe-inline'/);
+  assert.match(response.headers.get("content-security-policy") ?? "", /style-src 'self' 'nonce-[^']+'/);
+  assert.match(response.headers.get("content-security-policy") ?? "", /style-src-attr 'none'/);
+  assert.doesNotMatch(response.headers.get("content-security-policy") ?? "", /style-src[^;]*'unsafe-inline'/);
   assert.equal(response.headers.get("referrer-policy"), "no-referrer");
   assert.equal(response.headers.get("cross-origin-embedder-policy"), "require-corp");
   assert.equal(response.headers.get("x-frame-options"), "DENY");
@@ -116,6 +119,10 @@ test("ships privacy, defensibility and PWA assets", async () => {
     readFile(new URL("../SECURITY.md", import.meta.url), "utf8"),
   ]);
   assert.match(builder, /Share once & remove ads/);
+  assert.doesNotMatch(`${builder}\n${gameClient}\n${founderDashboard}`, /\sstyle=\{/);
+  assert.match(builder, /<progress className="steps-line"/);
+  assert.match(gameClient, /<progress className="question-progress"/);
+  assert.match(founderDashboard, /<DailyChart rows=\{data\.daily\}/);
   assert.match(builder, /<a href=\{created\.adminUrl\} target="_blank" rel="noopener noreferrer">\{t\("openPanel"\)\}<\/a>/);
   assert.match(builder, /Secret match/);
   assert.match(builder, /YOUR SECRET MATCH QUESTION/);

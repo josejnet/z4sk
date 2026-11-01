@@ -13,7 +13,8 @@ export function contentSecurityPolicy(nonce: string, development = false) {
   "object-src 'none'",
   `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ""}`,
   "script-src-attr 'none'",
-  "style-src 'self' 'unsafe-inline'",
+  `style-src 'self' 'nonce-${nonce}'`,
+  "style-src-attr 'none'",
   "worker-src 'self' blob:",
   "upgrade-insecure-requests",
   ].join("; ");

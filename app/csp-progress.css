@@ -1,0 +1,97 @@
+/* CSP-safe progress visuals: dynamic values live in semantic HTML/SVG attributes. */
+.steps-line,
+.question-progress,
+.question-timer > progress,
+.metric-bars progress {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.steps-line {
+  display: block;
+  width: 100%;
+}
+
+.steps-line::-webkit-progress-bar,
+.question-progress::-webkit-progress-bar {
+  background: #2d2b29;
+}
+
+.steps-line::-webkit-progress-value,
+.steps-line::-moz-progress-bar,
+.question-progress::-webkit-progress-value,
+.question-progress::-moz-progress-bar {
+  background: var(--orange);
+}
+
+.question-progress {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #242220;
+}
+
+.question-progress::-webkit-progress-bar {
+  background: #242220;
+}
+
+.question-timer > progress {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 3px;
+  background: #342721;
+}
+
+.question-timer > progress::-webkit-progress-bar {
+  background: #342721;
+}
+
+.question-timer > progress::-webkit-progress-value,
+.question-timer > progress::-moz-progress-bar {
+  background: var(--orange);
+}
+
+.question-timer.urgent > progress::-webkit-progress-value,
+.question-timer.urgent > progress::-moz-progress-bar {
+  background: #ff4d3d;
+}
+
+.metric-bars progress {
+  display: block;
+  width: 100%;
+  height: 5px;
+  background: #24211f;
+}
+
+.metric-bars progress::-webkit-progress-bar {
+  background: #24211f;
+}
+
+.metric-bars progress::-webkit-progress-value {
+  background: linear-gradient(90deg, var(--orange), #a660ff);
+}
+
+.metric-bars progress::-moz-progress-bar {
+  background: var(--orange);
+}
+
+.daily-chart svg {
+  width: 19px;
+  height: 150px;
+  overflow: visible;
+}
+
+.daily-chart rect.created {
+  fill: var(--orange);
+}
+
+.daily-chart rect.opened {
+  fill: #a660ff;
+}
+
+.daily-chart rect.responded {
+  fill: #5bd191;
+}

@@ -1,6 +1,6 @@
 # Security policy / Política de seguridad
 
-[English](#english) · [Español](#español) · [Cryptographic design](docs/CRYPTOGRAPHY.md) · [Live self-audit](https://z4sk.vercel.app/audit)
+[English](#english) · [Español](#español) · [Cryptographic design](docs/CRYPTOGRAPHY.md) · [External automated audit](docs/EXTERNAL_AUDIT.md) · [Live self-audit](https://z4sk.vercel.app/audit)
 
 ## English
 

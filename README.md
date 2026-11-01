@@ -92,6 +92,7 @@ Z4SK keeps invitation and response plaintext out of its creation/response APIs a
 **Treat every complete link like a password.** An invitation-link holder can decrypt names, questions and settings and submit until expiry. A creator-link holder can additionally authorize the dashboard and decrypt responses. A compromised browser, device, extension, deployment, clipboard or screenshot can reveal plaintext.
 
 - [Public audit page](https://z4sk.vercel.app/audit): human-readable protocol, limits, source and live evidence.
+- [External automated audit](docs/EXTERNAL_AUDIT.md): CodeQL, OWASP ZAP and OpenSSF findings, remediation and residual risk.
 - [Cryptographic design](docs/CRYPTOGRAPHY.md): algorithms, payloads, visible data and threat boundaries.
 - [Security policy](SECURITY.md): vulnerability reporting and production controls.
 - [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof): machine-readable runtime self-audit.
@@ -131,6 +132,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment setup, rollback and
 - [Vercel deployment and rollback](docs/DEPLOYMENT.md)
 - [Operations and incident runbook](docs/OPERATIONS.md)
 - [Security, privacy and threat model](SECURITY.md)
+- [External automated security audit](docs/EXTERNAL_AUDIT.md)
 - [Cryptographic protocol and auditable data boundary](docs/CRYPTOGRAPHY.md)
 - [Commercial roadmap](docs/ROADMAP.md)
 - [Brand and domain activation](docs/BRAND.md)

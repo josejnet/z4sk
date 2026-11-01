@@ -36,7 +36,9 @@ test("server-renders the English-first Z4SK product", async () => {
   assert.match(response.headers.get("content-security-policy") ?? "", /script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
   assert.doesNotMatch(response.headers.get("content-security-policy") ?? "", /script-src[^;]*'unsafe-inline'/);
   assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+  assert.equal(response.headers.get("cross-origin-embedder-policy"), "require-corp");
   assert.equal(response.headers.get("x-frame-options"), "DENY");
+  assert.equal(response.headers.get("x-powered-by"), null);
   assert.match(response.headers.get("permissions-policy") ?? "", /camera=\(\)/);
   const html = await response.text();
   assert.match(html, /<script[^>]+nonce=/);
@@ -53,6 +55,15 @@ test("server-renders the English-first Z4SK product", async () => {
   assert.match(html, /value="zh"/);
   assert.match(html, /value="hi"/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
+});
+
+test("hardens the undocumented API root", async () => {
+  const response = await fetch(`http://localhost:${port}/api`);
+  assert.equal(response.status, 404);
+  assert.match(response.headers.get("content-type") ?? "", /^application\/json\b/i);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(response.headers.get("content-security-policy"), "default-src 'none'; base-uri 'none'; frame-ancestors 'none'");
+  assert.equal(response.headers.get("x-powered-by"), null);
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
@@ -332,6 +343,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(invitationCrypto, /plaintext\.fill\(0\)/);
   assert.match(auditPage, /THE INVITATION LINK IS A PASSWORD-EQUIVALENT SECRET/);
   assert.ok(auditPage.includes("github.com/josejnet/z4sk"));
+  assert.match(auditPage, /docs\/EXTERNAL_AUDIT\.md/);
+  assert.match(auditPage, /docs\/EXTERNAL_AUDIT\.es\.md/);
   assert.match(auditPage, /PrivacyProof/);
   assert.match(cryptographyDoc, /Sharing the complete invitation link is equivalent to sharing a password/);
   assert.match(cryptographyDoc, /Server-visible data/);

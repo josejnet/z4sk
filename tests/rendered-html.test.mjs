@@ -277,6 +277,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(migrations, /CREATE TABLE IF NOT EXISTS sponsor_events/);
   assert.doesNotMatch(migrations, /sponsor_events[^`]*(?:user_id|device_id|game_id)/);
   assert.match(proofRoute, /live runtime self-audit/);
+  assert.match(proofRoute, /const POLICY_VERSION = "2026\.11\.01-privacy\.6"/);
+  assert.match(proofRoute, /policyVersion: POLICY_VERSION/);
+  assert.match(proofRoute, /"x-z4sk-privacy-proof": POLICY_VERSION/);
   assert.match(proofRoute, /Creator email never reaches the active database/);
   assert.match(proofRoute, /Private decryption keys never enter the database/);
   assert.match(proofRoute, /Every active response is authenticated ciphertext only/);

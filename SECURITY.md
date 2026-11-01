@@ -46,7 +46,7 @@ End-to-end encryption does not hide everything. The server and infrastructure ca
 - Monitor `/api/privacy-proof`; investigate an old purge heartbeat or any failed plaintext/envelope check.
 - Compare the production commit in `/audit` and `/api/privacy-proof` with the public repository before reviewing a deployment. Use the [human review packet](docs/HUMAN_SECURITY_REVIEW.md) for an independent cryptographic review or pentest.
 
-Account-level MFA for GitHub, Vercel, Neon and the domain registrar must be verified by the account holder in each provider. It cannot be proved or enabled by repository code. Likewise, signed-commit enforcement must not be enabled until the maintainer has registered and backed up a signing key; otherwise it would lock out legitimate releases.
+Account-level MFA for GitHub, Vercel, Neon and the domain registrar must be verified by the account holder in each provider. It cannot be proved or enabled by repository code. `main` requires GitHub-verified commit signatures: local authors must register and safely back up a GPG or SSH signing key, or merge through GitHub using its verified web-flow signature.
 
 ## Español
 
@@ -68,7 +68,7 @@ Comunica vulnerabilidades mediante los [avisos privados de seguridad de GitHub](
 
 El cifrado no protege frente a un navegador o despliegue malicioso, extensiones, malware, capturas de pantalla, portapapeles, copias realizadas por otra persona ni filtraciones del enlace. Tampoco convierte el servicio en anónimo: la infraestructura sigue tratando metadatos de red, rutas y fechas. Consulta [docs/CRYPTOGRAPHY.md](docs/CRYPTOGRAPHY.md) para el protocolo completo, los límites y las propiedades comprobables.
 
-La activación y comprobación de MFA en GitHub, Vercel, Neon y el registrador del dominio requiere al titular de cada cuenta y no puede demostrarse desde el código. El [paquete de revisión humana](docs/HUMAN_SECURITY_REVIEW.es.md) fija el alcance pendiente para un pentest o revisión criptográfica realmente independiente.
+La activación y comprobación de MFA en GitHub, Vercel, Neon y el registrador del dominio requiere al titular de cada cuenta y no puede demostrarse desde el código. `main` exige firmas verificadas por GitHub: los commits locales necesitan una clave GPG o SSH registrada y respaldada; como alternativa, GitHub firma su propio squash/merge verificado. El [paquete de revisión humana](docs/HUMAN_SECURITY_REVIEW.es.md) fija el alcance pendiente para un pentest o revisión criptográfica realmente independiente.
 
 ## Supported versions / Versiones compatibles
 

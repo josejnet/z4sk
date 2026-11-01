@@ -84,4 +84,4 @@ Changing `RATE_LIMIT_HMAC_SECRET` invalidates only pseudonymous rate-limit and r
 
 ## Repository protection
 
-The public repository protects `main` with the required `verify` check, an up-to-date branch, one pull-request approval, code-owner review, stale-review dismissal, conversation resolution, linear history, and force-push/deletion denial. The repository owner retains GitHub's administrator bypass for emergency recovery; this is a documented single-maintainer trust boundary, not independent review. Signed commits remain unenforced until the owner registers and safely backs up a signing key.
+The public repository protects `main` with the required `verify` check, an up-to-date branch, one pull-request approval, code-owner review, stale-review dismissal, conversation resolution, linear history, verified commit signatures, and force-push/deletion denial. Use a registered and backed-up GPG/SSH signing key for local commits, or a GitHub-verified squash merge. Direct unsigned updates are rejected. The repository owner retains GitHub's administrator bypass for other emergency rules; this is a documented single-maintainer trust boundary, not independent review.

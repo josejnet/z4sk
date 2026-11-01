@@ -200,9 +200,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.ok((home.match(/target="_top"/g)?.length || 0) >= 4);
   assert.match(shareInvitation, /https:\/\/wa\.me/);
   assert.match(shareInvitation, /mailto:\?subject/);
-  assert.match(shareInvitation, /mail\.google\.com/);
-  assert.match(shareInvitation, /outlook\.office\.com/);
-  assert.match(shareInvitation, /compose\.mail\.yahoo\.com/);
+  assert.ok(shareInvitation.includes("mail.google.com"));
+  assert.ok(shareInvitation.includes("outlook.office.com"));
+  assert.ok(shareInvitation.includes("compose.mail.yahoo.com"));
   assert.match(shareInvitation, /navigator\.share/);
   assert.match(shareInvitation, /adminUrl=REDACTED/);
   assert.match(shareInvitation, /Treat this link like a password/);
@@ -215,7 +215,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(home, /terms\?lang=\$\{locale\}/);
   assert.match(home, /safety\?lang=\$\{locale\}/);
   assert.match(home, /href="\/audit"/);
-  assert.match(home, /github\.com\/josejnet\/z4sk/);
+  assert.ok(home.includes("github.com/josejnet/z4sk"));
   assert.match(privacyProofUi, /target="_blank"/);
   assert.match(privacyProofUi, /rel="noopener noreferrer"/);
   assert.match(pwa, /beforeinstallprompt/);
@@ -331,7 +331,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(invitationCrypto, /AES-GCM/);
   assert.match(invitationCrypto, /plaintext\.fill\(0\)/);
   assert.match(auditPage, /THE INVITATION LINK IS A PASSWORD-EQUIVALENT SECRET/);
-  assert.match(auditPage, /github\.com\/josejnet\/z4sk/);
+  assert.ok(auditPage.includes("github.com/josejnet/z4sk"));
   assert.match(auditPage, /PrivacyProof/);
   assert.match(cryptographyDoc, /Sharing the complete invitation link is equivalent to sharing a password/);
   assert.match(cryptographyDoc, /Server-visible data/);

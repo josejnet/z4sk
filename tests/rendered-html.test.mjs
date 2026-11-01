@@ -296,6 +296,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(migrations, /DELETE FROM responses WHERE game_id IN/);
   assert.match(migrations, /encrypted_payload = ''/);
   assert.match(workflow, /actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/);
+  assert.equal((workflow.match(/runs-on: ubuntu-24\.04/g) || []).length, 2);
   assert.match(workflow, /npm run verify:e2e:staging/);
   assert.match(workflow, /Z4SK_PRODUCTION_MIGRATION_DATABASE_URL/);
   assert.match(workflow, /VERCEL_DEPLOY_HOOK_URL/);

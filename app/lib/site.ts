@@ -15,8 +15,8 @@ export const site = {
   domain: "z4sk.com",
   url: resolveSiteUrl(),
   title: "Z4SK — Ask. Answer. Dare.",
-  description: "Create private questions, share one link, and receive encrypted answers in your secret dashboard.",
-  socialDescription: "Ask what matters. Share one private link. Receive encrypted answers in your secret dashboard.",
+  description: "Create end-to-end encrypted questions, share one password-equivalent link, and receive encrypted answers in your secret dashboard.",
+  socialDescription: "Ask what matters. Share one encrypted invitation. Receive encrypted answers in your secret dashboard.",
   themeColor: "#ff5a1f",
   backgroundColor: "#0b0b0b",
 } as const;

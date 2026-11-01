@@ -3,6 +3,7 @@ import { neon } from "@neondatabase/serverless";
 
 const baseUrl = (process.env.Z4SK_VERIFY_URL || "http://localhost:3001").replace(/\/$/, "");
 const context = new TextEncoder().encode("z4sk-response-v1");
+const invitationContext = new TextEncoder().encode("z4sk-invitation-v1");
 const b64 = (bytes) => Buffer.from(bytes).toString("base64url");
 const unb64 = (value) => new Uint8Array(Buffer.from(value, "base64url"));
 const testRunIp = `2001:db8:${crypto.randomUUID().replaceAll("-", "").slice(0, 8)}::1`;
@@ -61,21 +62,79 @@ async function decrypt(envelope, recipientPrivateJwk) {
   }
 }
 
+async function encryptInvitation(payload, secret = b64(crypto.getRandomValues(new Uint8Array(32)))) {
+  const secretBytes = unb64(secret);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const clear = new TextEncoder().encode(JSON.stringify(payload));
+  try {
+    const key = await crypto.subtle.importKey("raw", secretBytes, { name: "AES-GCM" }, false, ["encrypt"]);
+    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: invitationContext, tagLength: 128 }, key, clear);
+    return { secret, envelope: { v: 1, alg: "A256GCM", iv: b64(iv), ciphertext: b64(new Uint8Array(ciphertext)) } };
+  } finally {
+    secretBytes.fill(0); iv.fill(0); clear.fill(0);
+  }
+}
+
+async function decryptInvitation(envelope, secret) {
+  const secretBytes = unb64(secret);
+  const iv = unb64(envelope.iv);
+  const ciphertext = unb64(envelope.ciphertext);
+  let clear = new Uint8Array();
+  try {
+    const key = await crypto.subtle.importKey("raw", secretBytes, { name: "AES-GCM" }, false, ["decrypt"]);
+    clear = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv, additionalData: invitationContext, tagLength: 128 }, key, ciphertext));
+    return JSON.parse(new TextDecoder().decode(clear));
+  } finally {
+    secretBytes.fill(0); iv.fill(0); ciphertext.fill(0); clear.fill(0);
+  }
+}
+
 const creatorKeys = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
 const publicJwk = await crypto.subtle.exportKey("jwk", creatorKeys.publicKey);
 const privateJwk = await crypto.subtle.exportKey("jwk", creatorKeys.privateKey);
 const questions = ["Synthetic privacy check one?", "Synthetic privacy check two?", "Synthetic privacy check three?"];
+const responsePublicKey = { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y };
 
-const missingClientSecret = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "No secret verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y } }) });
+function privateInvitation(overrides = {}) {
+  return { creatorName: "E2EE verifier", recipientName: "Synthetic recipient", title: "Synthetic E2EE verification", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: responsePublicKey, doubleBlind: false, matchQuestion: "", timedMode: false, packSlug: "original", createdAt: new Date().toISOString(), ...overrides };
+}
+
+async function createEncryptedGame(access, { viewOnce = false, invitationOverrides = {}, expiresInHours = 12 } = {}) {
+  const encrypted = await encryptInvitation(privateInvitation(invitationOverrides));
+  const result = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedInvitation: encrypted.envelope, questionCount: questions.length, creatorTokenHash: access.tokenHash, viewOnce, expiresInHours, source: "e2ee-verifier" }) });
+  return { ...result, invitationSecret: encrypted.secret, invitationEnvelope: encrypted.envelope };
+}
+
+const missingCredentialEnvelope = await encryptInvitation(privateInvitation({ creatorName: "No credential verifier" }));
+const missingClientSecret = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedInvitation: missingCredentialEnvelope.envelope, questionCount: questions.length }) });
 assert.equal(missingClientSecret.response.status, 400, "Creation succeeded without a browser-generated creator credential hash.");
 
 const createdAccess = await creatorCredential();
-const created = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "E2EE verifier", recipientName: "Synthetic recipient", title: "Synthetic E2EE verification", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, creatorTokenHash: createdAccess.tokenHash, viewOnce: true, doubleBlind: true, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+const created = await createEncryptedGame(createdAccess, { viewOnce: true, invitationOverrides: { doubleBlind: true, matchQuestion: "Would you choose me?" } });
 assert.equal(created.response.status, 201, JSON.stringify(created.body));
 assert.equal(created.body.adminUrl, undefined, "The creation API returned a complete private link.");
 const gameId = created.body.id;
 const bearer = createdAccess.token;
 assert.ok(gameId && bearer);
+const publicGame = await json(`/api/games/${gameId}`);
+assert.equal(publicGame.response.status, 200, JSON.stringify(publicGame.body));
+assert.equal(publicGame.body.creatorName, undefined, "Public API exposed an encrypted creator name.");
+assert.equal(publicGame.body.questions, undefined, "Public API exposed encrypted questions.");
+assert.deepEqual(publicGame.body.encryptedInvitation, created.invitationEnvelope);
+const decryptedCreatedInvitation = await decryptInvitation(publicGame.body.encryptedInvitation, created.invitationSecret);
+assert.equal(decryptedCreatedInvitation.creatorName, "E2EE verifier");
+assert.deepEqual(decryptedCreatedInvitation.questions, questions);
+if (process.env.DATABASE_URL) {
+  const sql = neon(process.env.DATABASE_URL);
+  const [storedGame] = await sql`SELECT creator_name, recipient_name, title, questions_json, encryption_public_key, match_question, encrypted_invitation FROM games WHERE id = ${gameId}`;
+  assert.equal(storedGame.creator_name, "");
+  assert.equal(storedGame.recipient_name, "");
+  assert.equal(storedGame.title, "");
+  assert.equal(storedGame.questions_json, "[]");
+  assert.equal(storedGame.encryption_public_key, "");
+  assert.equal(storedGame.match_question, "");
+  assert.equal(String(storedGame.encrypted_invitation).includes("E2EE verifier"), false, "Database envelope contains invitation plaintext.");
+}
 
 const privatePayload = { respondentName: "Synthetic respondent", answers: ["private alpha", "private beta", "private gamma"], reactions: ["🔥", "", "❤️"], matchInterest: true };
 const envelope = await encrypt(privatePayload, { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y, ext: true });
@@ -88,6 +147,7 @@ assert.deepEqual(beforeConsume.body.responses, []);
 
 const consumed = await json(`/api/games/${gameId}/consume`, { method: "POST", headers: { authorization: `Bearer ${bearer}` } });
 assert.equal(consumed.response.status, 200, JSON.stringify(consumed.body));
+assert.deepEqual(await decryptInvitation(consumed.body.encryptedInvitation, created.invitationSecret), decryptedCreatedInvitation);
 assert.deepEqual(await decrypt(consumed.body.response.encryptedPayload, privateJwk), privatePayload);
 
 const afterConsume = await json(`/api/games/${gameId}`);
@@ -96,7 +156,7 @@ const secondConsume = await json(`/api/games/${gameId}/consume`, { method: "POST
 assert.equal(secondConsume.response.status, 403, "Consumed ciphertext was returned twice.");
 
 const recipientAccess = await creatorCredential();
-const recipientDeleteGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Delete verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, creatorTokenHash: recipientAccess.tokenHash, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+const recipientDeleteGame = await createEncryptedGame(recipientAccess, { invitationOverrides: { creatorName: "Delete verifier" } });
 assert.equal(recipientDeleteGame.response.status, 201, JSON.stringify(recipientDeleteGame.body));
 const recipientGameId = recipientDeleteGame.body.id;
 const recipientBearer = recipientAccess.token;
@@ -114,7 +174,7 @@ const cleanup = await json(`/api/games/${recipientGameId}`, { method: "DELETE", 
 assert.equal(cleanup.response.status, 200, JSON.stringify(cleanup.body));
 
 const reportAccess = await creatorCredential();
-const reportGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Metadata must stay private", recipientName: "Private recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, creatorTokenHash: reportAccess.tokenHash, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+const reportGame = await createEncryptedGame(reportAccess, { invitationOverrides: { creatorName: "Metadata must stay private", recipientName: "Private recipient" } });
 assert.equal(reportGame.response.status, 201, JSON.stringify(reportGame.body));
 const reportGameId = reportGame.body.id;
 const reporterPrefix = `2001:db8:${crypto.randomUUID().replaceAll("-", "").slice(0, 8)}`;
@@ -139,7 +199,7 @@ assert.equal(reportCleanup.response.status, 200, JSON.stringify(reportCleanup.bo
 let exactExpiryCutoff = false;
 if (process.env.DATABASE_URL) {
   const expiryAccess = await creatorCredential();
-  const expiryGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Expiry verifier", recipientName: "Synthetic recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, creatorTokenHash: expiryAccess.tokenHash, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+  const expiryGame = await createEncryptedGame(expiryAccess, { invitationOverrides: { creatorName: "Expiry verifier" } });
   assert.equal(expiryGame.response.status, 201, JSON.stringify(expiryGame.body));
   const expiryGameId = expiryGame.body.id;
   const expiryBearer = expiryAccess.token;
@@ -157,4 +217,4 @@ if (process.env.DATABASE_URL) {
   exactExpiryCutoff = true;
 }
 
-console.log(JSON.stringify({ ok: true, baseUrl, algorithm: envelope.alg, plaintextSentToDatabase: false, completeCreatorLinkReturnedByApi: false, creationRequiresClientTokenHash: true, activeGameAfterConsume: false, ciphertextReadableWithCreatorKey: true, concurrentSingleUseAccepted: 1, recipientSelfDeletion: true, duplicateAbuseReportsIgnored: true, privateNamesAbsentFromMetadata: true, queryStringKeysRejected: true, exactExpiryCutoff }));
+console.log(JSON.stringify({ ok: true, baseUrl, invitationAlgorithm: "A256GCM", responseAlgorithm: envelope.alg, invitationPlaintextSentToDatabase: false, responsePlaintextSentToDatabase: false, completeCreatorLinkReturnedByApi: false, creationRequiresClientTokenHash: true, activeGameAfterConsume: false, ciphertextReadableWithUserHeldKeys: true, concurrentSingleUseAccepted: 1, recipientSelfDeletion: true, duplicateAbuseReportsIgnored: true, privateNamesAbsentFromMetadata: true, queryStringKeysRejected: true, exactExpiryCutoff }));

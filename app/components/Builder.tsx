@@ -7,7 +7,8 @@ import { downloadInvitationHtml } from "../lib/html-invite";
 import { interpolate, type Locale, useLanguage } from "../lib/i18n";
 import { QrCard } from "./QrCard";
 import { ShareInvitation } from "./ShareInvitation";
-import { attachPrivateDecryptionKey, attachPublicKeyFingerprint, fingerprintEncryptionPublicKey, generateCreatorAccessCredential, generateResponseKeyPair } from "../lib/response-crypto";
+import { attachPrivateDecryptionKey, generateCreatorAccessCredential, generateResponseKeyPair } from "../lib/response-crypto";
+import { attachInvitationSecret, encryptPrivateInvitation, generateInvitationSecret } from "../lib/invitation-crypto";
 import { NAME_RULE_COPY } from "../lib/name-copy";
 const localized=<T,>(base:Record<Locale,T>)=>base;
 
@@ -122,8 +123,8 @@ const accessCopy=localized<{email:string;placeholder:string;security:string;inva
   machine:{email:"creator.email? // OPTIONAL",placeholder:"user@example.net",security:"SECURITY: Z4SK_receive=false; database_store=false; mailto.local_compose=true; on_send=>email_provider_process=true; display_name.visible=true",invalid:"ASSERT email==null OR email.valid",send:"OPEN mailto: WITH admin_url",subject:"Z4SK_PRIVATE_ACCESS_URL",body:"admin_url follows; classification=SECRET:"}
 });
 const encryptionCopy=localized<Record<"notice",string>>({
-  en:{notice:"End-to-end encrypted: the current audited servers receive ciphertext only. The private key was created on this device and exists only inside your secret link and QR. A lost key cannot be recovered."},
-  es:{notice:"Cifrado de extremo a extremo: los servidores de la versión auditada solo reciben texto cifrado. La clave privada se ha creado en este dispositivo y solo existe dentro de tu enlace y QR secretos. Una clave perdida no puede recuperarse."},
+  en:{notice:"End-to-end encrypted: the audited servers receive invitation and response ciphertext, not the private content. Your links contain the decryption keys. Treat them like passwords: anyone with a complete link receives its capability, and a lost link cannot be recovered."},
+  es:{notice:"Cifrado de extremo a extremo: los servidores auditados reciben texto cifrado de invitación y respuestas, no el contenido privado. Tus enlaces contienen las claves. Trátalos como contraseñas: quien tenga un enlace completo obtiene su capacidad y un enlace perdido no se puede recuperar."},
   it:{notice:"Crittografia end-to-end: la chiave privata è stata creata su questo dispositivo ed esiste solo nel link e nel QR segreti. Z4SK non può leggere le risposte né recuperare una chiave persa."},
   fr:{notice:"Chiffrement de bout en bout : la clé privée a été créée sur cet appareil et n’existe que dans votre lien et QR secrets. Z4SK ne peut ni lire les réponses ni récupérer une clé perdue."},
   de:{notice:"Ende-zu-Ende-verschlüsselt: Der private Schlüssel wurde auf diesem Gerät erstellt und existiert nur im geheimen Link und QR. Z4SK kann Antworten weder lesen noch einen verlorenen Schlüssel wiederherstellen."},
@@ -178,12 +179,13 @@ export function Builder({ onClose }: { onClose?: () => void }) {
       const normalizedCreatorName = creatorName.trim().replace(/\s+/g, " ");
       const normalizedRecipientName = recipientName.trim().replace(/\s+/g, " ");
       const [encryptionKeys, access] = await Promise.all([generateResponseKeyPair(), generateCreatorAccessCredential()]);
-      const publicKeyFingerprint = await fingerprintEncryptionPublicKey(encryptionKeys.publicKey);
-      const response = await fetch("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: normalizedCreatorName, recipientName: normalizedRecipientName, level, questions: selected, viewOnce, locale, libraryVersion: "2026.08", doubleBlind, matchQuestion, timedMode, expiresInHours, packSlug, encryptionPublicKey: encryptionKeys.publicKey, creatorTokenHash: access.tokenHash }) });
+      const invitationSecret = generateInvitationSecret();
+      const encryptedInvitation = await encryptPrivateInvitation({ creatorName: normalizedCreatorName, recipientName: normalizedRecipientName, title: `${normalizedRecipientName} · Z4SK`, level, questions: selected, locale, libraryVersion: "2026.08", doubleBlind, matchQuestion: doubleBlind ? matchQuestion.trim().replace(/\s+/g, " ").slice(0, 180) : "", timedMode, packSlug, encryptionPublicKey: encryptionKeys.publicKey, createdAt: new Date().toISOString() }, invitationSecret);
+      const response = await fetch("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedInvitation, questionCount: selected.length, viewOnce, expiresInHours, creatorTokenHash: access.tokenHash }) });
       const data = await response.json() as Omit<Created,"adminUrl"> & { error?: string };
       if (!response.ok) throw new Error(t("formError"));
-      const playUrl = attachPublicKeyFingerprint(data.playUrl, publicKeyFingerprint);
-      const privateUrl = attachPublicKeyFingerprint(`${window.location.origin}/p/${data.id}#key=${encodeURIComponent(access.token)}`, publicKeyFingerprint);
+      const playUrl = attachInvitationSecret(data.playUrl, invitationSecret);
+      const privateUrl = attachInvitationSecret(`${window.location.origin}/p/${data.id}#key=${encodeURIComponent(access.token)}`, invitationSecret);
       setCreatorName(normalizedCreatorName);
       setRecipientName(normalizedRecipientName);
       setCreated({ ...data, playUrl, adminUrl: attachPrivateDecryptionKey(privateUrl, encryptionKeys.privateSecret, doubleBlind && creatorInterest) });

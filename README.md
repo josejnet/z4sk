@@ -1,6 +1,6 @@
 # Z4SK
 
-[English](README.md) · [Español](README.es.md) · [Live application](https://z4sk.vercel.app)
+[English](README.md) · [Español](README.es.md) · [Live application](https://z4sk.vercel.app) · [Public security audit](https://z4sk.vercel.app/audit) · [CI](https://github.com/josejnet/z4sk/actions/workflows/ci.yml)
 
 **Ask. Answer. Dare.** Z4SK is an English-first, mobile-first private questionnaire app. A creator prepares an invitation, shares the public link, and reads encrypted responses through a separate secret dashboard link.
 
@@ -11,7 +11,9 @@
 - No account is required.
 - Invitations expire after 12, 24, 48 or 72 hours.
 - Optional view-once mode removes the active invitation graph before returning the only ciphertext read.
+- Invitation names, questions, settings and response public key are encrypted in the creator browser with AES-256-GCM.
 - Responses are encrypted in the recipient browser with ECDH P-256, HKDF-SHA-256 and AES-256-GCM.
+- Both complete links are bearer secrets. Sharing the invitation link is equivalent to sharing a password; the creator link additionally grants response access.
 - The creator's private decryption key remains in the secret URL fragment or private QR; it is never sent to the API.
 - A recipient receives a separate deletion link for their own response.
 - Double-blind interest matching reveals a match only when both people opt in.
@@ -28,19 +30,20 @@ The core journey is:
 
 ```text
 Creator browser
-  -> generates creator token + ECDH key pair
-  -> sends token hash + public key + invitation metadata
-  -> shares /g/:id#verify=<public-key-fingerprint>
+  -> generates invitation AES key + creator token + ECDH key pair
+  -> encrypts names, questions, settings and public key locally
+  -> sends ciphertext + token hash + minimal lifecycle policy
+  -> shares /g/:id#invite=<invitation-key>
 
 Recipient browser
-  -> verifies the pinned public key
+  -> decrypts the invitation locally
   -> encrypts the complete private response locally
   -> stores ciphertext through POST /api/games/:id/responses
 
 Creator browser
-  -> opens /p/:id#key=<bearer>&decrypt=<private-key>
-  -> downloads ciphertext with the bearer token
-  -> decrypts the response locally
+  -> opens /p/:id#key=<bearer>&invite=<invitation-key>&decrypt=<private-key>
+  -> downloads invitation + response ciphertext with the bearer token
+  -> decrypts both locally
 ```
 
 ## Technology
@@ -82,11 +85,18 @@ npm run verify:e2e:staging
 
 Put its restricted connection string in `Z4SK_STAGING_DATABASE_URL`, or use a development `DATABASE_URL` that points to that exact database. The verifier rejects every other database name, including production. Schema changes are versioned in `scripts/migrations.mjs` and run with `npm run db:migrate` before deployment.
 
-## Privacy and security boundaries
+## Privacy, security and public auditability
 
-Z4SK keeps answer plaintext out of its API and database, but this does not make every part of an invitation anonymous. Display names, selected questions, settings, timestamps and request metadata remain visible to the service. Anyone with the complete creator link can decrypt responses. A compromised browser, device, extension, deployment or screenshot can reveal plaintext.
+Z4SK keeps invitation and response plaintext out of its creation/response APIs and active database for new invitations. It is still not anonymous: random identifiers, question count, lifecycle state, expiry and timestamps remain visible, and infrastructure necessarily processes request paths and network metadata.
 
-Review [SECURITY.md](SECURITY.md) before running a public deployment. The live [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof) endpoint reports runtime retention, encryption and configuration evidence; it is a self-audit, not an independent certification.
+**Treat every complete link like a password.** An invitation-link holder can decrypt names, questions and settings and submit until expiry. A creator-link holder can additionally authorize the dashboard and decrypt responses. A compromised browser, device, extension, deployment, clipboard or screenshot can reveal plaintext.
+
+- [Public audit page](https://z4sk.vercel.app/audit): human-readable protocol, limits, source and live evidence.
+- [Cryptographic design](docs/CRYPTOGRAPHY.md): algorithms, payloads, visible data and threat boundaries.
+- [Security policy](SECURITY.md): vulnerability reporting and production controls.
+- [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof): machine-readable runtime self-audit.
+
+The repository and self-audit make the design inspectable; neither is an independent certification or remote attestation of every deployed response.
 
 ## Repository map
 
@@ -98,6 +108,7 @@ Review [SECURITY.md](SECURITY.md) before running a public deployment. The live [
 | `app/cancel/[id]` | Recipient-owned response deletion |
 | `app/api` | Invitation, response, retention, metrics and sponsor APIs |
 | `app/lib/response-crypto.ts` | Browser encryption and decryption |
+| `app/lib/invitation-crypto.ts` | Invitation AES-256-GCM encryption and wire hydration |
 | `db/runtime.ts` | Neon runtime queries and purge operations |
 | `scripts/migrations.mjs` | Versioned, pre-deployment database migrations |
 | `scripts/verify-e2ee.mjs` | Full encrypted data-flow verifier |
@@ -120,12 +131,13 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment setup, rollback and
 - [Vercel deployment and rollback](docs/DEPLOYMENT.md)
 - [Operations and incident runbook](docs/OPERATIONS.md)
 - [Security, privacy and threat model](SECURITY.md)
+- [Cryptographic protocol and auditable data boundary](docs/CRYPTOGRAPHY.md)
 - [Commercial roadmap](docs/ROADMAP.md)
 - [Brand and domain activation](docs/BRAND.md)
 - [Sellable asset register](SELLABLE_ASSETS.md)
 
 ## Project status
 
-Z4SK is a private-beta product. Payments, push delivery and WhatsApp Business integrations remain disabled. Creator access depends on possession of the secret URL or private QR, and there is deliberately no server-side recovery flow.
+Z4SK is a beta product with public source for third-party inspection. Payments, push delivery and WhatsApp Business integrations remain disabled. Creator access depends on possession of the secret URL or private QR, and there is deliberately no server-side recovery flow.
 
 No open-source license is currently granted. The repository and its commercial assets remain proprietary unless the owner publishes a separate license.

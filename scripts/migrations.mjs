@@ -64,6 +64,14 @@ const migrations = [
       `ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON SEQUENCES FROM PUBLIC`,
     ],
   },
+  {
+    id: "2026-11-01-encrypted-invitation-payloads",
+    statements: [
+      `ALTER TABLE games ADD COLUMN IF NOT EXISTS encrypted_invitation TEXT NOT NULL DEFAULT ''`,
+      `ALTER TABLE games ADD COLUMN IF NOT EXISTS question_count INTEGER NOT NULL DEFAULT 0`,
+      `UPDATE games SET question_count = jsonb_array_length(questions_json::jsonb) WHERE encrypted_invitation = '' AND question_count = 0 AND jsonb_typeof(questions_json::jsonb) = 'array'`,
+    ],
+  },
 ];
 
 export async function runMigrations(databaseUrl) {

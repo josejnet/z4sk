@@ -23,6 +23,20 @@ export type Game = {
   encryptionPublicKey: EncryptionPublicKey;
 };
 
+export type EncryptedGameWire = {
+  id: string;
+  encryptedInvitation: EncryptedInvitationEnvelope;
+  questionCount: number;
+  expiresAt: string;
+  openedAt?: string | null;
+  createdAt: string;
+  premium: boolean;
+  viewOnce: boolean;
+  responseCount?: number;
+};
+
+export type GameWire = Game | EncryptedGameWire;
+
 export type GameResponse = {
   id: string;
   respondentName: string;
@@ -39,4 +53,4 @@ export type StoredEncryptedResponse = {
 };
 
 import type { Locale } from "./i18n";
-import type { EncryptedResponseEnvelope, EncryptionPublicKey } from "./encryption-types";
+import type { EncryptedInvitationEnvelope, EncryptedResponseEnvelope, EncryptionPublicKey } from "./encryption-types";

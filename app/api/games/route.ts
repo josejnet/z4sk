@@ -1,34 +1,19 @@
 import { NextResponse } from "next/server";
-import { checkRateLimit, ensureSchema, getDatabase, getRequestCountry, hashQuestion, randomToken, recordEvent } from "../../../db/runtime";
-import { isEncryptionPublicKey } from "../../lib/encryption-types";
-
-const levels = new Set(["curioso", "coqueto", "picante", "sinfiltro"]);
-const locales = new Set(["en", "es", "it", "fr", "de", "nl", "eo", "pt", "zh", "hi", "ja", "tr", "machine"]);
-const packs = new Set(["original", "nightlife", "creator"]);
-
-function cleanText(value: unknown, max: number) {
-  return typeof value === "string" ? value.trim().replace(/\s+/g, " ").slice(0, max) : "";
-}
+import { checkRateLimit, ensureSchema, getDatabase, getRequestCountry, randomToken, recordEvent } from "../../../db/runtime";
+import { isEncryptedInvitationEnvelope } from "../../lib/encryption-types";
 
 export async function POST(request: Request) {
   try {
+    const declaredLength = Number(request.headers.get("content-length") || 0);
+    if (declaredLength > 20_000) return NextResponse.json({ error: "The encrypted invitation is too large." }, { status: 413 });
     const body = await request.json() as Record<string, unknown>;
-    const creatorName = cleanText(body.creatorName, 40);
-    const recipientName = cleanText(body.recipientName, 40);
-    const level = cleanText(body.level, 20);
-    const locale = locales.has(cleanText(body.locale, 5)) ? cleanText(body.locale, 5) : "en";
-    const libraryVersion = cleanText(body.libraryVersion, 20) || "2026.08";
-    const doubleBlind = body.doubleBlind === true ? 1 : 0;
-    const matchQuestion = doubleBlind ? cleanText(body.matchQuestion, 180) : "";
-    const timedMode = body.timedMode === true ? 1 : 0;
-    const encryptionPublicKey = body.encryptionPublicKey;
-    const creatorTokenHash = cleanText(body.creatorTokenHash, 64).toLowerCase();
-    const packSlug = packs.has(cleanText(body.packSlug, 20)) ? cleanText(body.packSlug, 20) : "original";
+    const encryptedInvitation = body.encryptedInvitation;
+    const encryptedPayload = JSON.stringify(encryptedInvitation);
+    const questionCount = Number(body.questionCount);
+    const creatorTokenHash = typeof body.creatorTokenHash === "string" ? body.creatorTokenHash.trim().toLowerCase() : "";
     const requestedHours = Number(body.expiresInHours);
     const expiresInHours = [12, 24, 48, 72].includes(requestedHours) ? requestedHours : 12;
-    const questions = Array.isArray(body.questions) ? body.questions.map((item) => cleanText(item, 180)).filter((item) => item.length >= 5) : [];
-    if (creatorName.length < 1 || recipientName.length < 1 || !levels.has(level) || questions.length < 3 || questions.length > 12 || !isEncryptionPublicKey(encryptionPublicKey) || !/^[0-9a-f]{64}$/.test(creatorTokenHash)) return NextResponse.json({ error: "Check the names, private access credential, encryption support and choose 3 to 12 questions." }, { status: 400 });
-    if (new Set(questions).size !== questions.length) return NextResponse.json({ error: "No puede haber preguntas repetidas." }, { status: 400 });
+    if (!isEncryptedInvitationEnvelope(encryptedInvitation) || encryptedPayload.length > 12_500 || !Number.isInteger(questionCount) || questionCount < 3 || questionCount > 12 || !/^[0-9a-f]{64}$/.test(creatorTokenHash)) return NextResponse.json({ error: "A valid client-encrypted invitation, access credential and question count are required." }, { status: 400 });
 
     await ensureSchema();
     const rateLimit = await checkRateLimit(request, "create-game", 10, 10);
@@ -38,11 +23,9 @@ export async function POST(request: Request) {
     const createdAt = new Date();
     const expiresAt = new Date(createdAt.getTime() + expiresInHours * 60 * 60 * 1000);
     const viewOnce = body.viewOnce === true ? 1 : 0;
-    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, premium, view_once, double_blind, match_question, timed_mode, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, 0, ?, ?)`).bind(id, creatorTokenHash, creatorName, recipientName, `${recipientName} · Z4SK`, level, locale, libraryVersion, JSON.stringify(questions), JSON.stringify(encryptionPublicKey), viewOnce, doubleBlind, matchQuestion, timedMode, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
-    const metricStatements = await Promise.all(questions.map(async (question) => db.prepare(`INSERT INTO question_metrics (question_hash, locale, level, library_version, selected_count, completed_count, total_answer_chars) VALUES (?, ?, ?, ?, 1, 0, 0) ON CONFLICT(question_hash, locale, level, library_version) DO UPDATE SET selected_count = question_metrics.selected_count + 1`).bind(await hashQuestion(question), locale, level, libraryVersion)));
-    if (metricStatements.length) await db.batch(metricStatements);
+    await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, encrypted_invitation, question_count, premium, view_once, double_blind, match_question, timed_mode, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', '', '', '', 'encrypted', 'encrypted', 'e2ee.1', '[]', '', ?, ?, 0, ?, 0, '', 0, 0, 'encrypted', 0, ?, ?)`).bind(id, creatorTokenHash, encryptedPayload, questionCount, viewOnce, createdAt.toISOString(), expiresAt.toISOString()).run();
     const country = getRequestCountry(request);
-    await recordEvent({ eventType: "created", gameId: id, locale, level, country, packSlug, source: body.source === "sdk" ? "sdk" : "web", libraryVersion });
+    await recordEvent({ eventType: "created", gameId: id, locale: "encrypted", level: "encrypted", country, packSlug: "encrypted", source: body.source === "sdk" ? "sdk" : "web", libraryVersion: "e2ee.1" });
     const origin = new URL(request.url).origin;
     return NextResponse.json({ id, playUrl: `${origin}/g/${id}` }, { status: 201, headers: { "cache-control": "no-store" } });
   } catch (error) {

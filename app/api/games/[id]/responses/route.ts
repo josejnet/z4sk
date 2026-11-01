@@ -3,7 +3,7 @@ import { bearerToken, checkRateLimit, deleteGameData, ensureSchema, getDatabase,
 import { isEncryptedResponseEnvelope } from "../../../../lib/encryption-types";
 
 type Context = { params: Promise<{ id: string }> };
-type GameRow = { creator_token_hash: string; creator_name: string; recipient_name: string; title: string; questions_json: string; encryption_public_key: string; locale: string; level: string; library_version: string; premium: number; view_once: number; double_blind: number; match_question: string; timed_mode: number; pack_slug: string; opened_at: string | null; created_at: string; closed: number; expires_at: string };
+type GameRow = { id: string; creator_token_hash: string; creator_name: string; recipient_name: string; title: string; questions_json: string; encryption_public_key: string; encrypted_invitation: string; question_count: number; locale: string; level: string; library_version: string; premium: number; view_once: number; double_blind: number; match_question: string; timed_mode: number; pack_slug: string; opened_at: string | null; created_at: string; closed: number; expires_at: string };
 
 export async function POST(request: Request, context: Context) {
   try {
@@ -16,7 +16,7 @@ export async function POST(request: Request, context: Context) {
     const invitationRateLimit = await checkRateLimit(request, `submit-response:${id}`, 10, 10);
     if (!invitationRateLimit.allowed) return NextResponse.json({ error: "Demasiados intentos para esta invitación. Inténtalo más tarde." }, { status: 429, headers: { "retry-after": String(invitationRateLimit.retryAfterSeconds) } });
     const db = getDatabase();
-    const game = await db.prepare(`SELECT creator_token_hash, questions_json, locale, level, library_version, view_once, closed, expires_at FROM games WHERE id = ?`).bind(id).first<Pick<GameRow, "creator_token_hash" | "questions_json" | "locale" | "level" | "library_version" | "view_once" | "closed" | "expires_at">>();
+    const game = await db.prepare(`SELECT creator_token_hash, questions_json, encrypted_invitation, question_count, locale, level, library_version, view_once, closed, expires_at FROM games WHERE id = ?`).bind(id).first<Pick<GameRow, "creator_token_hash" | "questions_json" | "encrypted_invitation" | "question_count" | "locale" | "level" | "library_version" | "view_once" | "closed" | "expires_at">>();
     if (!game) return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 404 });
     if (new Date(game.expires_at) <= new Date()) { await deleteGameData(db, id); return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 410 }); }
     if (game.closed) return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 404 });
@@ -24,9 +24,10 @@ export async function POST(request: Request, context: Context) {
     if (game.view_once && Number(existing?.count || 0) > 0) return NextResponse.json({ error: "Alguien ya respondió a esta invitación de una sola vez." }, { status: 409 });
     if (!game.view_once && Number(existing?.count || 0) >= 100) return NextResponse.json({ error: "Esta invitación ha alcanzado su límite de respuestas." }, { status: 409 });
     const body = await request.json() as { encryptedResponse?: unknown; answerCount?: unknown };
-    const questions = JSON.parse(game.questions_json) as string[];
+    const questions = game.encrypted_invitation ? [] : JSON.parse(game.questions_json) as string[];
+    const expectedAnswerCount = game.encrypted_invitation ? Number(game.question_count) : questions.length;
     const answerCount = Number(body.answerCount);
-    if (answerCount !== questions.length || !isEncryptedResponseEnvelope(body.encryptedResponse)) return NextResponse.json({ error: "La respuesta cifrada no es válida." }, { status: 400 });
+    if (answerCount !== expectedAnswerCount || !isEncryptedResponseEnvelope(body.encryptedResponse)) return NextResponse.json({ error: "La respuesta cifrada no es válida." }, { status: 400 });
     const encryptedPayload = JSON.stringify(body.encryptedResponse);
     const responseId = randomToken(10);
     const deletionToken = randomToken(24);
@@ -63,7 +64,10 @@ export async function GET(request: Request, context: Context) {
     if (new Date(game.expires_at) <= new Date()) { await deleteGameData(db, id); return NextResponse.json({ error: "Esta invitación ha caducado y sus datos activos se han eliminado." }, { status: 410 }); }
     if (game.closed) return NextResponse.json({ error: "Esta invitación está cerrada." }, { status: 410 });
     const rows = await db.prepare(`SELECT id, encrypted_payload, created_at FROM responses WHERE game_id = ? ORDER BY created_at DESC`).bind(id).all<{ id: string; encrypted_payload: string; created_at: string }>();
-    const base = { game: { id, creatorName: game.creator_name, recipientName: game.recipient_name, title: game.title, level: game.level, locale: game.locale, libraryVersion: game.library_version, questions: JSON.parse(game.questions_json), encryptionPublicKey: JSON.parse(game.encryption_public_key), premium: Boolean(game.premium), viewOnce: Boolean(game.view_once), doubleBlind: Boolean(game.double_blind), matchQuestion: game.match_question, timedMode: Boolean(game.timed_mode), packSlug: game.pack_slug, openedAt: game.opened_at, createdAt: game.created_at, expiresAt: game.expires_at, responseCount: rows.results.length } };
+    const wireGame = game.encrypted_invitation
+      ? { id, encryptedInvitation: JSON.parse(game.encrypted_invitation), questionCount: game.question_count, premium: Boolean(game.premium), viewOnce: Boolean(game.view_once), openedAt: game.opened_at, createdAt: game.created_at, expiresAt: game.expires_at, responseCount: rows.results.length }
+      : { id, creatorName: game.creator_name, recipientName: game.recipient_name, title: game.title, level: game.level, locale: game.locale, libraryVersion: game.library_version, questions: JSON.parse(game.questions_json), encryptionPublicKey: JSON.parse(game.encryption_public_key), premium: Boolean(game.premium), viewOnce: Boolean(game.view_once), doubleBlind: Boolean(game.double_blind), matchQuestion: game.match_question, timedMode: Boolean(game.timed_mode), packSlug: game.pack_slug, openedAt: game.opened_at, createdAt: game.created_at, expiresAt: game.expires_at, responseCount: rows.results.length };
+    const base = { game: wireGame };
     if (game.view_once) return NextResponse.json({ ...base, sealed: rows.results.length > 0, responses: [] }, { headers: { "cache-control": "no-store" } });
     return NextResponse.json({ ...base, sealed: false, responses: rows.results.map((row) => ({ id: row.id, encryptedPayload: JSON.parse(row.encrypted_payload), createdAt: row.created_at })) }, { headers: { "cache-control": "no-store" } });
   } catch (error) {

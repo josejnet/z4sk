@@ -1,6 +1,6 @@
 # Z4SK
 
-[English](README.md) · [Español](README.es.md) · [Aplicación publicada](https://z4sk.vercel.app)
+[English](README.md) · [Español](README.es.md) · [Aplicación publicada](https://z4sk.vercel.app) · [Auditoría pública](https://z4sk.vercel.app/audit) · [CI](https://github.com/josejnet/z4sk/actions/workflows/ci.yml)
 
 **Pregunta. Responde. Atrévete.** Z4SK es una aplicación móvil para crear cuestionarios privados. La persona creadora prepara una invitación, comparte el enlace público y consulta las respuestas cifradas desde un enlace secreto diferente.
 
@@ -11,7 +11,9 @@
 - No requiere registro ni cuenta.
 - Las invitaciones caducan a las 12, 24, 48 o 72 horas.
 - El modo de lectura única elimina el grafo activo de la invitación antes de devolver la única copia del texto cifrado.
+- Los nombres, preguntas, ajustes y la clave pública de respuestas se cifran en el navegador del creador con AES-256-GCM.
 - Las respuestas se cifran en el navegador del destinatario con ECDH P-256, HKDF-SHA-256 y AES-256-GCM.
+- Los enlaces completos son secretos al portador. Compartir la invitación es como compartir una contraseña; el enlace del creador añade acceso a respuestas.
 - La clave privada de descifrado permanece en el fragmento del enlace secreto o en el QR privado; nunca se envía a la API.
 - Cada destinatario recibe un enlace independiente para borrar su propia respuesta.
 - El interés a doble ciego solo revela una coincidencia cuando ambas personas aceptan.
@@ -28,19 +30,20 @@ El flujo principal es:
 
 ```text
 Navegador del creador
-  -> genera el token y el par de claves ECDH
-  -> envía el hash del token, la clave pública y los datos de la invitación
-  -> comparte /g/:id#verify=<huella-de-clave-pública>
+  -> genera clave AES de invitación, token y par ECDH
+  -> cifra localmente nombres, preguntas, ajustes y clave pública
+  -> envía texto cifrado, hash del token y política mínima
+  -> comparte /g/:id#invite=<clave-de-invitación>
 
 Navegador del destinatario
-  -> verifica la clave pública fijada en el enlace
+  -> descifra localmente la invitación
   -> cifra localmente toda la respuesta privada
   -> guarda el texto cifrado mediante POST /api/games/:id/responses
 
 Navegador del creador
-  -> abre /p/:id#key=<bearer>&decrypt=<clave-privada>
-  -> descarga el texto cifrado usando el token bearer
-  -> descifra la respuesta localmente
+  -> abre /p/:id#key=<bearer>&invite=<clave-invitación>&decrypt=<clave-privada>
+  -> descarga invitación y respuestas cifradas usando el token bearer
+  -> descifra ambas localmente
 ```
 
 ## Tecnología
@@ -82,11 +85,18 @@ npm run verify:e2e:staging
 
 Guarda su conexión restringida en `Z4SK_STAGING_DATABASE_URL`, o utiliza un `DATABASE_URL` de desarrollo que apunte exactamente a esa base. El verificador rechaza cualquier otro nombre, incluido producción. Los cambios de esquema están versionados en `scripts/migrations.mjs` y se ejecutan con `npm run db:migrate` antes del despliegue.
 
-## Límites de privacidad y seguridad
+## Privacidad, seguridad y auditoría pública
 
-Z4SK evita que el texto de las respuestas llegue a su API o base de datos, pero una invitación no es completamente anónima. Los nombres visibles, preguntas seleccionadas, ajustes, fechas y metadatos de las solicitudes siguen siendo visibles para el servicio. Cualquiera que posea el enlace completo del creador puede descifrar las respuestas. Un navegador, dispositivo, extensión, despliegue o captura comprometidos pueden revelar el contenido.
+Para las nuevas invitaciones, Z4SK evita que el contenido legible de invitaciones y respuestas llegue a las APIs de creación/respuesta o a la base activa. No es anónimo: siguen visibles los identificadores aleatorios, número de preguntas, estado, caducidad, fechas, rutas y metadatos operativos de infraestructura.
 
-Revisa [SECURITY.md](SECURITY.md) antes de una publicación abierta. El endpoint [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof) publica evidencias de cifrado, retención y configuración; es una autoauditoría, no una certificación independiente.
+**Trata cada enlace completo como una contraseña.** Quien tenga el enlace de invitación puede descifrar nombres, preguntas y ajustes y responder hasta su caducidad. Quien tenga el enlace del creador puede además autorizar el panel y descifrar respuestas. Un navegador, dispositivo, extensión, despliegue, portapapeles o captura comprometidos pueden revelar el contenido.
+
+- [Auditoría pública](https://z4sk.vercel.app/audit): protocolo, límites, código y evidencia en vivo.
+- [Diseño criptográfico](docs/CRYPTOGRAPHY.md): algoritmos, payloads, datos visibles y amenazas.
+- [Política de seguridad](SECURITY.md): notificación de vulnerabilidades y controles.
+- [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof): autoauditoría de ejecución en JSON.
+
+El repositorio y la autoauditoría permiten inspeccionar el diseño; no son una certificación independiente ni una atestación remota de cada respuesta desplegada.
 
 ## Mapa del repositorio
 
@@ -98,6 +108,7 @@ Revisa [SECURITY.md](SECURITY.md) antes de una publicación abierta. El endpoint
 | `app/cancel/[id]` | Borrado de la respuesta por su destinatario |
 | `app/api` | APIs de invitaciones, respuestas, retención, métricas y patrocinio |
 | `app/lib/response-crypto.ts` | Cifrado y descifrado en el navegador |
+| `app/lib/invitation-crypto.ts` | Cifrado AES-256-GCM de invitaciones e hidratación del protocolo |
 | `db/runtime.ts` | Consultas de ejecución y purgado de Neon |
 | `scripts/migrations.mjs` | Migraciones versionadas previas al despliegue |
 | `scripts/verify-e2ee.mjs` | Verificador completo del flujo cifrado |
@@ -120,12 +131,13 @@ Consulta [docs/DEPLOYMENT.es.md](docs/DEPLOYMENT.es.md) para configurar variable
 - [Despliegue y rollback en Vercel](docs/DEPLOYMENT.md)
 - [Operaciones y respuesta a incidentes](docs/OPERATIONS.md)
 - [Seguridad, privacidad y modelo de amenazas](SECURITY.md)
+- [Protocolo criptográfico y frontera de datos auditable](docs/CRYPTOGRAPHY.md)
 - [Hoja de ruta comercial](docs/ROADMAP.md)
 - [Marca y activación del dominio](docs/BRAND.md)
 - [Registro de activos comercializables](SELLABLE_ASSETS.md)
 
 ## Estado del proyecto
 
-Z4SK se encuentra en beta privada. Los pagos, notificaciones push y la integración con WhatsApp Business continúan desactivados. El acceso del creador depende de conservar el enlace secreto o el QR privado y, deliberadamente, no existe recuperación desde el servidor.
+Z4SK se encuentra en beta con código fuente público para su revisión por terceros. Los pagos, notificaciones push y la integración con WhatsApp Business continúan desactivados. El acceso del creador depende de conservar el enlace secreto o el QR privado y, deliberadamente, no existe recuperación desde el servidor.
 
 Actualmente no se concede ninguna licencia de código abierto. El repositorio y sus activos comerciales siguen siendo propietarios salvo que el titular publique una licencia independiente.

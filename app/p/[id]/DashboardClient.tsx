@@ -3,28 +3,33 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sponsor, TopNav } from "../../components/Brand";
-import type { Game, GameResponse, StoredEncryptedResponse } from "../../lib/types";
+import type { Game, GameResponse, GameWire, StoredEncryptedResponse } from "../../lib/types";
 import type { Locale } from "../../lib/i18n";
 import { useLanguage } from "../../lib/i18n";
 import { flow } from "../../lib/flow-copy";
 import { TOO_LATE_COPY } from "../../lib/too-late-copy";
-import { attachPublicKeyFingerprint, decryptPrivateResponse, fingerprintEncryptionPublicKey, verifyPrivateDecryptionKey } from "../../lib/response-crypto";
+import { attachPublicKeyFingerprint, decryptPrivateResponse, fingerprintEncryptionPublicKey, verifyEncryptionPublicKeyFingerprint, verifyPrivateDecryptionKey } from "../../lib/response-crypto";
+import { attachInvitationSecret, decryptPrivateInvitation, hydrateGameWire, isEncryptedGameWire } from "../../lib/invitation-crypto";
+import type { EncryptedInvitationEnvelope } from "../../lib/encryption-types";
 import styles from "./DashboardClient.module.css";
 
 type DashboardData = { game: Game; responses: GameResponse[]; sealed: boolean };
-type DashboardWireData = { game: Game; responses: StoredEncryptedResponse[]; sealed: boolean };
+type DashboardWireData = { game: GameWire; responses: StoredEncryptedResponse[]; sealed: boolean };
 class DashboardFetchError extends Error { constructor(message: string, readonly status: number) { super(message); } }
-async function fetchDashboard(id: string, secret: string, privateSecret: string, creatorInterest: boolean) {
+async function fetchDashboard(id: string, secret: string, privateSecret: string, invitationSecret: string, legacyFingerprint: string, creatorInterest: boolean) {
   const response = await fetch(`/api/games/${id}/responses`, { cache: "no-store", headers: { authorization: `Bearer ${secret}` } });
   const result = await response.json() as DashboardWireData & { error?: string };
   if (!response.ok) throw new DashboardFetchError(result.error || "Dashboard unavailable", response.status);
-  await verifyPrivateDecryptionKey(result.game.encryptionPublicKey, privateSecret);
+  const encryptedWire = isEncryptedGameWire(result.game);
+  const game = await hydrateGameWire(result.game, invitationSecret);
+  if (!encryptedWire) await verifyEncryptionPublicKeyFingerprint(game.encryptionPublicKey, legacyFingerprint);
+  await verifyPrivateDecryptionKey(game.encryptionPublicKey, privateSecret);
   const responses = await Promise.all(result.responses.map(async (stored) => {
-    const decrypted = await decryptPrivateResponse(stored.encryptedPayload, result.game.encryptionPublicKey, privateSecret);
-    if (decrypted.answers.length !== result.game.questions.length || decrypted.reactions.length !== result.game.questions.length) throw new Error("Encrypted response shape mismatch.");
-    return { id: stored.id, respondentName: decrypted.respondentName, answers: decrypted.answers, reactions: decrypted.reactions, matched: Boolean(result.game.doubleBlind && creatorInterest && decrypted.matchInterest), createdAt: stored.createdAt } satisfies GameResponse;
+    const decrypted = await decryptPrivateResponse(stored.encryptedPayload, game.encryptionPublicKey, privateSecret);
+    if (decrypted.answers.length !== game.questions.length || decrypted.reactions.length !== game.questions.length) throw new Error("Encrypted response shape mismatch.");
+    return { id: stored.id, respondentName: decrypted.respondentName, answers: decrypted.answers, reactions: decrypted.reactions, matched: Boolean(game.doubleBlind && creatorInterest && decrypted.matchInterest), createdAt: stored.createdAt } satisfies GameResponse;
   }));
-  return { game: result.game, responses, sealed: result.sealed } satisfies DashboardData;
+  return { game, responses, sealed: result.sealed } satisfies DashboardData;
 }
 function formatDate(value: string, locale: Locale) { const map:Record<Locale,string> = { en:"en-US",es:"es-ES",it:"it-IT",fr:"fr-FR",de:"de-DE",nl:"nl-NL",eo:"eo",pt:"pt-PT",zh:"zh-CN",hi:"hi-IN",ja:"ja-JP",tr:"tr-TR",machine:"en-US" }; return new Intl.DateTimeFormat(map[locale], { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)); }
 const cancelLabel:Record<Locale,string>={en:"Cancel",es:"Cancelar",it:"Annulla",fr:"Annuler",de:"Abbrechen",nl:"Annuleren",eo:"Nuligi",pt:"Cancelar",zh:"取消",hi:"रद्द करें",ja:"キャンセル",tr:"İptal",machine:"ABORT"};
@@ -53,6 +58,8 @@ export function DashboardClient({ id }: { id: string }) {
   const router = useRouter();
   const [key, setKey] = useState("");
   const [privateKey, setPrivateKey] = useState("");
+  const [invitationKey, setInvitationKey] = useState("");
+  const [legacyFingerprint, setLegacyFingerprint] = useState("");
   const [creatorInterest, setCreatorInterest] = useState(false);
   const { locale: preferredLocale, setLocale } = useLanguage();
   const [locale, setGameLocale] = useState<Locale>(preferredLocale);
@@ -69,17 +76,19 @@ export function DashboardClient({ id }: { id: string }) {
     const fragment = new URLSearchParams(window.location.hash.slice(1));
     const secret = fragment.get("key") || "";
     const decryptionSecret = fragment.get("decrypt") || "";
+    const invitationSecret = fragment.get("invite") || "";
+    const fingerprint = fragment.get("verify") || "";
     const interest = fragment.get("interest") === "1";
     let active = true;
     if (!secret || !decryptionSecret) { queueMicrotask(() => { if (active) { setError(dashboardUi.en.missing); setLoading(false); } }); return () => { active = false; }; }
-    void fetchDashboard(id, secret, decryptionSecret, interest).then((result) => { if (active) { setKey(secret); setPrivateKey(decryptionSecret); setCreatorInterest(interest); setData(result); setGameLocale(result.game.locale); setLocale(result.game.locale); } }).catch((cause) => { if (active) { const late = cause instanceof DashboardFetchError && [404, 410].includes(cause.status); setTooLate(late); setError(late ? TOO_LATE_COPY[preferredLocale].answers : dashboardUi[preferredLocale].loadError); } }).finally(() => { if (active) setLoading(false); });
+    void fetchDashboard(id, secret, decryptionSecret, invitationSecret, fingerprint, interest).then((result) => { if (active) { setKey(secret); setPrivateKey(decryptionSecret); setInvitationKey(invitationSecret); setLegacyFingerprint(fingerprint); setCreatorInterest(interest); setData(result); setGameLocale(result.game.locale); setLocale(result.game.locale); } }).catch((cause) => { if (active) { const late = cause instanceof DashboardFetchError && [404, 410].includes(cause.status); setTooLate(late); setError(late ? TOO_LATE_COPY[preferredLocale].answers : dashboardUi[preferredLocale].loadError); } }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [id, preferredLocale, setLocale]);
-  useEffect(() => { if (!key || !privateKey) return; const timer = window.setInterval(() => { void fetchDashboard(id, key, privateKey, creatorInterest).then((result) => { setData((current) => { if (current && !current.game.openedAt && result.game.openedAt && Notification.permission === "granted") new Notification("Z4SK", { body: dashboardUi[result.game.locale].openedNotification.replace("{name}",result.game.recipientName) }); return result; }); }).catch(() => { /* The manual refresh surface reports errors. */ }); }, 15000); return () => window.clearInterval(timer); }, [creatorInterest, id, key, privateKey]);
+  useEffect(() => { if (!key || !privateKey) return; const timer = window.setInterval(() => { void fetchDashboard(id, key, privateKey, invitationKey, legacyFingerprint, creatorInterest).then((result) => { setData((current) => { if (current && !current.game.openedAt && result.game.openedAt && Notification.permission === "granted") new Notification("Z4SK", { body: dashboardUi[result.game.locale].openedNotification.replace("{name}",result.game.recipientName) }); return result; }); }).catch(() => { /* The manual refresh surface reports errors. */ }); }, 15000); return () => window.clearInterval(timer); }, [creatorInterest, id, invitationKey, key, legacyFingerprint, privateKey]);
 
-  async function refresh() { setLoading(true); setError(""); try { const result = await fetchDashboard(id, key, privateKey, creatorInterest); setData(result); setGameLocale(result.game.locale); setLocale(result.game.locale); } catch (cause) { const late = cause instanceof DashboardFetchError && [404, 410].includes(cause.status); setTooLate(late); setError(late ? TOO_LATE_COPY[locale].answers : dashboardUi[locale].loadError); if (late) setData(null); } finally { setLoading(false); } }
-  async function revealOnce() { setConfirmRevealOpen(false); setLoading(true); setError(""); try { const response = await fetch(`/api/games/${id}/consume`, { method: "POST", headers: { authorization: `Bearer ${key}` } }); const result = await response.json() as { questions: string[]; encryptionPublicKey: Game["encryptionPublicKey"]; doubleBlind: boolean; matchQuestion: string; response: StoredEncryptedResponse; error?: string }; if (!response.ok) throw new Error(result.error); const decrypted = await decryptPrivateResponse(result.response.encryptedPayload, result.encryptionPublicKey, privateKey); if (decrypted.answers.length !== result.questions.length || decrypted.reactions.length !== result.questions.length) throw new Error(dashboardUi[locale].loadError); setRevealed({ questions: result.questions, matchQuestion: result.matchQuestion, response: { id: result.response.id, respondentName: decrypted.respondentName, answers: decrypted.answers, reactions: decrypted.reactions, matched: Boolean(result.doubleBlind && creatorInterest && decrypted.matchInterest), createdAt: result.response.createdAt } }); setData(null); history.replaceState({}, "", `/p/${id}`); setKey(""); setPrivateKey(""); setCreatorInterest(false); } catch (cause) { setError(cause instanceof Error ? cause.message : flow(locale, "panelError")); } finally { setLoading(false); } }
-  async function copyShare() { if(!data)return;const fingerprint=await fingerprintEncryptionPublicKey(data.game.encryptionPublicKey);const url=attachPublicKeyFingerprint(`${window.location.origin}/g/${id}`,fingerprint); await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1600); }
+  async function refresh() { setLoading(true); setError(""); try { const result = await fetchDashboard(id, key, privateKey, invitationKey, legacyFingerprint, creatorInterest); setData(result); setGameLocale(result.game.locale); setLocale(result.game.locale); } catch (cause) { const late = cause instanceof DashboardFetchError && [404, 410].includes(cause.status); setTooLate(late); setError(late ? TOO_LATE_COPY[locale].answers : dashboardUi[locale].loadError); if (late) setData(null); } finally { setLoading(false); } }
+  async function revealOnce() { setConfirmRevealOpen(false); setLoading(true); setError(""); try { const response = await fetch(`/api/games/${id}/consume`, { method: "POST", headers: { authorization: `Bearer ${key}` } }); const result = await response.json() as ({ encryptedInvitation: EncryptedInvitationEnvelope; questionCount: number; response: StoredEncryptedResponse; error?: string } | { questions: string[]; encryptionPublicKey: Game["encryptionPublicKey"]; doubleBlind: boolean; matchQuestion: string; response: StoredEncryptedResponse; error?: string }); if (!response.ok) throw new Error(result.error); let questions: string[]; let encryptionPublicKey: Game["encryptionPublicKey"]; let doubleBlind: boolean; let matchQuestion: string; if ("encryptedInvitation" in result) { const invitation = await decryptPrivateInvitation(result.encryptedInvitation, invitationKey); questions = invitation.questions; encryptionPublicKey = invitation.encryptionPublicKey; doubleBlind = invitation.doubleBlind; matchQuestion = invitation.matchQuestion; if (questions.length !== result.questionCount) throw new Error(dashboardUi[locale].loadError); } else { questions = result.questions; encryptionPublicKey = result.encryptionPublicKey; doubleBlind = result.doubleBlind; matchQuestion = result.matchQuestion; } const decrypted = await decryptPrivateResponse(result.response.encryptedPayload, encryptionPublicKey, privateKey); if (decrypted.answers.length !== questions.length || decrypted.reactions.length !== questions.length) throw new Error(dashboardUi[locale].loadError); setRevealed({ questions, matchQuestion, response: { id: result.response.id, respondentName: decrypted.respondentName, answers: decrypted.answers, reactions: decrypted.reactions, matched: Boolean(doubleBlind && creatorInterest && decrypted.matchInterest), createdAt: result.response.createdAt } }); setData(null); history.replaceState({}, "", `/p/${id}`); setKey(""); setPrivateKey(""); setInvitationKey(""); setCreatorInterest(false); } catch (cause) { setError(cause instanceof Error ? cause.message : flow(locale, "panelError")); } finally { setLoading(false); } }
+  async function copyShare() { if(!data)return;let url:string;if(invitationKey)url=attachInvitationSecret(`${window.location.origin}/g/${id}`,invitationKey);else{const fingerprint=await fingerprintEncryptionPublicKey(data.game.encryptionPublicKey);url=attachPublicKeyFingerprint(`${window.location.origin}/g/${id}`,fingerprint);} await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1600); }
   async function enableNotifications() { if (!("Notification" in window)) return; const permission = await Notification.requestPermission(); setNotifications(permission === "granted"); }
   async function remove() { if (!data)return;const cancellation=creatorCancellationUi[locale];if (!confirm(data.game.openedAt?cancellation.after:cancellation.before)) return; const response = await fetch(`/api/games/${id}`, { method: "DELETE", headers: { authorization: `Bearer ${key}` } }); if (response.ok) router.push("/"); }
   function closeRevealed() { setRevealed(null); window.location.replace("/"); }

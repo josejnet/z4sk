@@ -1,0 +1,35 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PrivacyProof } from "../privacy/PrivacyProof";
+
+const repository = "https://github.com/josejnet/z4sk";
+
+export const metadata: Metadata = {
+  title: "Security audit & source code · Z4SK",
+  description: "Public, inspectable explanation of Z4SK end-to-end encryption, server-visible metadata, threat boundaries, source code and live privacy checks.",
+};
+
+export default function AuditPage() {
+  const commit = process.env.VERCEL_GIT_COMMIT_SHA?.trim();
+  return <main className="audit-page">
+    <nav className="audit-nav"><Link href="/">Z4SK</Link><div><Link href="/privacy">Privacy</Link><a href={repository} target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></nav>
+    <article>
+      <header className="audit-hero"><span className="eyebrow">PUBLIC SECURITY & PRIVACY AUDIT</span><h1>Don&apos;t just trust us.<br /><em>Inspect the design.</em></h1><p>Z4SK publishes its source code, cryptographic protocol, limits and live database-control evidence so third parties can examine what the product does—and what it cannot promise.</p><div className="audit-actions"><a href={`${repository}/tree/main`} target="_blank" rel="noopener noreferrer">Inspect source code ↗</a><a href="/api/privacy-proof" target="_blank" rel="noopener noreferrer">Open JSON evidence ↗</a></div>{commit&&<p className="audit-commit">Production commit: <a href={`${repository}/commit/${commit}`} target="_blank" rel="noopener noreferrer"><code>{commit.slice(0,12)}</code> ↗</a></p>}</header>
+
+      <section className="audit-password-warning"><span aria-hidden="true">!</span><div><b>THE INVITATION LINK IS A PASSWORD-EQUIVALENT SECRET</b><p>Anyone holding the complete invitation link can decrypt its names, questions and settings and submit until expiry. The creator link is even more sensitive: it also authorizes the dashboard and decrypts responses. Never post either complete link publicly.</p><p lang="es"><b>Compartir el enlace completo es como compartir una contraseña.</b> Quien lo tenga puede descifrar la invitación; con el enlace del creador también puede abrir el panel y descifrar respuestas.</p></div></section>
+
+      <section className="audit-section" id="model"><span className="eyebrow">01 · SECURITY MODEL</span><h2>Private content is encrypted before the server sees it.</h2><div className="audit-flow"><article><b>Creator browser</b><p>Generates a 256-bit invitation key, 192-bit access token and ECDH P-256 response key pair. AES-256-GCM encrypts names, questions, settings and the response public key.</p></article><span>→</span><article><b>Z4SK + Neon</b><p>Receive authenticated ciphertext, token hash, question count, expiry, timestamps and minimal lifecycle state. They do not receive either decryption key.</p></article><span>→</span><article><b>Recipient browser</b><p>Decrypts the invitation locally, then encrypts respondent name, answers, reactions and match choice with ECDH P-256, HKDF-SHA-256 and AES-256-GCM.</p></article></div></section>
+
+      <section className="audit-section"><span className="eyebrow">02 · DATA BOUNDARY</span><h2>Encrypted does not mean invisible or anonymous.</h2><div className="audit-columns"><article><h3>Encrypted content</h3><ul><li>Creator and recipient display names</li><li>Title, questions, locale and level</li><li>Invitation features and match question</li><li>Response public key</li><li>Respondent name, answers, reactions and match choice</li></ul></article><article><h3>Server-visible metadata</h3><ul><li>Random invitation ID and ciphertext envelopes</li><li>Question count and view-once policy</li><li>Creation, opening, response and expiry times</li><li>Open/closed lifecycle state</li><li>Request paths, approximate country and infrastructure metadata</li></ul></article></div></section>
+
+      <section className="audit-section"><span className="eyebrow">03 · LIMITS</span><h2>Clear trust boundaries, without security theatre.</h2><div className="audit-limit-grid"><p>A leaked complete link grants its bearer capability.</p><p>A compromised browser, extension, device, clipboard or screenshot can expose plaintext.</p><p>A malicious future deployment could alter client-side code; public source helps inspection but is not remote attestation.</p><p>Deletion cannot erase content another person already saw, copied or photographed.</p><p>Vercel and Neon necessarily process operational network metadata.</p><p>The live proof is a Z4SK self-audit, not an independent certification.</p></div></section>
+
+      <section className="audit-section audit-review"><span className="eyebrow">04 · REVIEW IT YOURSELF</span><h2>Follow the evidence from browser to database.</h2><div className="audit-review-links"><a href={`${repository}/blob/main/docs/CRYPTOGRAPHY.md`} target="_blank" rel="noopener noreferrer"><b>Cryptographic design</b><span>Protocol, payloads, keys and threat model →</span></a><a href={`${repository}/blob/main/SECURITY.md`} target="_blank" rel="noopener noreferrer"><b>Security policy</b><span>Risks, reporting and production controls →</span></a><a href={`${repository}/blob/main/scripts/verify-e2ee.mjs`} target="_blank" rel="noopener noreferrer"><b>E2E verifier</b><span>Executable browser/API/database assertions →</span></a><a href={`${repository}/actions/workflows/ci.yml`} target="_blank" rel="noopener noreferrer"><b>CI evidence</b><span>Build, tests, audit and isolated staging flow →</span></a></div></section>
+
+      <PrivacyProof />
+
+      <section className="audit-section audit-es" lang="es"><span className="eyebrow">RESUMEN EN ESPAÑOL</span><h2>Auditable no significa infalible.</h2><p>Los nombres, preguntas, ajustes y la clave pública de respuestas se cifran en el navegador del creador con AES-256-GCM. Las respuestas se cifran en el navegador del destinatario mediante ECDH P-256, HKDF-SHA-256 y AES-256-GCM. El servidor conserva texto cifrado y metadatos mínimos para aplicar caducidad, lectura única y protección contra abusos.</p><p>Los secretos viven en fragmentos de URL que el navegador no envía en la petición HTTP normal. Aun así, pueden filtrarse por acciones del usuario, el portapapeles, sincronización, mensajería o capturas. El código público permite revisar la implementación, y la prueba en vivo consulta controles de la base activa; ninguna de las dos cosas sustituye una auditoría externa independiente.</p><a href={`${repository}/blob/main/docs/CRYPTOGRAPHY.md#español`} target="_blank" rel="noopener noreferrer">Leer el diseño completo en español ↗</a></section>
+    </article>
+    <footer><span>Z4SK</span><p>Public source. Explicit limits. Verifiable controls.</p></footer>
+  </main>;
+}

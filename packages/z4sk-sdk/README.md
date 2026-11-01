@@ -22,4 +22,10 @@ const quiz = await z4sk.createQuiz({
 z4sk.mount(document.querySelector("#z4sk-widget")!);
 ```
 
-The SDK generates both a random creator-access token and an ECDH P-256 key pair locally. It sends only the token's SHA-256 hash and the public ECDH key to Z4SK, pins that public key's SHA-256 fingerprint in the returned `playUrl`, and assembles the complete `adminUrl` in the browser. The complete creator URL never reaches the creation API or Neon Postgres and is the only response-decryption capability: never log, index or send it to analytics providers.
+The SDK locally generates a random 256-bit invitation key, a random creator-access token and an ECDH P-256 response key pair. It encrypts display names, questions, settings and the ECDH public key with AES-256-GCM before calling Z4SK. The API receives only the invitation envelope, question count, operational policy and the token's SHA-256 hash.
+
+The returned `playUrl` contains the invitation key in its URL fragment. The `adminUrl` contains that same key plus the bearer token and ECDH private key. URL fragments do not reach the creation API through normal navigation, and neither complete URL is written to Neon Postgres.
+
+**Both complete URLs are bearer secrets. Sharing the invitation URL is equivalent to sharing a password:** its holder can decrypt the invitation and submit until expiry. The creator URL additionally grants dashboard access and response decryption. Never log, index, embed in analytics or expose either complete URL.
+
+See the public [cryptographic design](../../docs/CRYPTOGRAPHY.md) and [security policy](../../SECURITY.md) for exact payloads, visible metadata and trust boundaries.

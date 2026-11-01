@@ -3,10 +3,11 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Sponsor, TopNav } from "../../components/Brand";
-import type { Game } from "../../lib/types";
+import type { Game, GameWire } from "../../lib/types";
 import { type Locale, useLanguage } from "../../lib/i18n";
 import { flow } from "../../lib/flow-copy";
 import { encryptPrivateResponse, verifyEncryptionPublicKeyFingerprint } from "../../lib/response-crypto";
+import { hydrateGameWire, isEncryptedGameWire } from "../../lib/invitation-crypto";
 import { NAME_RULE_COPY } from "../../lib/name-copy";
 import { CANCELLATION_COPY } from "../../lib/cancellation-copy";
 import { TOO_LATE_COPY } from "../../lib/too-late-copy";
@@ -90,7 +91,7 @@ export function GameClient({ id }: { id: string }) {
 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
 
-  useEffect(() => { fetch(`/api/games/${id}`, { cache: "no-store" }).then(async (response) => { const data = await response.json() as Game & { error?: string }; if (!response.ok) { if ([404, 409, 410].includes(response.status)) { setTooLate(true); setMessage(TOO_LATE_COPY[preferredLocale].questions); setPhase("error"); return; } throw new Error(data.error); } const fingerprint=new URLSearchParams(window.location.hash.slice(1)).get("verify")||""; try{await verifyEncryptionPublicKeyFingerprint(data.encryptionPublicKey,fingerprint);}catch{setLocale(data.locale);setMessage(keyIntegrityError[data.locale]);setPhase("error");return;} setLocale(data.locale); setGame(data); setRespondentName(data.recipientName); setAnswers(Array(data.questions.length).fill("")); setReactions(Array(data.questions.length).fill("")); setIndex(0); setTimedConsentOne(false); setTimedConsentTwo(false); setQuestionSeconds(30); setMatchInterest(null); setPhase("intro"); }).catch(() => { setMessage(gameUi[preferredLocale].openError); setPhase("error"); }); }, [id, preferredLocale, setLocale]);
+  useEffect(() => { fetch(`/api/games/${id}`, { cache: "no-store" }).then(async (response) => { const data = await response.json() as GameWire & { error?: string }; if (!response.ok) { if ([404, 409, 410].includes(response.status)) { setTooLate(true); setMessage(TOO_LATE_COPY[preferredLocale].questions); setPhase("error"); return; } throw new Error(data.error); } const fragment = new URLSearchParams(window.location.hash.slice(1)); let decryptedGame: Game; try { if (isEncryptedGameWire(data)) decryptedGame = await hydrateGameWire(data, fragment.get("invite") || ""); else { await verifyEncryptionPublicKeyFingerprint(data.encryptionPublicKey, fragment.get("verify") || ""); decryptedGame = data; } } catch { setLocale(preferredLocale); setMessage(keyIntegrityError[preferredLocale]); setPhase("error"); return; } setLocale(decryptedGame.locale); setGame(decryptedGame); setRespondentName(decryptedGame.recipientName); setAnswers(Array(decryptedGame.questions.length).fill("")); setReactions(Array(decryptedGame.questions.length).fill("")); setIndex(0); setTimedConsentOne(false); setTimedConsentTwo(false); setQuestionSeconds(30); setMatchInterest(null); setPhase("intro"); }).catch(() => { setMessage(gameUi[preferredLocale].openError); setPhase("error"); }); }, [id, preferredLocale, setLocale]);
 
   async function submit(finalAnswers=answers,finalReactions=reactions) {
     if (!game) return;

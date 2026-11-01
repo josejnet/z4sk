@@ -30,7 +30,8 @@ export async function POST(request: Request) {
     const campaignVersion = clean(body.campaignVersion, 40);
     if (!eventTypes.has(eventType) || !placements.has(placement) || !locales.has(locale) || !campaignVersion) return new Response(null, { status: 400 });
     await ensureSchema();
-    const rateLimit = await checkRateLimit(request, `sponsor-${eventType}`, 120, 10);
+    const maximum = eventType === "click" ? 1 : 3;
+    const rateLimit = await checkRateLimit(request, `sponsor-${eventType}:${campaignVersion}:${placement}`, maximum, 24 * 60);
     if (!rateLimit.allowed) return new Response(null, { status: 204 });
     const db = getDatabase();
     const active = await db.prepare(`SELECT 1 AS active FROM sponsor_config WHERE id='primary' AND enabled=1 AND updated_at=?`).bind(campaignVersion).first<{ active: number }>();

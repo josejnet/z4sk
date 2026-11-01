@@ -5,9 +5,10 @@ const baseUrl = (process.env.Z4SK_VERIFY_URL || "http://localhost:3001").replace
 const context = new TextEncoder().encode("z4sk-response-v1");
 const b64 = (bytes) => Buffer.from(bytes).toString("base64url");
 const unb64 = (value) => new Uint8Array(Buffer.from(value, "base64url"));
+const testRunIp = `2001:db8:${crypto.randomUUID().replaceAll("-", "").slice(0, 8)}::1`;
 
 async function json(path, init) {
-  const response = await fetch(`${baseUrl}${path}`, init);
+  const response = await fetch(`${baseUrl}${path}`, { ...init, headers: { "x-forwarded-for": testRunIp, ...init?.headers } });
   const body = await response.json();
   return { response, body };
 }
@@ -112,6 +113,29 @@ assert.equal(afterRecipientDelete.body.game.responseCount, 0, "Recipient-deleted
 const cleanup = await json(`/api/games/${recipientGameId}`, { method: "DELETE", headers: { authorization: `Bearer ${recipientBearer}` } });
 assert.equal(cleanup.response.status, 200, JSON.stringify(cleanup.body));
 
+const reportAccess = await creatorCredential();
+const reportGame = await json("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ creatorName: "Metadata must stay private", recipientName: "Private recipient", level: "curioso", locale: "en", libraryVersion: "2026.08", questions, encryptionPublicKey: { kty: "EC", crv: "P-256", x: publicJwk.x, y: publicJwk.y }, creatorTokenHash: reportAccess.tokenHash, viewOnce: false, expiresInHours: 12, packSlug: "original", source: "e2ee-verifier" }) });
+assert.equal(reportGame.response.status, 201, JSON.stringify(reportGame.body));
+const reportGameId = reportGame.body.id;
+const reporterPrefix = `2001:db8:${crypto.randomUUID().replaceAll("-", "").slice(0, 8)}`;
+const firstReport = await json(`/api/games/${reportGameId}/report`, { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": `${reporterPrefix}::1` }, body: JSON.stringify({ reason: "spam" }) });
+assert.equal(firstReport.response.status, 201, JSON.stringify(firstReport.body));
+const duplicateReport = await json(`/api/games/${reportGameId}/report`, { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": `${reporterPrefix}::1` }, body: JSON.stringify({ reason: "spam" }) });
+assert.equal(duplicateReport.response.status, 200, JSON.stringify(duplicateReport.body));
+assert.equal(duplicateReport.body.duplicate, true, "A duplicate reporter was counted twice.");
+const secondReporter = await json(`/api/games/${reportGameId}/report`, { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": `${reporterPrefix}::2` }, body: JSON.stringify({ reason: "privacy" }) });
+assert.equal(secondReporter.body.automaticallyClosed, false, "Two reporters closed an invitation.");
+const stillOpen = await json(`/api/games/${reportGameId}`);
+assert.equal(stillOpen.response.status, 200, "A duplicate abuse report closed the invitation.");
+const thirdReporter = await json(`/api/games/${reportGameId}/report`, { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": `${reporterPrefix}::3` }, body: JSON.stringify({ reason: "harassment" }) });
+assert.equal(thirdReporter.body.automaticallyClosed, true, "Three distinct reporters did not quarantine the invitation.");
+const privateMetadataPage = await fetch(`${baseUrl}/g/${reportGameId}`);
+const privateMetadataHtml = await privateMetadataPage.text();
+assert.equal(privateMetadataHtml.includes("Metadata must stay private"), false, "Creator name leaked through page metadata.");
+assert.equal(privateMetadataHtml.includes("Private recipient"), false, "Recipient name leaked through page metadata.");
+const reportCleanup = await json(`/api/games/${reportGameId}`, { method: "DELETE", headers: { authorization: `Bearer ${reportAccess.token}` } });
+assert.equal(reportCleanup.response.status, 200, JSON.stringify(reportCleanup.body));
+
 let exactExpiryCutoff = false;
 if (process.env.DATABASE_URL) {
   const expiryAccess = await creatorCredential();
@@ -133,4 +157,4 @@ if (process.env.DATABASE_URL) {
   exactExpiryCutoff = true;
 }
 
-console.log(JSON.stringify({ ok: true, baseUrl, algorithm: envelope.alg, plaintextSentToDatabase: false, completeCreatorLinkReturnedByApi: false, creationRequiresClientTokenHash: true, activeGameAfterConsume: false, ciphertextReadableWithCreatorKey: true, concurrentSingleUseAccepted: 1, recipientSelfDeletion: true, queryStringKeysRejected: true, exactExpiryCutoff }));
+console.log(JSON.stringify({ ok: true, baseUrl, algorithm: envelope.alg, plaintextSentToDatabase: false, completeCreatorLinkReturnedByApi: false, creationRequiresClientTokenHash: true, activeGameAfterConsume: false, ciphertextReadableWithCreatorKey: true, concurrentSingleUseAccepted: 1, recipientSelfDeletion: true, duplicateAbuseReportsIgnored: true, privateNamesAbsentFromMetadata: true, queryStringKeysRejected: true, exactExpiryCutoff }));

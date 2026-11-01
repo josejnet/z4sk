@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { checkRateLimit, ensureSchema, getDatabase, hashQuestion, randomToken, recordEvent } from "../../../db/runtime";
+import { checkRateLimit, ensureSchema, getDatabase, getRequestCountry, hashQuestion, randomToken, recordEvent } from "../../../db/runtime";
 import { isEncryptionPublicKey } from "../../lib/encryption-types";
 
 const levels = new Set(["curioso", "coqueto", "picante", "sinfiltro"]);
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     await db.prepare(`INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, premium, view_once, double_blind, match_question, timed_mode, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, ?, 0, ?, ?)`).bind(id, creatorTokenHash, creatorName, recipientName, `${recipientName} · Z4SK`, level, locale, libraryVersion, JSON.stringify(questions), JSON.stringify(encryptionPublicKey), viewOnce, doubleBlind, matchQuestion, timedMode, packSlug, createdAt.toISOString(), expiresAt.toISOString()).run();
     const metricStatements = await Promise.all(questions.map(async (question) => db.prepare(`INSERT INTO question_metrics (question_hash, locale, level, library_version, selected_count, completed_count, total_answer_chars) VALUES (?, ?, ?, ?, 1, 0, 0) ON CONFLICT(question_hash, locale, level, library_version) DO UPDATE SET selected_count = question_metrics.selected_count + 1`).bind(await hashQuestion(question), locale, level, libraryVersion)));
     if (metricStatements.length) await db.batch(metricStatements);
-    const country = String((request as Request & { cf?: { country?: string } }).cf?.country || request.headers.get("cf-ipcountry") || "XX").slice(0, 2).toUpperCase();
+    const country = getRequestCountry(request);
     await recordEvent({ eventType: "created", gameId: id, locale, level, country, packSlug, source: body.source === "sdk" ? "sdk" : "web", libraryVersion });
     const origin = new URL(request.url).origin;
     return NextResponse.json({ id, playUrl: `${origin}/g/${id}` }, { status: 201, headers: { "cache-control": "no-store" } });

@@ -1,47 +1,83 @@
 # Deployment
 
-## Production resources
+[Versión en español](DEPLOYMENT.es.md)
+
+## Production architecture
 
 - Vercel project: `josejcoy-9481s-projects/z4sk`
 - GitHub repository: `josejnet/z4sk`
 - database: Vercel-managed Neon Postgres
-- required secrets: `DATABASE_URL`, `FOUNDER_DASHBOARD_KEY`, `CRON_SECRET`, `RATE_LIMIT_HMAC_SECRET`
-- required public-launch disclosure: `LEGAL_ENTITY_NAME`, `LEGAL_POSTAL_ADDRESS`, `PRIVACY_EMAIL`, verified `NEON_RESTORE_WINDOW_HOURS`
-- retention trigger: `0 3 * * *` (daily at 03:00 UTC on the Hobby plan)
+- runtime database role: DML-only access to application tables
+- migration database role: schema-owner credential held only by GitHub Actions
+- retention trigger: `0 3 * * *` (daily at 03:00 UTC)
 
-Secrets stay in Vercel environment variables and must never enter Git or logs.
+Vercel Production requires `DATABASE_URL`, `FOUNDER_DASHBOARD_KEY`, `CRON_SECRET`, `RATE_LIMIT_HMAC_SECRET`, `OPERATOR_NAME`, `PRIVACY_EMAIL`, and the verified `NEON_RESTORE_WINDOW_HOURS`. Preview and Development use the isolated `z4sk_staging_e2e` database and their own HMAC secret.
 
-## First-time setup
+GitHub Actions requires these repository secrets:
+
+- `Z4SK_STAGING_DATABASE_URL`: restricted connection to `z4sk_staging_e2e`
+- `Z4SK_STAGING_HMAC_SECRET`: non-production HMAC secret
+- `Z4SK_PRODUCTION_MIGRATION_DATABASE_URL`: production schema-owner connection
+- `VERCEL_DEPLOY_HOOK_URL`: Deploy Hook scoped to `main`
+
+Secrets must never enter Git, logs, build output, or client-side environment variables.
+
+## Local setup
+
+Use Node.js 24:
 
 ```bash
 npm ci
 vercel link --yes --project z4sk
-vercel env pull .env.local --yes
-npm run build
-vercel --prod
+vercel env pull .env.local --yes --environment=development
+npm run db:migrate
+npm run lint
+npm test
 ```
 
-Use Node.js 22.13 or newer.
+The pulled development URL must point to `z4sk_staging_e2e`, never to production.
 
-## Routine release
+## Release pipeline
 
-1. Confirm `git status` is clean and review the intended commit.
-2. Run `npm run lint`, `npm run build` and `npm audit --omit=dev`.
-3. Push the reviewed commit to `main`; Vercel deploys it automatically.
-4. Verify the homepage, create/respond/read flow and founder metrics.
-5. Verify `/api/privacy-proof` reports zero expired responses, the single-use unique index, HMAC configuration, operator contact and the exact Neon restore window.
+Automatic Vercel Git deployments are disabled. Every push to `main` runs `.github/workflows/ci.yml`:
+
+1. install from the lockfile on pinned Node and Action versions;
+2. lint, build, rendered-output tests, and a full dependency audit;
+3. encrypted end-to-end verification against the isolated staging database;
+4. versioned production migrations with the schema-owner credential;
+5. the `main` Deploy Hook only after every previous step succeeds.
+
+To rerun the same pipeline manually:
+
+```bash
+gh workflow run ci.yml --ref main
+```
+
+Do not run production migrations with Vercel's runtime `DATABASE_URL`; that role is deliberately unable to change the schema.
+
+## Post-deploy checks
+
+- confirm the production deployment is `READY` and assigned to `https://z4sk.vercel.app`;
+- check the homepage CSP contains a per-request nonce and no `unsafe-inline` script permission;
+- create, answer, decrypt, and delete a disposable invitation;
+- check `/api/privacy-proof` and the daily retention heartbeat;
+- inspect production errors without printing request bodies or secrets.
 
 ## Rollback
 
 ```bash
-vercel ls
+vercel ls z4sk
 vercel rollback
 ```
 
-Application rollback does not reverse a database migration. Database changes must be backwards-compatible.
+Application rollback does not reverse database migrations. Migrations must remain backwards-compatible with the previous deployed version.
 
 ## Secret rotation
 
-Use `vercel env add FOUNDER_DASHBOARD_KEY production --force --sensitive`, then redeploy. Verify the old key returns `403` and the new key returns `200` from `/api/founder/metrics`.
+Rotate Vercel runtime secrets with `vercel env add ... --sensitive`, then release through the verified pipeline. Rotate the GitHub migration credential and Deploy Hook URL in GitHub, not in Vercel runtime variables.
 
-Rotate `RATE_LIMIT_HMAC_SECRET` independently with at least 32 random bytes. Rotation invalidates only short-lived rate-limit pseudonyms; it does not affect creator links or encrypted responses.
+Changing `RATE_LIMIT_HMAC_SECRET` invalidates only pseudonymous rate-limit and reporter identifiers; it does not affect creator links or encrypted responses. Verify the old founder key returns `403` and the replacement returns `200` from `/api/founder/metrics`.
+
+## Repository protection
+
+The workflow uses least-privilege permissions and pinned third-party Actions. The current private-repository plan does not expose protected-branch or protected-environment rules, so the repository owner must keep `main` write access tightly limited and review workflow changes before merging.

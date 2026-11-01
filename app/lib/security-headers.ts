@@ -1,4 +1,4 @@
-function contentSecurityPolicy(development: boolean) {
+export function contentSecurityPolicy(nonce: string, development = false) {
   return [
   "default-src 'self'",
   "base-uri 'self'",
@@ -11,7 +11,8 @@ function contentSecurityPolicy(development: boolean) {
   "manifest-src 'self'",
   "media-src 'none'",
   "object-src 'none'",
-  development ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ""}`,
+  "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline'",
   "worker-src 'self' blob:",
   "upgrade-insecure-requests",
@@ -19,8 +20,8 @@ function contentSecurityPolicy(development: boolean) {
 }
 
 export function securityHeaders(development = false) {
+  void development;
   return [
-  { key: "Content-Security-Policy", value: contentSecurityPolicy(development) },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   { key: "Origin-Agent-Cluster", value: "?1" },

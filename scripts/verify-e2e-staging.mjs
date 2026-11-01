@@ -2,35 +2,28 @@ import { spawn, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { neon } from "@neondatabase/serverless";
+import { runMigrations } from "./migrations.mjs";
 
-try {
-  process.loadEnvFile(".env.local");
-} catch (error) {
-  if (error?.code !== "ENOENT") throw error;
+if (!process.env.Z4SK_STAGING_DATABASE_URL) {
+  for (const file of [".env.staging.local", ".env.local"]) {
+    try {
+      process.loadEnvFile(file);
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+    if (process.env.Z4SK_STAGING_DATABASE_URL || process.env.DATABASE_URL) break;
+  }
 }
-
-const productionUrl = process.env.DATABASE_URL;
-if (!productionUrl) throw new Error("DATABASE_URL is required in .env.local.");
 
 const stagingDatabase = "z4sk_staging_e2e";
-const adminSql = neon(productionUrl);
-
-try {
-  await adminSql.query(`CREATE DATABASE "${stagingDatabase}"`);
-  console.log(`Created isolated Neon database: ${stagingDatabase}`);
-} catch (error) {
-  const alreadyExists = error?.code === "42P04" || String(error?.message || "").includes("already exists");
-  if (!alreadyExists) {
-    throw new Error(`Could not create the isolated staging database: ${error instanceof Error ? error.message : String(error)}`);
-  }
-  console.log(`Reusing isolated Neon database: ${stagingDatabase}`);
-}
-
-const stagingUrl = new URL(productionUrl);
-stagingUrl.pathname = `/${stagingDatabase}`;
+const stagingUrlValue = process.env.Z4SK_STAGING_DATABASE_URL || process.env.DATABASE_URL;
+if (!stagingUrlValue) throw new Error("Z4SK_STAGING_DATABASE_URL or a staging-only DATABASE_URL is required.");
+const stagingUrl = new URL(stagingUrlValue);
+if (stagingUrl.pathname.replace(/^\//, "") !== stagingDatabase) throw new Error(`The E2E database must be named ${stagingDatabase}.`);
 const stagingSql = neon(stagingUrl.toString());
 const rows = await stagingSql.query("SELECT current_database() AS name");
 if (rows[0]?.name !== stagingDatabase) throw new Error("The staging connection did not reach the isolated database.");
+await runMigrations(stagingUrl.toString());
 
 const port = process.env.Z4SK_STAGING_PORT || "3101";
 const baseUrl = `http://127.0.0.1:${port}`;

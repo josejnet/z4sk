@@ -1,24 +1,71 @@
-name: CI
+name: Verify and deploy
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: z4sk-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 24.14.0
+
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          node-version: 22.13.0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
       - run: npm run lint
       - run: npm test
-      - run: npm audit --omit=dev
+      - run: npm audit
+      - name: Encrypted database E2E
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        run: npm run verify:e2e:staging
+        env:
+          Z4SK_STAGING_DATABASE_URL: ${{ secrets.Z4SK_STAGING_DATABASE_URL }}
+          RATE_LIMIT_HMAC_SECRET: ${{ secrets.Z4SK_STAGING_HMAC_SECRET }}
+
+  deploy-production:
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Apply versioned production migrations
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.Z4SK_PRODUCTION_MIGRATION_DATABASE_URL }}
+      - name: Trigger production build after verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(curl --fail --silent --show-error --retry 3 --request POST "$VERCEL_DEPLOY_HOOK_URL")"
+          DEPLOY_RESPONSE="$response" node --input-type=module -e '
+            const payload = JSON.parse(process.env.DEPLOY_RESPONSE);
+            if (!payload.job?.id || !["PENDING", "RUNNING", "READY"].includes(payload.job.state)) process.exit(1);
+          '
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}

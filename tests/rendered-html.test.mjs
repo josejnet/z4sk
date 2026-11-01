@@ -33,10 +33,13 @@ test("server-renders the English-first Z4SK product", async () => {
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   assert.match(response.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
+  assert.match(response.headers.get("content-security-policy") ?? "", /script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
+  assert.doesNotMatch(response.headers.get("content-security-policy") ?? "", /script-src[^;]*'unsafe-inline'/);
   assert.equal(response.headers.get("referrer-policy"), "no-referrer");
   assert.equal(response.headers.get("x-frame-options"), "DENY");
   assert.match(response.headers.get("permissions-policy") ?? "", /camera=\(\)/);
   const html = await response.text();
+  assert.match(html, /<script[^>]+nonce=/);
   assert.match(html, /Z4SK — Ask\. Answer\. Dare\./i);
   assert.match(html, /Some things you only/);
   assert.match(html, /Private answers/);
@@ -85,7 +88,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
     stat(new URL("../public/icon-512.png", import.meta.url)),
     readFile(new URL("../app/lib/name-copy.ts", import.meta.url), "utf8"),
   ]);
-  const [brand, faviconIco, founderAuth, founderAds, publicAds, founderDashboard, cancellationCopy, cancellationClient] = await Promise.all([
+  const [brand, faviconIco, founderAuth, founderAds, publicAds, founderDashboard, cancellationCopy, cancellationClient, migrations, workflow] = await Promise.all([
     readFile(new URL("../app/components/Brand.tsx", import.meta.url), "utf8"),
     stat(new URL("../public/favicon.ico", import.meta.url)),
     readFile(new URL("../app/lib/founder-auth.ts", import.meta.url), "utf8"),
@@ -94,6 +97,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
     readFile(new URL("../app/founder/FounderDashboard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/lib/cancellation-copy.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/cancel/[id]/CancelResponseClient.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../scripts/migrations.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8"),
   ]);
   assert.match(builder, /Share once & remove ads/);
   assert.match(builder, /<a href=\{created\.adminUrl\} target="_blank" rel="noopener noreferrer">\{t\("openPanel"\)\}<\/a>/);
@@ -234,10 +239,14 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(responseRoute, /checkRateLimit/);
   assert.match(responseRoute, /delete_token_hash/);
   assert.match(responseRoute, /export async function DELETE/);
-  assert.match(runtime, /ux_responses_single_use_game/);
+  assert.match(migrations, /ux_responses_single_use_game/);
+  assert.match(migrations, /ux_abuse_reports_game_reporter/);
   assert.match(runtime, /hashRateLimitIdentifier/);
+  assert.doesNotMatch(runtime, /CREATE TABLE|ALTER TABLE|CREATE INDEX/);
   assert.doesNotMatch(runtime, /searchParams\.get\("key"\)/);
   assert.match(reportRoute, /automaticallyClosed/);
+  assert.match(reportRoute, /COUNT\(DISTINCT reporter_hash\)/);
+  assert.match(reportRoute, /duplicate:!inserted\.meta\.changes/);
   assert.match(reportRoute, /reported/);
   assert.match(founderAuth, /FOUNDER_DASHBOARD_KEY/);
   assert.match(founderAuth, /founder-dashboard/);
@@ -253,7 +262,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(publicAds, /enabled: false/);
   assert.match(publicAds, /export async function POST/);
   assert.match(publicAds, /event_count=sponsor_events\.event_count\+1/);
-  assert.match(publicAds, /checkRateLimit\(request, `sponsor-\$\{eventType\}`/);
+  assert.match(publicAds, /checkRateLimit\(request, `sponsor-\$\{eventType\}:\$\{campaignVersion\}:\$\{placement\}`/);
+  assert.match(responseRoute, /declaredLength > 50_000/);
+  assert.match(responseRoute, /count \|\| 0\) >= 100/);
   assert.match(founderDashboard, /Sponsor placement/);
   assert.match(founderDashboard, /Sponsor performance/);
   assert.match(founderDashboard, /Viewable impressions/);
@@ -263,8 +274,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(brand, /intersectionRatio<0\.5/);
   assert.match(brand, /sessionStorage\.getItem/);
   assert.match(brand, /recordSponsorClick/);
-  assert.match(runtime, /CREATE TABLE IF NOT EXISTS sponsor_events/);
-  assert.doesNotMatch(runtime, /sponsor_events[^`]*(?:user_id|device_id|game_id)/);
+  assert.match(migrations, /CREATE TABLE IF NOT EXISTS sponsor_events/);
+  assert.doesNotMatch(migrations, /sponsor_events[^`]*(?:user_id|device_id|game_id)/);
   assert.match(proofRoute, /live runtime self-audit/);
   assert.match(proofRoute, /Creator email never reaches the active database/);
   assert.match(proofRoute, /Private decryption keys never enter the database/);
@@ -272,14 +283,19 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(proofRoute, /TECHNICAL CONTROLS PASS|technicalOverall/);
   assert.match(proofRoute, /Database tables are not readable by the Postgres PUBLIC role/);
   assert.match(proofRoute, /Founder access uses a strong server-only secret/);
+  assert.doesNotMatch(proofRoute, /id: "expiry-games"[^}]*pass: true/);
   assert.match(gameRoute, /randomToken\(16\)/);
   assert.match(runtime, /hashMetricIdentifier/);
   assert.match(privacyEngine, /metric:/);
-  assert.match(runtime, /timed_mode INTEGER NOT NULL DEFAULT 0/);
-  assert.match(runtime, /match_question TEXT NOT NULL DEFAULT ''/);
-  assert.match(runtime, /UPDATE games SET creator_email = ''/);
-  assert.match(runtime, /DELETE FROM responses WHERE game_id IN/);
-  assert.match(runtime, /encrypted_payload = ''/);
+  assert.match(migrations, /timed_mode INTEGER NOT NULL DEFAULT 0/);
+  assert.match(migrations, /match_question TEXT NOT NULL DEFAULT ''/);
+  assert.match(migrations, /UPDATE games SET creator_email = ''/);
+  assert.match(migrations, /DELETE FROM responses WHERE game_id IN/);
+  assert.match(migrations, /encrypted_payload = ''/);
+  assert.match(workflow, /actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/);
+  assert.match(workflow, /npm run verify:e2e:staging/);
+  assert.match(workflow, /Z4SK_PRODUCTION_MIGRATION_DATABASE_URL/);
+  assert.match(workflow, /VERCEL_DEPLOY_HOOK_URL/);
   assert.match(responseCrypto, /ECDH/);
   assert.match(responseCrypto, /AES-GCM/);
   assert.match(responseCrypto, /HKDF/);

@@ -54,7 +54,7 @@ Creator browser
 
 ## Local development
 
-Requirements: Node.js 22.13 or newer and a Neon/Postgres connection string.
+Requirements: Node.js 24 and a Neon/Postgres connection string.
 
 ```bash
 npm install
@@ -71,16 +71,16 @@ The standard quality gate builds the production bundle, checks rendered output a
 ```bash
 npm run lint
 npm test
-npm audit --omit=dev
+npm audit
 ```
 
-The staging verification creates or reuses a dedicated `z4sk_staging_e2e` database in the same Neon project, starts the built app against that database, exercises creation, encryption, concurrent view-once submission, decryption, recipient deletion and exact expiry, and then stops the local server:
+The staging verification requires a dedicated database named `z4sk_staging_e2e`, starts the built app against it, exercises creation, encryption, concurrent view-once submission, abuse-report deduplication, metadata privacy, decryption, recipient deletion and exact expiry, and then stops the local server:
 
 ```bash
 npm run verify:e2e:staging
 ```
 
-It never points the application or verifier at the production database. The database role in `DATABASE_URL` must be allowed to create the isolated staging database.
+Put its restricted connection string in `Z4SK_STAGING_DATABASE_URL`, or use a development `DATABASE_URL` that points to that exact database. The verifier rejects every other database name, including production. Schema changes are versioned in `scripts/migrations.mjs` and run with `npm run db:migrate` before deployment.
 
 ## Privacy and security boundaries
 
@@ -98,16 +98,17 @@ Review [SECURITY.md](SECURITY.md) before running a public deployment. The live [
 | `app/cancel/[id]` | Recipient-owned response deletion |
 | `app/api` | Invitation, response, retention, metrics and sponsor APIs |
 | `app/lib/response-crypto.ts` | Browser encryption and decryption |
-| `db/runtime.ts` | Neon schema initialization, queries and purge operations |
+| `db/runtime.ts` | Neon runtime queries and purge operations |
+| `scripts/migrations.mjs` | Versioned, pre-deployment database migrations |
 | `scripts/verify-e2ee.mjs` | Full encrypted data-flow verifier |
 | `packages/z4sk-sdk` | Reusable framework-neutral SDK |
 
 ## Deployment
 
-`main` is connected to Vercel. Production uses Next.js Functions backed by Neon Postgres. Every release should be reproducible from a clean commit and pass the verification commands above before promotion.
+Automatic Git deployments are disabled. A push to `main` runs the pinned GitHub Actions pipeline, including the isolated encrypted E2E suite. After every check passes, the protected production job applies versioned migrations with a migration-only credential and invokes a branch-scoped Vercel Deploy Hook. Runtime Functions use a separate DML-only database role; Vercel keeps the current production version active if the new build fails.
 
 ```bash
-vercel --prod
+gh workflow run ci.yml
 ```
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment setup, rollback and post-deploy checks.

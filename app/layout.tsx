@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { connection } from "next/server";
 import "./globals.css";
 import "./product.css";
 import "./extras.css";
@@ -53,4 +54,4 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en-US"><head><link rel="shortcut icon" href="/favicon.ico" /></head><body className={`${geist.variable} ${mono.variable}`}><LanguageProvider><PwaRegister />{children}</LanguageProvider></body></html>; }
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { await connection(); return <html lang="en-US"><head><link rel="shortcut icon" href="/favicon.ico" /></head><body className={`${geist.variable} ${mono.variable}`}><LanguageProvider><PwaRegister />{children}</LanguageProvider></body></html>; }

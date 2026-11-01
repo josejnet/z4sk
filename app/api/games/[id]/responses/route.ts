@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { bearerToken, checkRateLimit, deleteGameData, ensureSchema, getDatabase, hashQuestion, hashToken, randomToken, recordEvent } from "../../../../../db/runtime";
+import { bearerToken, checkRateLimit, deleteGameData, ensureSchema, getDatabase, getRequestCountry, hashQuestion, hashToken, randomToken, recordEvent } from "../../../../../db/runtime";
 import { isEncryptedResponseEnvelope } from "../../../../lib/encryption-types";
 
 type Context = { params: Promise<{ id: string }> };
@@ -7,10 +7,14 @@ type GameRow = { creator_token_hash: string; creator_name: string; recipient_nam
 
 export async function POST(request: Request, context: Context) {
   try {
+    const declaredLength = Number(request.headers.get("content-length") || 0);
+    if (declaredLength > 50_000) return NextResponse.json({ error: "La respuesta cifrada es demasiado grande." }, { status: 413 });
     await ensureSchema();
     const rateLimit = await checkRateLimit(request, "submit-response", 30, 10);
     if (!rateLimit.allowed) return NextResponse.json({ error: "Too many responses. Try again shortly." }, { status: 429, headers: { "retry-after": String(rateLimit.retryAfterSeconds) } });
     const { id } = await context.params;
+    const invitationRateLimit = await checkRateLimit(request, `submit-response:${id}`, 10, 10);
+    if (!invitationRateLimit.allowed) return NextResponse.json({ error: "Demasiados intentos para esta invitación. Inténtalo más tarde." }, { status: 429, headers: { "retry-after": String(invitationRateLimit.retryAfterSeconds) } });
     const db = getDatabase();
     const game = await db.prepare(`SELECT creator_token_hash, questions_json, locale, level, library_version, view_once, closed, expires_at FROM games WHERE id = ?`).bind(id).first<Pick<GameRow, "creator_token_hash" | "questions_json" | "locale" | "level" | "library_version" | "view_once" | "closed" | "expires_at">>();
     if (!game) return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 404 });
@@ -18,6 +22,7 @@ export async function POST(request: Request, context: Context) {
     if (game.closed) return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 404 });
     const existing = await db.prepare(`SELECT COUNT(*) AS count FROM responses WHERE game_id = ?`).bind(id).first<{ count: number }>();
     if (game.view_once && Number(existing?.count || 0) > 0) return NextResponse.json({ error: "Alguien ya respondió a esta invitación de una sola vez." }, { status: 409 });
+    if (!game.view_once && Number(existing?.count || 0) >= 100) return NextResponse.json({ error: "Esta invitación ha alcanzado su límite de respuestas." }, { status: 409 });
     const body = await request.json() as { encryptedResponse?: unknown; answerCount?: unknown };
     const questions = JSON.parse(game.questions_json) as string[];
     const answerCount = Number(body.answerCount);
@@ -32,7 +37,7 @@ export async function POST(request: Request, context: Context) {
     try {
       const metricStatements = await Promise.all(questions.map(async (question) => db.prepare(`INSERT INTO question_metrics (question_hash, locale, level, library_version, selected_count, completed_count, total_answer_chars, last_completed_at) VALUES (?, ?, ?, ?, 1, 1, 0, ?) ON CONFLICT(question_hash, locale, level, library_version) DO UPDATE SET completed_count = question_metrics.completed_count + 1, last_completed_at = excluded.last_completed_at`).bind(await hashQuestion(question), game.locale, game.level, game.library_version, createdAt)));
       if (metricStatements.length) await db.batch(metricStatements);
-      const country = String((request as Request & { cf?: { country?: string } }).cf?.country || request.headers.get("cf-ipcountry") || "XX").slice(0, 2).toUpperCase();
+      const country = getRequestCountry(request);
       const trendStatements = await Promise.all(questions.map(async (question) => db.prepare(`INSERT INTO trend_metrics (question_hash, country, locale, level, completed_count, total_answer_chars, last_completed_at) VALUES (?, ?, ?, ?, 1, 0, ?) ON CONFLICT(question_hash, country, locale, level) DO UPDATE SET completed_count = trend_metrics.completed_count + 1, last_completed_at = excluded.last_completed_at`).bind(await hashQuestion(question), country, game.locale, game.level, createdAt)));
       if (trendStatements.length) await db.batch(trendStatements);
       await recordEvent({ eventType: "responded", gameId: id, locale: game.locale, level: game.level, country, libraryVersion: game.library_version });

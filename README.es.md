@@ -54,7 +54,7 @@ Navegador del creador
 
 ## Desarrollo local
 
-Requisitos: Node.js 22.13 o posterior y una cadena de conexión de Neon/Postgres.
+Requisitos: Node.js 24 y una cadena de conexión de Neon/Postgres.
 
 ```bash
 npm install
@@ -71,16 +71,16 @@ El control habitual compila la aplicación, valida el HTML renderizado y audita 
 ```bash
 npm run lint
 npm test
-npm audit --omit=dev
+npm audit
 ```
 
-La verificación de staging crea o reutiliza una base independiente llamada `z4sk_staging_e2e` en el mismo proyecto de Neon. Inicia la aplicación compilada contra esa base y comprueba creación, cifrado, envíos concurrentes en lectura única, descifrado, borrado por el destinatario y caducidad exacta:
+La verificación de staging exige una base independiente llamada `z4sk_staging_e2e`. Inicia la aplicación compilada contra ella y comprueba creación, cifrado, envíos concurrentes en lectura única, deduplicación de denuncias, privacidad de metadatos, descifrado, borrado por el destinatario y caducidad exacta:
 
 ```bash
 npm run verify:e2e:staging
 ```
 
-La aplicación y el verificador nunca apuntan a la base de producción durante esta prueba. El rol de `DATABASE_URL` debe poder crear la base aislada.
+Guarda su conexión restringida en `Z4SK_STAGING_DATABASE_URL`, o utiliza un `DATABASE_URL` de desarrollo que apunte exactamente a esa base. El verificador rechaza cualquier otro nombre, incluido producción. Los cambios de esquema están versionados en `scripts/migrations.mjs` y se ejecutan con `npm run db:migrate` antes del despliegue.
 
 ## Límites de privacidad y seguridad
 
@@ -98,19 +98,20 @@ Revisa [SECURITY.md](SECURITY.md) antes de una publicación abierta. El endpoint
 | `app/cancel/[id]` | Borrado de la respuesta por su destinatario |
 | `app/api` | APIs de invitaciones, respuestas, retención, métricas y patrocinio |
 | `app/lib/response-crypto.ts` | Cifrado y descifrado en el navegador |
-| `db/runtime.ts` | Inicialización del esquema, consultas y purgado de Neon |
+| `db/runtime.ts` | Consultas de ejecución y purgado de Neon |
+| `scripts/migrations.mjs` | Migraciones versionadas previas al despliegue |
 | `scripts/verify-e2ee.mjs` | Verificador completo del flujo cifrado |
 | `packages/z4sk-sdk` | SDK reutilizable e independiente del framework |
 
 ## Despliegue
 
-La rama `main` está conectada a Vercel. Producción utiliza funciones de Next.js y Neon Postgres. Cada versión debe poder reproducirse desde un commit limpio y superar todas las verificaciones antes de promocionarse.
+Los despliegues Git automáticos están desactivados. Cada push a `main` ejecuta el pipeline fijado de GitHub Actions, incluido el E2E cifrado sobre staging. Tras superar todas las comprobaciones, el job protegido de producción aplica las migraciones versionadas con una credencial exclusiva y llama a un Deploy Hook limitado a `main`. Las Functions usan otro rol de base de datos limitado a DML; si el nuevo build falla, Vercel mantiene activa la versión anterior.
 
 ```bash
-vercel --prod
+gh workflow run ci.yml
 ```
 
-Consulta [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) para configurar variables, revertir versiones y realizar comprobaciones posteriores al despliegue.
+Consulta [docs/DEPLOYMENT.es.md](docs/DEPLOYMENT.es.md) para configurar variables, revertir versiones y realizar comprobaciones posteriores al despliegue.
 
 ## Documentación adicional
 

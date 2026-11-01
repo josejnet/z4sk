@@ -3,7 +3,7 @@ import { LegalPage } from "../components/LegalPage";
 
 export const metadata: Metadata = { title:"Terms · Z4SK", description:"Rules for creating and answering Z4SK invitations." };
 
-export default function TermsPage() { return <LegalPage kind="terms">
+export default function TermsPage() { const operatorName = process.env.OPERATOR_NAME?.trim(); const privacyEmail = process.env.PRIVACY_EMAIL?.trim(); return <LegalPage kind="terms">
   <div className="legal-callout"><b>Private-beta notice</b><p>Z4SK is a small experimental service. Payments are disabled and the service may change or be withdrawn.</p></div>
   <h2>Agreement and eligibility</h2><p>By using Z4SK you agree to these terms and the Privacy Policy. You must be legally able to use the service where you live. No Filter mode requires both participants to be at least 18 years old.</p>
   <h2>Your invitation and content</h2><p>You remain responsible for names, questions, answers and links you create or submit. You grant Z4SK only the limited right needed to host, transmit, moderate and delete that content while providing the service. Do not share a private creator link with anyone who should not read the responses.</p>
@@ -15,4 +15,5 @@ export default function TermsPage() { return <LegalPage kind="terms">
   <h2>Availability and warranties</h2><p>The service is provided on an “as available” basis during private beta. Features may change, fail or be withdrawn. To the extent permitted by law, Z4SK disclaims implied warranties and does not guarantee delivery, permanent storage, matches, compatibility or uninterrupted availability.</p>
   <h2>Liability</h2><p>Nothing excludes liability that cannot legally be excluded. Otherwise, the operator is not responsible for user content, relationship outcomes, lost links, deleted content, third-party messaging platforms or indirect losses arising from beta use. Final liability caps require review when the operating entity and paid offering are established.</p>
   <h2>Changes and governing terms</h2><p>The updated date identifies the current version. If paid features are introduced, their price and any additional applicable terms will be shown before purchase.</p>
+  <h2>Operator and contact</h2><p>{operatorName ? <><b>{operatorName}</b> operates this private-beta service.</> : <>The Z4SK project owner operates this private-beta service.</>} {privacyEmail ? <>Legal, safety and privacy enquiries can be sent to <a href={`mailto:${privacyEmail}`}>{privacyEmail}</a>.</> : <><b>This build must not be treated as publicly launch-ready until a monitored contact is configured.</b></>}</p>
 </LegalPage>; }

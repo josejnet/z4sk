@@ -53,7 +53,8 @@ export async function GET(request: Request, context: Context) {
     const key = bearerToken(request);
     const db = getDatabase();
     const game = await db.prepare(`SELECT * FROM games WHERE id = ?`).bind(id).first<GameRow>();
-    if (!game || game.creator_token_hash !== await hashToken(key)) return NextResponse.json({ error: "Este enlace privado no es válido." }, { status: 403 });
+    if (!game) return NextResponse.json({ error: "Esta invitación ya no está disponible." }, { status: 404 });
+    if (game.creator_token_hash !== await hashToken(key)) return NextResponse.json({ error: "Este enlace privado no es válido." }, { status: 403 });
     if (new Date(game.expires_at) <= new Date()) { await deleteGameData(db, id); return NextResponse.json({ error: "Esta invitación ha caducado y sus datos activos se han eliminado." }, { status: 410 }); }
     if (game.closed) return NextResponse.json({ error: "Esta invitación está cerrada." }, { status: 410 });
     const rows = await db.prepare(`SELECT id, encrypted_payload, created_at FROM responses WHERE game_id = ? ORDER BY created_at DESC`).bind(id).all<{ id: string; encrypted_payload: string; created_at: string }>();

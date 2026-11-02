@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getDefaultQuestions, getLevels, getQuestions } from "../lib/questions";
 import type { Level } from "../lib/types";
 import { downloadInvitationHtml } from "../lib/html-invite";
@@ -20,6 +20,7 @@ import {
   generateInvitationSecret,
 } from "../lib/invitation-crypto";
 import { NAME_RULE_COPY } from "../lib/name-copy";
+import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
 const localized = <T,>(base: Record<Locale, T>) => base;
 
 type Created = { id: string; playUrl: string; adminUrl: string };
@@ -761,24 +762,30 @@ const encryptionCopy = localized<Record<"notice", string>>({
       "E2EE=true; decrypt.requires=[link_secret,shared_key]; shared_key.transport=separate_channel; server.shared_key=false; recovery=false",
   },
 });
-const builderUi = localized<{ done: string; remove: string }>({
-  en: { done: "Done", remove: "Remove {question}" },
-  es: { done: "Listo", remove: "Eliminar {question}" },
-  it: { done: "Fatto", remove: "Rimuovi {question}" },
-  fr: { done: "Terminé", remove: "Supprimer {question}" },
-  de: { done: "Fertig", remove: "{question} entfernen" },
-  nl: { done: "Klaar", remove: "{question} verwijderen" },
-  eo: { done: "Farite", remove: "Forigi {question}" },
-  pt: { done: "Concluído", remove: "Remover {question}" },
-  zh: { done: "完成", remove: "移除 {question}" },
-  hi: { done: "हो गया", remove: "{question} हटाएँ" },
-  ja: { done: "完了", remove: "{question}を削除" },
-  tr: { done: "Bitti", remove: "{question} sorusunu kaldır" },
-  machine: { done: "DONE", remove: "REMOVE::{question}" },
+const builderUi = localized<{
+  done: string;
+  remove: string;
+  security: string;
+}>({
+  en: { done: "Done", remove: "Remove {question}", security: "Continue to security" },
+  es: { done: "Listo", remove: "Eliminar {question}", security: "Continuar a seguridad" },
+  it: { done: "Fatto", remove: "Rimuovi {question}", security: "Continua alla sicurezza" },
+  fr: { done: "Terminé", remove: "Supprimer {question}", security: "Continuer vers la sécurité" },
+  de: { done: "Fertig", remove: "{question} entfernen", security: "Weiter zur Sicherheit" },
+  nl: { done: "Klaar", remove: "{question} verwijderen", security: "Verder naar beveiliging" },
+  eo: { done: "Farite", remove: "Forigi {question}", security: "Daŭrigi al sekureco" },
+  pt: { done: "Concluído", remove: "Remover {question}", security: "Continuar para a segurança" },
+  zh: { done: "完成", remove: "移除 {question}", security: "继续安全设置" },
+  hi: { done: "हो गया", remove: "{question} हटाएँ", security: "सुरक्षा पर जाएँ" },
+  ja: { done: "完了", remove: "{question}を削除", security: "セキュリティへ進む" },
+  tr: { done: "Bitti", remove: "{question} sorusunu kaldır", security: "Güvenliğe devam et" },
+  machine: { done: "DONE", remove: "REMOVE::{question}", security: "SECURITY_NEXT" },
 });
 
 export function Builder({ onClose }: { onClose?: () => void }) {
   const { locale, t } = useLanguage();
+  const shellRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [step, setStep] = useState(1);
   const [creatorName, setCreatorName] = useState("");
   const [creatorEmail, setCreatorEmail] = useState("");
@@ -813,6 +820,21 @@ export function Builder({ onClose }: { onClose?: () => void }) {
     recipientName.trim().length >= 1 &&
     emailValid;
   const intensityValid = level !== "sinfiltro" || adultConfirmed;
+
+  useEffect(() => {
+    const dialog = shellRef.current?.closest<HTMLElement>(".builder-dialog");
+    dialog?.scrollTo({ top: 0, behavior: "auto" });
+    const frame = window.requestAnimationFrame(() => {
+      const target =
+        step === 1
+          ? shellRef.current?.querySelector<HTMLElement>("#creator")
+          : step === 5
+          ? shellRef.current?.querySelector<HTMLElement>(".success-panel h3")
+          : headingRef.current;
+      target?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [step]);
 
   function chooseLevel(next: Level) {
     setLevel(next);
@@ -909,7 +931,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
           doubleBlind && creatorInterest,
         ),
       });
-      setStep(4);
+      setStep(5);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t("formError"));
     } finally {
@@ -969,20 +991,21 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   }
 
   return (
-    <div className="builder-shell">
-      <div className="builder-top">
+    <div ref={shellRef} className="builder-shell">
+      {step <= 4 && <>
+      <div className="builder-top" aria-live="polite">
         <div>
           <span className="step">
             {t("step")} {step} {t("of")} 4
           </span>
-          <h2 id="builder-title">
+          <h2 ref={headingRef} id="builder-title" tabIndex={-1}>
             {step === 1
               ? t("who")
               : step === 2
                 ? t("chooseIntensity")
                 : step === 3
                   ? t("chooseQuestions")
-                  : t("ready")}
+                  : SHARED_KEY_COPY[locale].protectTitle}
           </h2>
         </div>
         <span className="counter">0{step}</span>
@@ -993,6 +1016,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
         value={step}
         aria-label={`${t("step")} ${step} ${t("of")} 4`}
       />
+      </>}
       {step === 1 && (
         <div className="step-panel">
           <div className="two-fields">
@@ -1200,22 +1224,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
                 {t("add")}
               </button>
             </div>
-            <SharedKeySetup
-              locale={locale}
-              sharedKey={sharedKey}
-              confirmed={sharedKeyConfirmed}
-              onChange={(key, generated) => {
-                setSharedKey(key);
-                setSharedKeyGenerated(generated);
-                setSharedKeyConfirmed(false);
-              }}
-              onConfirm={setSharedKeyConfirmed}
-            />
-            {error && (
-              <p className="form-error" role="alert">
-                {error}
-              </p>
-            )}
             <div className="button-row">
               <button className="secondary" onClick={() => setStep(2)}>
                 ← {t("back")}
@@ -1224,25 +1232,71 @@ export function Builder({ onClose }: { onClose?: () => void }) {
                 className="primary"
                 disabled={
                   selected.length < 3 ||
-                  loading ||
-                  !sharedKey ||
-                  !sharedKeyConfirmed ||
                   (doubleBlind && matchQuestion.trim().length < 5)
                 }
-                onClick={createGame}
+                onClick={() => setStep(4)}
               >
-                {loading ? t("creating") : t("createLink")}
+                {builderUi[locale].security}
                 <span>→</span>
               </button>
             </div>
           </div>
         </>
       )}
-      {step === 4 && created && (
+      {step === 4 && (
+        <div className="step-panel security-step">
+          <SharedKeySetup
+            locale={locale}
+            sharedKey={sharedKey}
+            confirmed={sharedKeyConfirmed}
+            onChange={(key, generated) => {
+              setSharedKey(key);
+              setSharedKeyGenerated(generated);
+              setSharedKeyConfirmed(false);
+            }}
+            onConfirm={setSharedKeyConfirmed}
+          />
+          {(!sharedKey || sharedKeyConfirmed) && (
+            <p
+              id="security-requirement"
+              className={`security-requirement ${sharedKeyConfirmed ? "ready" : ""}`}
+              aria-live="polite"
+            >
+              {sharedKeyConfirmed
+                ? SHARED_KEY_COPY[locale].ready
+                : SHARED_KEY_COPY[locale].protectBody}
+            </p>
+          )}
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
+          <div className="button-row">
+            <button className="secondary" onClick={() => setStep(3)}>
+              ← {t("back")}
+            </button>
+            <button
+              className="primary"
+              disabled={loading || !sharedKey || !sharedKeyConfirmed}
+              aria-describedby={
+                sharedKey && !sharedKeyConfirmed
+                  ? "shared-key-confirmation"
+                  : "security-requirement"
+              }
+              onClick={createGame}
+            >
+              {loading ? t("creating") : t("createLink")}
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      )}
+      {step === 5 && created && (
         <div className="success-panel">
           <div className="success-icon">✓</div>
           <span className="success-kicker">{t("created")}</span>
-          <h3>{t("interesting")}</h3>
+          <h3 id="builder-title" tabIndex={-1}>{t("interesting")}</h3>
           <p>{interpolate(t("successCopy"), { name: recipientName })}</p>
           <ShareInvitation
             locale={locale}
@@ -1350,7 +1404,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
           </button>
         </div>
       )}
-      {step === 4 && created && (
+      {step === 5 && created && (
         <>
           <div className="one-tap-disabled">
             <span>◉</span>
@@ -1780,14 +1834,16 @@ function FeatureConfig({
     setDoubleBlind(next);
   };
   return (
-    <section className="feature-config" aria-labelledby="feature-heading">
-      <div className="feature-intro">
+    <details className="feature-config">
+      <summary className="feature-intro">
         <span>✦</span>
         <div>
           <h3 id="feature-heading">{c.heading}</h3>
           <p>{c.intro}</p>
         </div>
-      </div>
+        <i aria-hidden="true">+</i>
+      </summary>
+      <div className="feature-body">
       <button
         type="button"
         className={`blind-toggle ${doubleBlind ? "active" : ""}`}
@@ -1890,6 +1946,7 @@ function FeatureConfig({
           <small id="theme-help">{c.themeCopy}</small>
         </label>
       </div>
-    </section>
+      </div>
+    </details>
   );
 }

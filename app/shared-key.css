@@ -105,8 +105,8 @@
 }
 .shared-key-card canvas {
   display: block;
-  width: min(100%, 360px);
-  height: auto;
+  width: min(100%, 300px) !important;
+  height: auto !important;
   margin: auto;
   background: #fff;
   border: 10px solid #fff;
@@ -119,10 +119,34 @@
   margin: 13px 0 0;
 }
 .shared-key-fingerprint span,
-.shared-key-recovery > span {
+.shared-key-recovery summary span {
   font: 700 9px/1 var(--font-mono);
   letter-spacing: 0.14em;
   color: #776f69;
+}
+.shared-key-recovery summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #35302d;
+  background: #171514;
+  cursor: pointer;
+  list-style: none;
+}
+.shared-key-recovery summary::-webkit-details-marker {
+  display: none;
+}
+.shared-key-recovery summary i {
+  color: #9a928c;
+  font: 400 18px/1 Arial, sans-serif;
+  font-style: normal;
+  transition: transform 0.18s ease;
+}
+.shared-key-recovery[open] summary i {
+  transform: rotate(45deg);
 }
 .shared-key-fingerprint code {
   color: #ddd5cd;
@@ -283,5 +307,8 @@
   }
   .shared-key-unlock {
     padding: 16px;
+  }
+  .shared-key-card canvas {
+    width: min(100%, 260px) !important;
   }
 }

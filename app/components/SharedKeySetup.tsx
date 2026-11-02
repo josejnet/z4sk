@@ -54,7 +54,7 @@ export function SharedKeySetup({
           sharedKey={sharedKey}
           showRecovery={generated}
         />
-        <label className="shared-key-confirm">
+        <label id="shared-key-confirmation" className="shared-key-confirm">
           <input
             type="checkbox"
             checked={confirmed}

@@ -2,76 +2,588 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Locale } from "../lib/i18n";
+import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
 
 type QrKind = "invitation" | "dashboard";
 type Copy = {
-  inviteKicker:string; inviteTitle:string; inviteBody:string; inviteCta:string;
-  secretKicker:string; secretTitle:string; secretBody:string; secretCta:string;
-  publicHeading:string; publicHint:string; privateHeading:string; privateHint:string;
-  png:string; jpg:string; share:string; generating:string; error:string;
+  inviteKicker: string;
+  inviteTitle: string;
+  inviteBody: string;
+  inviteCta: string;
+  secretKicker: string;
+  secretTitle: string;
+  secretBody: string;
+  secretCta: string;
+  publicHeading: string;
+  publicHint: string;
+  privateHeading: string;
+  privateHint: string;
+  png: string;
+  jpg: string;
+  share: string;
+  generating: string;
+  error: string;
 };
 
-const COPY:Record<Locale,Copy>={
-  en:{inviteKicker:"A PRIVATE INVITATION",inviteTitle:"{name}, someone dared to ask you.",inviteBody:"Scan and answer honestly. This QR decrypts the invitation: treat it like a password.",inviteCta:"SCAN · ANSWER · DARE",secretKicker:"SECRET CREATOR ACCESS",secretTitle:"Your private dashboard, saved as a QR.",secretBody:"Keep this image private. Anyone who scans it can open your dashboard and read the answers.",secretCta:"SECRET · DO NOT SHARE",publicHeading:"Invitation QR card",publicHint:"Share only with the intended person. This QR contains a decryption key, so sharing it is like sharing a password.",privateHeading:"Private dashboard QR",privateHint:"Save it or take a screenshot. It replaces email recovery and is generated only on this device.",png:"Download PNG",jpg:"Download JPG",share:"Share image",generating:"Generating secure QR…",error:"The QR image could not be generated."},
-  es:{inviteKicker:"UNA INVITACIÓN PRIVADA",inviteTitle:"{name}, alguien se ha atrevido a preguntarte.",inviteBody:"Escanea y responde. Este QR descifra la invitación: trátalo como una contraseña.",inviteCta:"ESCANEA · RESPONDE · ATRÉVETE",secretKicker:"ACCESO SECRETO DEL CREADOR",secretTitle:"Tu panel privado, guardado en un QR.",secretBody:"Guarda esta imagen en privado. Quien la escanee podrá abrir tu panel y leer las respuestas.",secretCta:"SECRETO · NO COMPARTIR",publicHeading:"Tarjeta QR de invitación",publicHint:"Compártela solo con la persona destinataria. Contiene una clave: compartirla es como compartir una contraseña.",privateHeading:"QR del panel privado",privateHint:"Guárdalo o haz una captura. Sustituye la recuperación por correo y se genera solo en este dispositivo.",png:"Descargar PNG",jpg:"Descargar JPG",share:"Compartir imagen",generating:"Generando QR seguro…",error:"No se ha podido generar la imagen QR."},
-  it:{inviteKicker:"UN INVITO PRIVATO",inviteTitle:"{name}, qualcuno ha osato farti una domanda.",inviteBody:"Scansiona il codice. Rispondi sinceramente. Solo chi lo invia potrà leggere le risposte.",inviteCta:"SCANSIONA · RISPONDI · OSA",secretKicker:"ACCESSO SEGRETO DEL CREATORE",secretTitle:"Il tuo pannello privato, salvato in un QR.",secretBody:"Conserva questa immagine in privato. Chi la scansiona può aprire il pannello e leggere le risposte.",secretCta:"SEGRETO · NON CONDIVIDERE",publicHeading:"Cartolina QR dell'invito",publicHint:"Scarica o condividi l'immagine. Il QR contiene solo il link pubblico per rispondere.",privateHeading:"QR del pannello privato",privateHint:"Salvalo o fai uno screenshot. Sostituisce il recupero via e-mail ed è generato solo su questo dispositivo.",png:"Scarica PNG",jpg:"Scarica JPG",share:"Condividi immagine",generating:"Generazione QR sicuro…",error:"Impossibile generare l'immagine QR."},
-  fr:{inviteKicker:"UNE INVITATION PRIVÉE",inviteTitle:"{name}, quelqu'un a osé vous poser la question.",inviteBody:"Scannez le code. Répondez sincèrement. Seule la personne qui l'envoie pourra lire vos réponses.",inviteCta:"SCANNEZ · RÉPONDEZ · OSEZ",secretKicker:"ACCÈS SECRET DU CRÉATEUR",secretTitle:"Votre espace privé, conservé dans un QR.",secretBody:"Gardez cette image privée. Toute personne qui la scanne peut ouvrir votre espace et lire les réponses.",secretCta:"SECRET · NE PAS PARTAGER",publicHeading:"Carte QR d'invitation",publicHint:"Téléchargez ou partagez cette image. Le QR contient uniquement le lien public de réponse.",privateHeading:"QR de l'espace privé",privateHint:"Enregistrez-le ou faites une capture. Il remplace la récupération par e-mail et reste généré sur cet appareil.",png:"Télécharger PNG",jpg:"Télécharger JPG",share:"Partager l'image",generating:"Création du QR sécurisé…",error:"Impossible de créer l'image QR."},
-  de:{inviteKicker:"EINE PRIVATE EINLADUNG",inviteTitle:"{name}, jemand hat sich getraut, dich zu fragen.",inviteBody:"Code scannen. Ehrlich antworten. Nur die sendende Person kann deine Antworten lesen.",inviteCta:"SCANNEN · ANTWORTEN · TRAUEN",secretKicker:"GEHEIMER ERSTELLER-ZUGANG",secretTitle:"Dein privater Bereich, als QR gespeichert.",secretBody:"Bewahre dieses Bild geheim auf. Wer es scannt, kann deinen Bereich öffnen und die Antworten lesen.",secretCta:"GEHEIM · NICHT TEILEN",publicHeading:"QR-Einladungskarte",publicHint:"Lade das Bild herunter oder teile es. Der QR enthält nur den öffentlichen Antwort-Link.",privateHeading:"QR für den privaten Bereich",privateHint:"Speichere ihn oder mache einen Screenshot. Er ersetzt die E-Mail-Wiederherstellung und entsteht nur auf diesem Gerät.",png:"PNG herunterladen",jpg:"JPG herunterladen",share:"Bild teilen",generating:"Sicherer QR wird erstellt…",error:"Das QR-Bild konnte nicht erstellt werden."},
-  nl:{inviteKicker:"EEN PRIVÉ-UITNODIGING",inviteTitle:"{name}, iemand durfde het je te vragen.",inviteBody:"Scan de code. Antwoord eerlijk. Alleen de afzender kan je antwoorden lezen.",inviteCta:"SCAN · ANTWOORD · DURF",secretKicker:"GEHEIME TOEGANG VOOR DE MAKER",secretTitle:"Je privédashboard, bewaard als QR.",secretBody:"Bewaar deze afbeelding privé. Wie hem scant, kan je dashboard openen en de antwoorden lezen.",secretCta:"GEHEIM · NIET DELEN",publicHeading:"QR-uitnodigingskaart",publicHint:"Download of deel deze afbeelding. De QR bevat alleen de openbare antwoordlink.",privateHeading:"QR van je privédashboard",privateHint:"Bewaar hem of maak een screenshot. Dit vervangt e-mailherstel en wordt alleen op dit apparaat gemaakt.",png:"PNG downloaden",jpg:"JPG downloaden",share:"Afbeelding delen",generating:"Veilige QR maken…",error:"De QR-afbeelding kon niet worden gemaakt."},
-  eo:{inviteKicker:"PRIVATA INVITO",inviteTitle:"{name}, iu kuraĝis demandi vin.",inviteBody:"Skanu la kodon. Respondu sincere. Nur la sendinto povos legi viajn respondojn.",inviteCta:"SKANU · RESPONDU · KURAĜU",secretKicker:"SEKRETA ALIRO DE LA KREINTO",secretTitle:"Via privata panelo, konservita kiel QR.",secretBody:"Konservu ĉi tiun bildon private. Ĉiu skananto povas malfermi la panelon kaj legi la respondojn.",secretCta:"SEKRETA · NE KUNDIVIDU",publicHeading:"QR-karto de la invito",publicHint:"Elŝutu aŭ kundividu la bildon. La QR enhavas nur la publikan respondligilon.",privateHeading:"QR de la privata panelo",privateHint:"Konservu ĝin aŭ fotu la ekranon. Ĝi anstataŭas retpoŝtan reakiron kaj kreiĝas nur en ĉi tiu aparato.",png:"Elŝuti PNG",jpg:"Elŝuti JPG",share:"Kundividi bildon",generating:"Kreante sekuran QR…",error:"La QR-bildo ne povis esti kreita."},
-  pt:{inviteKicker:"UM CONVITE PRIVADO",inviteTitle:"{name}, alguém teve coragem de perguntar.",inviteBody:"Lê o código. Responde com sinceridade. Só quem envia poderá ler as tuas respostas.",inviteCta:"LÊ · RESPONDE · ARRISCA",secretKicker:"ACESSO SECRETO DO CRIADOR",secretTitle:"O teu painel privado, guardado num QR.",secretBody:"Guarda esta imagem em privado. Quem a ler pode abrir o painel e ver as respostas.",secretCta:"SECRETO · NÃO PARTILHAR",publicHeading:"Cartão QR do convite",publicHint:"Descarrega ou partilha esta imagem. O QR contém apenas o link público para responder.",privateHeading:"QR do painel privado",privateHint:"Guarda-o ou faz uma captura. Substitui a recuperação por e-mail e é gerado apenas neste dispositivo.",png:"Descarregar PNG",jpg:"Descarregar JPG",share:"Partilhar imagem",generating:"A gerar QR seguro…",error:"Não foi possível gerar a imagem QR."},
-  zh:{inviteKicker:"一份私人邀请",inviteTitle:"{name}，有人鼓起勇气想问你。",inviteBody:"扫描二维码，坦诚回答。只有发送者能看到你的回答。",inviteCta:"扫码 · 回答 · 勇敢一点",secretKicker:"创建者秘密访问",secretTitle:"用二维码保存你的私人面板。",secretBody:"请私密保存此图片。任何扫描它的人都能打开面板并查看回答。",secretCta:"秘密 · 请勿分享",publicHeading:"邀请二维码卡片",publicHint:"下载或分享此图片。二维码只包含公开回答链接。",privateHeading:"私人面板二维码",privateHint:"保存图片或截图。它可替代邮箱找回，并且只在此设备上生成。",png:"下载 PNG",jpg:"下载 JPG",share:"分享图片",generating:"正在生成安全二维码…",error:"无法生成二维码图片。"},
-  hi:{inviteKicker:"एक निजी निमंत्रण",inviteTitle:"{name}, किसी ने आपसे पूछने की हिम्मत की है।",inviteBody:"कोड स्कैन करें। ईमानदारी से जवाब दें। जवाब सिर्फ भेजने वाला पढ़ सकेगा।",inviteCta:"स्कैन · जवाब · हिम्मत",secretKicker:"निर्माता की गुप्त पहुँच",secretTitle:"आपका निजी डैशबोर्ड, QR में सुरक्षित।",secretBody:"इस तस्वीर को निजी रखें। इसे स्कैन करने वाला आपका डैशबोर्ड और जवाब देख सकता है।",secretCta:"गुप्त · साझा न करें",publicHeading:"निमंत्रण QR कार्ड",publicHint:"इस तस्वीर को डाउनलोड या साझा करें। QR में सिर्फ सार्वजनिक जवाब लिंक है।",privateHeading:"निजी डैशबोर्ड QR",privateHint:"इसे सहेजें या स्क्रीनशॉट लें। यह ईमेल रिकवरी की जगह लेता है और केवल इस डिवाइस पर बनता है।",png:"PNG डाउनलोड करें",jpg:"JPG डाउनलोड करें",share:"तस्वीर साझा करें",generating:"सुरक्षित QR बन रहा है…",error:"QR तस्वीर नहीं बन सकी।"},
-  ja:{inviteKicker:"非公開の招待",inviteTitle:"{name}さん、誰かが勇気を出して聞きました。",inviteBody:"QRを読み取り、正直に答えてください。回答を読めるのは送信者だけです。",inviteCta:"読み取る · 答える · 踏み出す",secretKicker:"作成者の秘密アクセス",secretTitle:"非公開パネルをQRで保存。",secretBody:"この画像は秘密に保管してください。読み取った人はパネルを開き、回答を閲覧できます。",secretCta:"秘密 · 共有禁止",publicHeading:"招待QRカード",publicHint:"画像を保存または共有できます。QRに含まれるのは公開回答リンクだけです。",privateHeading:"非公開パネルQR",privateHint:"保存またはスクリーンショットしてください。メール復旧の代わりになり、この端末内だけで生成されます。",png:"PNGを保存",jpg:"JPGを保存",share:"画像を共有",generating:"安全なQRを作成中…",error:"QR画像を作成できませんでした。"},
-  tr:{inviteKicker:"ÖZEL BİR DAVET",inviteTitle:"{name}, biri sana sormaya cesaret etti.",inviteBody:"Kodu tara. Dürüstçe yanıtla. Yanıtlarını yalnızca gönderen kişi okuyabilir.",inviteCta:"TARA · YANITLA · CESARET ET",secretKicker:"OLUŞTURUCU GİZLİ ERİŞİMİ",secretTitle:"Özel panelin QR olarak kaydedildi.",secretBody:"Bu görseli gizli tut. Tarayan herkes panelini açıp yanıtları okuyabilir.",secretCta:"GİZLİ · PAYLAŞMA",publicHeading:"Davet QR kartı",publicHint:"Bu görseli indir veya paylaş. QR yalnızca herkese açık yanıt bağlantısını içerir.",privateHeading:"Özel panel QR'ı",privateHint:"Kaydet veya ekran görüntüsü al. E-posta kurtarmanın yerini alır ve yalnızca bu cihazda oluşturulur.",png:"PNG indir",jpg:"JPG indir",share:"Görseli paylaş",generating:"Güvenli QR oluşturuluyor…",error:"QR görseli oluşturulamadı."},
-  machine:{inviteKicker:"PRIVATE_INVITATION",inviteTitle:"recipient={name}; query.pending=true",inviteBody:"SCAN qr; SUBMIT honest_answers; ACL=creator_only",inviteCta:"SCAN::ANSWER::DARE",secretKicker:"SECRET_CREATOR_ACCESS",secretTitle:"dashboard.access_token => QR",secretBody:"CLASSIFICATION=SECRET; scanner=>read_private_answers",secretCta:"SECRET::DO_NOT_SHARE",publicHeading:"EXPORT invitation_qr",publicHint:"qr.payload=play_url; admin_url=REDACTED",privateHeading:"EXPORT dashboard_qr",privateHint:"recovery=email:none; generation=device_local",png:"DOWNLOAD .png",jpg:"DOWNLOAD .jpg",share:"SHARE file",generating:"GENERATING secure_qr…",error:"ERR_QR_GENERATION"}
+const COPY: Record<Locale, Copy> = {
+  en: {
+    inviteKicker: "A PRIVATE INVITATION",
+    inviteTitle: "{name}, someone dared to ask you.",
+    inviteBody:
+      "Scan the invitation link, then use the shared key delivered through the other channel.",
+    inviteCta: "SCAN · ANSWER · DARE",
+    secretKicker: "SECRET CREATOR ACCESS",
+    secretTitle: "Your private dashboard, saved as a QR.",
+    secretBody:
+      "Keep this image private. Anyone who scans it can open your dashboard and read the answers.",
+    secretCta: "SECRET · DO NOT SHARE",
+    publicHeading: "Invitation QR card",
+    publicHint:
+      "This QR contains the invitation link, not the separately shared reusable key.",
+    privateHeading: "Private dashboard QR",
+    privateHint:
+      "Save it or take a screenshot. It replaces email recovery and is generated only on this device.",
+    png: "Download PNG",
+    jpg: "Download JPG",
+    share: "Share image",
+    generating: "Generating secure QR…",
+    error: "The QR image could not be generated.",
+  },
+  es: {
+    inviteKicker: "UNA INVITACIÓN PRIVADA",
+    inviteTitle: "{name}, alguien se ha atrevido a preguntarte.",
+    inviteBody:
+      "Escanea el enlace de invitación y usa después la llave entregada por el otro canal.",
+    inviteCta: "ESCANEA · RESPONDE · ATRÉVETE",
+    secretKicker: "ACCESO SECRETO DEL CREADOR",
+    secretTitle: "Tu panel privado, guardado en un QR.",
+    secretBody:
+      "Guarda esta imagen en privado. Quien la escanee podrá abrir tu panel y leer las respuestas.",
+    secretCta: "SECRETO · NO COMPARTIR",
+    publicHeading: "Tarjeta QR de invitación",
+    publicHint:
+      "Este QR contiene el enlace de invitación, no la llave reutilizable compartida por separado.",
+    privateHeading: "QR del panel privado",
+    privateHint:
+      "Guárdalo o haz una captura. Sustituye la recuperación por correo y se genera solo en este dispositivo.",
+    png: "Descargar PNG",
+    jpg: "Descargar JPG",
+    share: "Compartir imagen",
+    generating: "Generando QR seguro…",
+    error: "No se ha podido generar la imagen QR.",
+  },
+  it: {
+    inviteKicker: "UN INVITO PRIVATO",
+    inviteTitle: "{name}, qualcuno ha osato farti una domanda.",
+    inviteBody:
+      "Scansiona il codice. Rispondi sinceramente. Solo chi lo invia potrà leggere le risposte.",
+    inviteCta: "SCANSIONA · RISPONDI · OSA",
+    secretKicker: "ACCESSO SEGRETO DEL CREATORE",
+    secretTitle: "Il tuo pannello privato, salvato in un QR.",
+    secretBody:
+      "Conserva questa immagine in privato. Chi la scansiona può aprire il pannello e leggere le risposte.",
+    secretCta: "SEGRETO · NON CONDIVIDERE",
+    publicHeading: "Cartolina QR dell'invito",
+    publicHint:
+      "Scarica o condividi l'immagine. Il QR contiene solo il link pubblico per rispondere.",
+    privateHeading: "QR del pannello privato",
+    privateHint:
+      "Salvalo o fai uno screenshot. Sostituisce il recupero via e-mail ed è generato solo su questo dispositivo.",
+    png: "Scarica PNG",
+    jpg: "Scarica JPG",
+    share: "Condividi immagine",
+    generating: "Generazione QR sicuro…",
+    error: "Impossibile generare l'immagine QR.",
+  },
+  fr: {
+    inviteKicker: "UNE INVITATION PRIVÉE",
+    inviteTitle: "{name}, quelqu'un a osé vous poser la question.",
+    inviteBody:
+      "Scannez le code. Répondez sincèrement. Seule la personne qui l'envoie pourra lire vos réponses.",
+    inviteCta: "SCANNEZ · RÉPONDEZ · OSEZ",
+    secretKicker: "ACCÈS SECRET DU CRÉATEUR",
+    secretTitle: "Votre espace privé, conservé dans un QR.",
+    secretBody:
+      "Gardez cette image privée. Toute personne qui la scanne peut ouvrir votre espace et lire les réponses.",
+    secretCta: "SECRET · NE PAS PARTAGER",
+    publicHeading: "Carte QR d'invitation",
+    publicHint:
+      "Téléchargez ou partagez cette image. Le QR contient uniquement le lien public de réponse.",
+    privateHeading: "QR de l'espace privé",
+    privateHint:
+      "Enregistrez-le ou faites une capture. Il remplace la récupération par e-mail et reste généré sur cet appareil.",
+    png: "Télécharger PNG",
+    jpg: "Télécharger JPG",
+    share: "Partager l'image",
+    generating: "Création du QR sécurisé…",
+    error: "Impossible de créer l'image QR.",
+  },
+  de: {
+    inviteKicker: "EINE PRIVATE EINLADUNG",
+    inviteTitle: "{name}, jemand hat sich getraut, dich zu fragen.",
+    inviteBody:
+      "Code scannen. Ehrlich antworten. Nur die sendende Person kann deine Antworten lesen.",
+    inviteCta: "SCANNEN · ANTWORTEN · TRAUEN",
+    secretKicker: "GEHEIMER ERSTELLER-ZUGANG",
+    secretTitle: "Dein privater Bereich, als QR gespeichert.",
+    secretBody:
+      "Bewahre dieses Bild geheim auf. Wer es scannt, kann deinen Bereich öffnen und die Antworten lesen.",
+    secretCta: "GEHEIM · NICHT TEILEN",
+    publicHeading: "QR-Einladungskarte",
+    publicHint:
+      "Lade das Bild herunter oder teile es. Der QR enthält nur den öffentlichen Antwort-Link.",
+    privateHeading: "QR für den privaten Bereich",
+    privateHint:
+      "Speichere ihn oder mache einen Screenshot. Er ersetzt die E-Mail-Wiederherstellung und entsteht nur auf diesem Gerät.",
+    png: "PNG herunterladen",
+    jpg: "JPG herunterladen",
+    share: "Bild teilen",
+    generating: "Sicherer QR wird erstellt…",
+    error: "Das QR-Bild konnte nicht erstellt werden.",
+  },
+  nl: {
+    inviteKicker: "EEN PRIVÉ-UITNODIGING",
+    inviteTitle: "{name}, iemand durfde het je te vragen.",
+    inviteBody:
+      "Scan de code. Antwoord eerlijk. Alleen de afzender kan je antwoorden lezen.",
+    inviteCta: "SCAN · ANTWOORD · DURF",
+    secretKicker: "GEHEIME TOEGANG VOOR DE MAKER",
+    secretTitle: "Je privédashboard, bewaard als QR.",
+    secretBody:
+      "Bewaar deze afbeelding privé. Wie hem scant, kan je dashboard openen en de antwoorden lezen.",
+    secretCta: "GEHEIM · NIET DELEN",
+    publicHeading: "QR-uitnodigingskaart",
+    publicHint:
+      "Download of deel deze afbeelding. De QR bevat alleen de openbare antwoordlink.",
+    privateHeading: "QR van je privédashboard",
+    privateHint:
+      "Bewaar hem of maak een screenshot. Dit vervangt e-mailherstel en wordt alleen op dit apparaat gemaakt.",
+    png: "PNG downloaden",
+    jpg: "JPG downloaden",
+    share: "Afbeelding delen",
+    generating: "Veilige QR maken…",
+    error: "De QR-afbeelding kon niet worden gemaakt.",
+  },
+  eo: {
+    inviteKicker: "PRIVATA INVITO",
+    inviteTitle: "{name}, iu kuraĝis demandi vin.",
+    inviteBody:
+      "Skanu la kodon. Respondu sincere. Nur la sendinto povos legi viajn respondojn.",
+    inviteCta: "SKANU · RESPONDU · KURAĜU",
+    secretKicker: "SEKRETA ALIRO DE LA KREINTO",
+    secretTitle: "Via privata panelo, konservita kiel QR.",
+    secretBody:
+      "Konservu ĉi tiun bildon private. Ĉiu skananto povas malfermi la panelon kaj legi la respondojn.",
+    secretCta: "SEKRETA · NE KUNDIVIDU",
+    publicHeading: "QR-karto de la invito",
+    publicHint:
+      "Elŝutu aŭ kundividu la bildon. La QR enhavas nur la publikan respondligilon.",
+    privateHeading: "QR de la privata panelo",
+    privateHint:
+      "Konservu ĝin aŭ fotu la ekranon. Ĝi anstataŭas retpoŝtan reakiron kaj kreiĝas nur en ĉi tiu aparato.",
+    png: "Elŝuti PNG",
+    jpg: "Elŝuti JPG",
+    share: "Kundividi bildon",
+    generating: "Kreante sekuran QR…",
+    error: "La QR-bildo ne povis esti kreita.",
+  },
+  pt: {
+    inviteKicker: "UM CONVITE PRIVADO",
+    inviteTitle: "{name}, alguém teve coragem de perguntar.",
+    inviteBody:
+      "Lê o código. Responde com sinceridade. Só quem envia poderá ler as tuas respostas.",
+    inviteCta: "LÊ · RESPONDE · ARRISCA",
+    secretKicker: "ACESSO SECRETO DO CRIADOR",
+    secretTitle: "O teu painel privado, guardado num QR.",
+    secretBody:
+      "Guarda esta imagem em privado. Quem a ler pode abrir o painel e ver as respostas.",
+    secretCta: "SECRETO · NÃO PARTILHAR",
+    publicHeading: "Cartão QR do convite",
+    publicHint:
+      "Descarrega ou partilha esta imagem. O QR contém apenas o link público para responder.",
+    privateHeading: "QR do painel privado",
+    privateHint:
+      "Guarda-o ou faz uma captura. Substitui a recuperação por e-mail e é gerado apenas neste dispositivo.",
+    png: "Descarregar PNG",
+    jpg: "Descarregar JPG",
+    share: "Partilhar imagem",
+    generating: "A gerar QR seguro…",
+    error: "Não foi possível gerar a imagem QR.",
+  },
+  zh: {
+    inviteKicker: "一份私人邀请",
+    inviteTitle: "{name}，有人鼓起勇气想问你。",
+    inviteBody: "扫描二维码，坦诚回答。只有发送者能看到你的回答。",
+    inviteCta: "扫码 · 回答 · 勇敢一点",
+    secretKicker: "创建者秘密访问",
+    secretTitle: "用二维码保存你的私人面板。",
+    secretBody: "请私密保存此图片。任何扫描它的人都能打开面板并查看回答。",
+    secretCta: "秘密 · 请勿分享",
+    publicHeading: "邀请二维码卡片",
+    publicHint: "下载或分享此图片。二维码只包含公开回答链接。",
+    privateHeading: "私人面板二维码",
+    privateHint: "保存图片或截图。它可替代邮箱找回，并且只在此设备上生成。",
+    png: "下载 PNG",
+    jpg: "下载 JPG",
+    share: "分享图片",
+    generating: "正在生成安全二维码…",
+    error: "无法生成二维码图片。",
+  },
+  hi: {
+    inviteKicker: "एक निजी निमंत्रण",
+    inviteTitle: "{name}, किसी ने आपसे पूछने की हिम्मत की है।",
+    inviteBody:
+      "कोड स्कैन करें। ईमानदारी से जवाब दें। जवाब सिर्फ भेजने वाला पढ़ सकेगा।",
+    inviteCta: "स्कैन · जवाब · हिम्मत",
+    secretKicker: "निर्माता की गुप्त पहुँच",
+    secretTitle: "आपका निजी डैशबोर्ड, QR में सुरक्षित।",
+    secretBody:
+      "इस तस्वीर को निजी रखें। इसे स्कैन करने वाला आपका डैशबोर्ड और जवाब देख सकता है।",
+    secretCta: "गुप्त · साझा न करें",
+    publicHeading: "निमंत्रण QR कार्ड",
+    publicHint:
+      "इस तस्वीर को डाउनलोड या साझा करें। QR में सिर्फ सार्वजनिक जवाब लिंक है।",
+    privateHeading: "निजी डैशबोर्ड QR",
+    privateHint:
+      "इसे सहेजें या स्क्रीनशॉट लें। यह ईमेल रिकवरी की जगह लेता है और केवल इस डिवाइस पर बनता है।",
+    png: "PNG डाउनलोड करें",
+    jpg: "JPG डाउनलोड करें",
+    share: "तस्वीर साझा करें",
+    generating: "सुरक्षित QR बन रहा है…",
+    error: "QR तस्वीर नहीं बन सकी।",
+  },
+  ja: {
+    inviteKicker: "非公開の招待",
+    inviteTitle: "{name}さん、誰かが勇気を出して聞きました。",
+    inviteBody:
+      "QRを読み取り、正直に答えてください。回答を読めるのは送信者だけです。",
+    inviteCta: "読み取る · 答える · 踏み出す",
+    secretKicker: "作成者の秘密アクセス",
+    secretTitle: "非公開パネルをQRで保存。",
+    secretBody:
+      "この画像は秘密に保管してください。読み取った人はパネルを開き、回答を閲覧できます。",
+    secretCta: "秘密 · 共有禁止",
+    publicHeading: "招待QRカード",
+    publicHint:
+      "画像を保存または共有できます。QRに含まれるのは公開回答リンクだけです。",
+    privateHeading: "非公開パネルQR",
+    privateHint:
+      "保存またはスクリーンショットしてください。メール復旧の代わりになり、この端末内だけで生成されます。",
+    png: "PNGを保存",
+    jpg: "JPGを保存",
+    share: "画像を共有",
+    generating: "安全なQRを作成中…",
+    error: "QR画像を作成できませんでした。",
+  },
+  tr: {
+    inviteKicker: "ÖZEL BİR DAVET",
+    inviteTitle: "{name}, biri sana sormaya cesaret etti.",
+    inviteBody:
+      "Kodu tara. Dürüstçe yanıtla. Yanıtlarını yalnızca gönderen kişi okuyabilir.",
+    inviteCta: "TARA · YANITLA · CESARET ET",
+    secretKicker: "OLUŞTURUCU GİZLİ ERİŞİMİ",
+    secretTitle: "Özel panelin QR olarak kaydedildi.",
+    secretBody:
+      "Bu görseli gizli tut. Tarayan herkes panelini açıp yanıtları okuyabilir.",
+    secretCta: "GİZLİ · PAYLAŞMA",
+    publicHeading: "Davet QR kartı",
+    publicHint:
+      "Bu görseli indir veya paylaş. QR yalnızca herkese açık yanıt bağlantısını içerir.",
+    privateHeading: "Özel panel QR'ı",
+    privateHint:
+      "Kaydet veya ekran görüntüsü al. E-posta kurtarmanın yerini alır ve yalnızca bu cihazda oluşturulur.",
+    png: "PNG indir",
+    jpg: "JPG indir",
+    share: "Görseli paylaş",
+    generating: "Güvenli QR oluşturuluyor…",
+    error: "QR görseli oluşturulamadı.",
+  },
+  machine: {
+    inviteKicker: "PRIVATE_INVITATION",
+    inviteTitle: "recipient={name}; query.pending=true",
+    inviteBody: "SCAN qr; SUBMIT honest_answers; ACL=creator_only",
+    inviteCta: "SCAN::ANSWER::DARE",
+    secretKicker: "SECRET_CREATOR_ACCESS",
+    secretTitle: "dashboard.access_token => QR",
+    secretBody: "CLASSIFICATION=SECRET; scanner=>read_private_answers",
+    secretCta: "SECRET::DO_NOT_SHARE",
+    publicHeading: "EXPORT invitation_qr",
+    publicHint: "qr.payload=play_url; admin_url=REDACTED",
+    privateHeading: "EXPORT dashboard_qr",
+    privateHint: "recovery=email:none; generation=device_local",
+    png: "DOWNLOAD .png",
+    jpg: "DOWNLOAD .jpg",
+    share: "SHARE file",
+    generating: "GENERATING secure_qr…",
+    error: "ERR_QR_GENERATION",
+  },
 };
 
-const PRIVATE_WARNING:Record<Locale,string>={
-  en:"Warning: this QR contains the only private decryption key. Anyone who scans it can open the dashboard and decrypt its answers.",
-  es:"Aviso: este QR contiene la única clave privada de descifrado. Quien lo escanee podrá abrir el panel y descifrar las respuestas.",
-  it:"Attenzione: questo QR contiene l'unica chiave privata di decifratura. Chi lo scansiona può aprire il pannello e decifrare le risposte.",
-  fr:"Attention : ce QR contient l’unique clé privée de déchiffrement. Toute personne qui le scanne peut ouvrir l’espace et déchiffrer les réponses.",
-  de:"Warnung: Dieser QR enthält den einzigen privaten Entschlüsselungsschlüssel. Wer ihn scannt, kann den Bereich öffnen und Antworten entschlüsseln.",
-  nl:"Waarschuwing: deze QR bevat de enige privésleutel voor ontsleuteling. Wie hem scant, kan het dashboard openen en antwoorden ontsleutelen.",
-  eo:"Averto: ĉi tiu QR enhavas la solan privatan deĉifran ŝlosilon. Ĉiu skananto povas malfermi la panelon kaj deĉifri respondojn.",
-  pt:"Aviso: este QR contém a única chave privada de decifragem. Quem o ler pode abrir o painel e decifrar as respostas.",
-  zh:"警告：此二维码包含唯一的私人解密密钥。任何扫描它的人都能打开面板并解密回答。",
-  hi:"चेतावनी: इस QR में एकमात्र निजी डिक्रिप्शन कुंजी है। इसे स्कैन करने वाला पैनल खोलकर जवाब डिक्रिप्ट कर सकता है।",
-  ja:"警告：このQRには唯一の秘密復号鍵が含まれます。読み取った人はパネルを開き、回答を復号できます。",
-  tr:"Uyarı: bu QR tek özel şifre çözme anahtarını içerir. Tarayan herkes paneli açıp yanıtların şifresini çözebilir.",
-  machine:"WARNING: qr.contains=ONLY_PRIVATE_DECRYPTION_KEY; scanner=>dashboard.decrypt(ciphertext)"
+const PRIVATE_WARNING: Record<Locale, string> = {
+  en: "Warning: this QR contains the secret creator link, but not the separate shared key. Keep it private. Anyone who obtains both can open the dashboard and decrypt answers.",
+  es: "Aviso: este QR contiene el enlace secreto del creador, pero no la llave compartida. Guárdalo en privado. Quien consiga ambos podrá abrir el panel y descifrar respuestas.",
+  it: "Attenzione: questo QR contiene il link segreto del creatore, ma non la chiave condivisa separata. Chi ottiene entrambi può aprire il pannello e decifrare le risposte.",
+  fr: "Attention : ce QR contient le lien secret du créateur, mais pas la clé partagée séparée. Toute personne obtenant les deux peut ouvrir le tableau de bord et déchiffrer les réponses.",
+  de: "Warnung: Dieser QR enthält den geheimen Ersteller-Link, aber nicht den getrennten gemeinsamen Schlüssel. Wer beides besitzt, kann das Dashboard öffnen und Antworten entschlüsseln.",
+  nl: "Waarschuwing: deze QR bevat de geheime makerslink, maar niet de aparte gedeelde sleutel. Wie beide bezit, kan het dashboard openen en antwoorden ontsleutelen.",
+  eo: "Averto: ĉi tiu QR enhavas la sekretan ligilon de la kreinto, sed ne la apartan komunan ŝlosilon. Posedanto de ambaŭ povas malfermi la panelon kaj malĉifri respondojn.",
+  pt: "Aviso: este QR contém o link secreto do criador, mas não a chave partilhada separada. Quem obtiver ambos pode abrir o painel e decifrar respostas.",
+  zh: "警告：此二维码包含创建者的秘密链接，但不包含单独共享的密钥。同时获得两者的人可以打开面板并解密回答。",
+  hi: "चेतावनी: इस QR में निर्माता का गुप्त लिंक है, अलग साझा कुंजी नहीं। दोनों पाने वाला पैनल खोलकर जवाब डिक्रिप्ट कर सकता है।",
+  ja: "警告：このQRには作成者の秘密リンクが含まれますが、別経路の共有鍵は含まれません。両方を得た人はパネルを開き、回答を復号できます。",
+  tr: "Uyarı: bu QR gizli oluşturucu bağlantısını içerir, ayrı paylaşılan anahtarı içermez. İkisini alan kişi paneli açıp yanıtları çözebilir.",
+  machine:
+    "WARNING: qr.contains=creator_secret_url; qr.shared_key=false; holder(qr,shared_key)=>dashboard.decrypt(ciphertext)",
 };
 
-function fillTemplate(value:string,name:string){return value.replace("{name}",name);}
-
-function drawWrapped(ctx:CanvasRenderingContext2D,text:string,x:number,y:number,maxWidth:number,lineHeight:number,maxLines:number){
-  const spaced=/\s/.test(text);const tokens=spaced?text.split(/\s+/):[...text];let line="";let lines=0;
-  for(const token of tokens){const candidate=line?`${line}${spaced?" ":""}${token}`:token;if(ctx.measureText(candidate).width>maxWidth&&line){ctx.fillText(line,x,y);y+=lineHeight;lines++;line=token;if(lines>=maxLines-1)break;}else line=candidate;}
-  if(line&&lines<maxLines)ctx.fillText(line,x,y);return y+lineHeight;
+function fillTemplate(value: string, name: string) {
+  return value.replace("{name}", name);
 }
 
-async function renderCard(canvas:HTMLCanvasElement,kind:QrKind,locale:Locale,name:string,url:string){
-  const {default:QRCode}=await import("qrcode");
-  const c=COPY[locale];const invitation=kind==="invitation";const accent=invitation?"#ff5a1f":"#b989ff";const ctx=canvas.getContext("2d");if(!ctx)throw new Error("canvas");
-  canvas.width=1080;canvas.height=1350;ctx.fillStyle="#0b0b0b";ctx.fillRect(0,0,1080,1350);
-  const gradient=ctx.createRadialGradient(850,180,20,850,180,520);gradient.addColorStop(0,invitation?"rgba(255,90,31,.22)":"rgba(185,137,255,.2)");gradient.addColorStop(1,"rgba(11,11,11,0)");ctx.fillStyle=gradient;ctx.fillRect(0,0,1080,650);
-  ctx.strokeStyle="#37312d";ctx.lineWidth=2;ctx.strokeRect(44,44,992,1262);ctx.fillStyle="#f4efe8";ctx.font="800 34px Arial, sans-serif";ctx.letterSpacing="8px";ctx.fillText("Z4SK",80,108);ctx.letterSpacing="0px";
-  ctx.fillStyle=accent;ctx.font="700 22px Arial, sans-serif";ctx.fillText(invitation?c.inviteKicker:c.secretKicker,80,192);
-  ctx.fillStyle="#f4efe8";ctx.font="700 64px Arial, 'Noto Sans', sans-serif";ctx.textAlign="center";const title=fillTemplate(invitation?c.inviteTitle:c.secretTitle,name);drawWrapped(ctx,title,540,278,880,72,3);ctx.textAlign="left";
-  const qr=document.createElement("canvas");await QRCode.toCanvas(qr,url,{width:440,margin:3,errorCorrectionLevel:"H",color:{dark:"#080808",light:"#ffffff"}});
-  ctx.fillStyle="#fff";ctx.fillRect(290,530,500,500);ctx.drawImage(qr,320,560,440,440);ctx.strokeStyle=accent;ctx.lineWidth=4;ctx.strokeRect(290,530,500,500);
-  ctx.fillStyle="#aaa19a";ctx.font="400 28px Arial, 'Noto Sans', sans-serif";drawWrapped(ctx,invitation?c.inviteBody:c.secretBody,80,1110,920,40,3);
-  ctx.fillStyle=accent;ctx.font="800 24px Arial, 'Noto Sans', sans-serif";ctx.fillText(invitation?c.inviteCta:c.secretCta,80,1250);
+function drawWrapped(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines: number,
+) {
+  const spaced = /\s/.test(text);
+  const tokens = spaced ? text.split(/\s+/) : [...text];
+  let line = "";
+  let lines = 0;
+  for (const token of tokens) {
+    const candidate = line ? `${line}${spaced ? " " : ""}${token}` : token;
+    if (ctx.measureText(candidate).width > maxWidth && line) {
+      ctx.fillText(line, x, y);
+      y += lineHeight;
+      lines++;
+      line = token;
+      if (lines >= maxLines - 1) break;
+    } else line = candidate;
+  }
+  if (line && lines < maxLines) ctx.fillText(line, x, y);
+  return y + lineHeight;
 }
 
-function canvasBlob(canvas:HTMLCanvasElement,type:"image/png"|"image/jpeg"){return new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("blob")),type,.92));}
+async function renderCard(
+  canvas: HTMLCanvasElement,
+  kind: QrKind,
+  locale: Locale,
+  name: string,
+  url: string,
+) {
+  const { default: QRCode } = await import("qrcode");
+  const c = COPY[locale];
+  const invitation = kind === "invitation";
+  const accent = invitation ? "#ff5a1f" : "#b989ff";
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("canvas");
+  canvas.width = 1080;
+  canvas.height = 1350;
+  ctx.fillStyle = "#0b0b0b";
+  ctx.fillRect(0, 0, 1080, 1350);
+  const gradient = ctx.createRadialGradient(850, 180, 20, 850, 180, 520);
+  gradient.addColorStop(
+    0,
+    invitation ? "rgba(255,90,31,.22)" : "rgba(185,137,255,.2)",
+  );
+  gradient.addColorStop(1, "rgba(11,11,11,0)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 1080, 650);
+  ctx.strokeStyle = "#37312d";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(44, 44, 992, 1262);
+  ctx.fillStyle = "#f4efe8";
+  ctx.font = "800 34px Arial, sans-serif";
+  ctx.letterSpacing = "8px";
+  ctx.fillText("Z4SK", 80, 108);
+  ctx.letterSpacing = "0px";
+  ctx.fillStyle = accent;
+  ctx.font = "700 22px Arial, sans-serif";
+  ctx.fillText(invitation ? c.inviteKicker : c.secretKicker, 80, 192);
+  ctx.fillStyle = "#f4efe8";
+  ctx.font = "700 64px Arial, 'Noto Sans', sans-serif";
+  ctx.textAlign = "center";
+  const title = fillTemplate(invitation ? c.inviteTitle : c.secretTitle, name);
+  drawWrapped(ctx, title, 540, 278, 880, 72, 3);
+  ctx.textAlign = "left";
+  const qr = document.createElement("canvas");
+  await QRCode.toCanvas(qr, url, {
+    width: 440,
+    margin: 3,
+    errorCorrectionLevel: "H",
+    color: { dark: "#080808", light: "#ffffff" },
+  });
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(290, 530, 500, 500);
+  ctx.drawImage(qr, 320, 560, 440, 440);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 4;
+  ctx.strokeRect(290, 530, 500, 500);
+  ctx.fillStyle = "#aaa19a";
+  ctx.font = "400 28px Arial, 'Noto Sans', sans-serif";
+  drawWrapped(
+    ctx,
+    invitation ? SHARED_KEY_COPY[locale].unlockBody : PRIVATE_WARNING[locale],
+    80,
+    1110,
+    920,
+    40,
+    3,
+  );
+  ctx.fillStyle = accent;
+  ctx.font = "800 24px Arial, 'Noto Sans', sans-serif";
+  ctx.fillText(invitation ? c.inviteCta : c.secretCta, 80, 1250);
+}
 
-export function QrCard({kind,locale,name,url}:{kind:QrKind;locale:Locale;name:string;url:string}){
-  const canvasRef=useRef<HTMLCanvasElement>(null);const[ready,setReady]=useState(false);const[error,setError]=useState(false);const[canShare,setCanShare]=useState(false);const c=COPY[locale];const invitation=kind==="invitation";
-  useEffect(()=>{let active=true;queueMicrotask(()=>{if(!active)return;setReady(false);setError(false);const canvas=canvasRef.current;if(!canvas)return;void renderCard(canvas,kind,locale,name,url).then(()=>{if(active)setReady(true);}).catch(()=>{if(active)setError(true);});});return()=>{active=false;};},[kind,locale,name,url]);
-  useEffect(()=>{queueMicrotask(()=>{try{const file=new File(["z4sk"],"z4sk.png",{type:"image/png"});setCanShare(typeof navigator.canShare==="function"&&navigator.canShare({files:[file]}));}catch{/* File sharing is optional. */}});},[]);
-  async function download(type:"image/png"|"image/jpeg"){const canvas=canvasRef.current;if(!canvas||!ready)return;const blob=await canvasBlob(canvas,type);const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=`z4sk-${invitation?"invitation":"private-dashboard"}.${type==="image/png"?"png":"jpg"}`;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);}
-  async function share(){const canvas=canvasRef.current;if(!canvas||!ready)return;try{const blob=await canvasBlob(canvas,"image/png");const file=new File([blob],`z4sk-${invitation?"invitation":"private-dashboard"}.png`,{type:"image/png"});await navigator.share({files:[file],title:invitation?c.publicHeading:c.privateHeading});}catch{/* Closing the native share sheet is not an error. */}}
-  return <section className={`qr-card ${invitation?"public":"private"}`}><div className="qr-card-copy"><span>{invitation?"QR ↗":"QR ◆"}</span><div><h4>{invitation?c.publicHeading:c.privateHeading}</h4><p>{invitation?c.publicHint:c.privateHint}</p></div></div>{!invitation&&<p className="qr-warning" role="note"><b>!</b>{PRIVATE_WARNING[locale]}</p>}<canvas ref={canvasRef} aria-label={invitation?c.publicHeading:c.privateHeading}/>{!ready&&!error&&<p className="qr-status">{c.generating}</p>}{error&&<p className="qr-status error" role="alert">{c.error}</p>}<div className="qr-actions"><button type="button" disabled={!ready} onClick={()=>void download("image/png")}>{c.png}</button><button type="button" disabled={!ready} onClick={()=>void download("image/jpeg")}>{c.jpg}</button>{invitation&&canShare?<button type="button" className="qr-share" disabled={!ready} onClick={()=>void share()}>{c.share}</button>:null}</div></section>;
+function canvasBlob(
+  canvas: HTMLCanvasElement,
+  type: "image/png" | "image/jpeg",
+) {
+  return new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("blob"))),
+      type,
+      0.92,
+    ),
+  );
+}
+
+export function QrCard({
+  kind,
+  locale,
+  name,
+  url,
+}: {
+  kind: QrKind;
+  locale: Locale;
+  name: string;
+  url: string;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(false);
+  const [canShare, setCanShare] = useState(false);
+  const c = COPY[locale];
+  const invitation = kind === "invitation";
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      setReady(false);
+      setError(false);
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      void renderCard(canvas, kind, locale, name, url)
+        .then(() => {
+          if (active) setReady(true);
+        })
+        .catch(() => {
+          if (active) setError(true);
+        });
+    });
+    return () => {
+      active = false;
+    };
+  }, [kind, locale, name, url]);
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        const file = new File(["z4sk"], "z4sk.png", { type: "image/png" });
+        setCanShare(
+          typeof navigator.canShare === "function" &&
+            navigator.canShare({ files: [file] }),
+        );
+      } catch {
+        /* File sharing is optional. */
+      }
+    });
+  }, []);
+  async function download(type: "image/png" | "image/jpeg") {
+    const canvas = canvasRef.current;
+    if (!canvas || !ready) return;
+    const blob = await canvasBlob(canvas, type);
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `z4sk-${invitation ? "invitation" : "private-dashboard"}.${type === "image/png" ? "png" : "jpg"}`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  }
+  async function share() {
+    const canvas = canvasRef.current;
+    if (!canvas || !ready) return;
+    try {
+      const blob = await canvasBlob(canvas, "image/png");
+      const file = new File(
+        [blob],
+        `z4sk-${invitation ? "invitation" : "private-dashboard"}.png`,
+        { type: "image/png" },
+      );
+      await navigator.share({
+        files: [file],
+        title: invitation ? c.publicHeading : c.privateHeading,
+      });
+    } catch {
+      /* Closing the native share sheet is not an error. */
+    }
+  }
+  return (
+    <section className={`qr-card ${invitation ? "public" : "private"}`}>
+      <div className="qr-card-copy">
+        <span>{invitation ? "QR ↗" : "QR ◆"}</span>
+        <div>
+          <h4>{invitation ? c.publicHeading : c.privateHeading}</h4>
+          <p>
+            {invitation
+              ? SHARED_KEY_COPY[locale].differentChannel
+              : PRIVATE_WARNING[locale]}
+          </p>
+        </div>
+      </div>
+      {!invitation && (
+        <p className="qr-warning" role="note">
+          <b>!</b>
+          {PRIVATE_WARNING[locale]}
+        </p>
+      )}
+      <canvas
+        ref={canvasRef}
+        aria-label={invitation ? c.publicHeading : c.privateHeading}
+      />
+      {!ready && !error && <p className="qr-status">{c.generating}</p>}
+      {error && (
+        <p className="qr-status error" role="alert">
+          {c.error}
+        </p>
+      )}
+      <div className="qr-actions">
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={() => void download("image/png")}
+        >
+          {c.png}
+        </button>
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={() => void download("image/jpeg")}
+        >
+          {c.jpg}
+        </button>
+        {invitation && canShare ? (
+          <button
+            type="button"
+            className="qr-share"
+            disabled={!ready}
+            onClick={() => void share()}
+          >
+            {c.share}
+          </button>
+        ) : null}
+      </div>
+    </section>
+  );
 }

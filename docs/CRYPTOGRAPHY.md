@@ -4,11 +4,18 @@
 
 ## English
 
-### Scope and security goals
+### Scope and security goal
 
-Z4SK uses browser-side authenticated encryption for both invitation content and responses. The goal is that a disclosure of the active database or a provider recovery copy does not reveal display names, questions, settings, respondent names or answers without the user-held URL-fragment secrets.
+Z4SK encrypts invitation and response content in the browsers. A database disclosure should expose authenticated ciphertext and operational metadata, not display names, questions, settings, respondent names or answers.
 
-This is a bearer-link system, not an account system. Possession of a complete link grants a capability. **Sharing the complete invitation link is equivalent to sharing a password.** The public invitation link grants decryption of the invitation and permission to submit; the creator link additionally grants dashboard authorization and response decryption.
+Every new invitation uses **two independent user-held secrets**:
+
+1. a 256-bit random link secret in the URL fragment; and
+2. a reusable 256-bit shared key represented as a QR code or the equivalent 24 Spanish BIP39 words.
+
+The link alone cannot decrypt the invitation. The shared key is never placed in a URL, request, API response or database row. It is scanned with the camera, read from a local QR image, or entered as 24 words. QR and words are two representations of the same key, not two factors.
+
+> Treat the invitation link as the first half of a password and the shared key as the second. Send them through different channels. Anyone who obtains both can decrypt the invitation. The creator link additionally authorizes the dashboard and carries the response private key.
 
 ### Protocol
 
@@ -19,91 +26,119 @@ sequenceDiagram
   participant D as Neon Postgres
   participant R as Recipient browser
 
-  C->>C: Generate K_inv (256 bit), token (192 bit), ECDH P-256 key pair
-  C->>C: AES-256-GCM encrypt invitation payload with K_inv
-  C->>A: ciphertext envelope + SHA-256(token) + policy + question count
+  C->>C: Generate link secret, content key, token and ECDH P-256 pair
+  C->>C: Create or scan reusable shared key
+  C->>C: HKDF(link secret || shared key) -> wrapping key
+  C->>C: AES-256-GCM wrap content key; encrypt invitation with content key
+  C->>A: v2 ciphertext envelope + SHA-256(token) + policy + question count
   A->>D: Store ciphertext and minimal operational metadata
-  C-->>R: /g/:id#invite=K_inv
+  C-->>R: Link through channel A
+  C-->>R: Shared-key QR/words through channel B
   R->>A: GET /api/games/:id
-  A-->>R: invitation ciphertext + state + expiry
-  R->>R: Decrypt invitation with K_inv
+  A-->>R: ciphertext + state + expiry
+  R->>R: Combine fragment secret + scanned key; decrypt locally
   R->>R: Ephemeral ECDH + HKDF-SHA-256 + AES-256-GCM encrypt response
   R->>A: response ciphertext envelope
-  A->>D: Store response ciphertext
   C->>A: Authorization: Bearer token
   A-->>C: invitation and response ciphertext
-  C->>C: Decrypt locally with K_inv and ECDH private key
+  C->>C: Scan same shared key and decrypt locally
 ```
 
-#### Invitation envelope
+### Invitation envelope v2
 
-- Algorithm: AES-256-GCM through the Web Crypto API.
-- Key: 32 cryptographically random bytes generated in the creator browser.
-- IV: 12 random bytes per invitation.
-- Additional authenticated data: the versioned context string `z4sk-invitation-v1`.
-- Encrypted payload: creator and recipient display names, title, locale, level, questions, feature settings, pack, library version, client creation time and response ECDH public key.
-- Key transport: base64url in the `#invite=` fragment of the invitation and creator links. The key is never included in an HTTP request by normal browser navigation.
+- Randomness: Web Crypto `crypto.getRandomValues` creates each 32-byte link, shared and content key, a 32-byte HKDF salt, and 12-byte AES-GCM IVs.
+- Derivation: HKDF-SHA-256 with input key material `link_secret || shared_key`, the random salt and info `z4sk-invitation-key-v2` derives an AES-256 wrapping key.
+- Key wrapping: AES-256-GCM encrypts the random content key with AAD `z4sk-invitation-key-v2`.
+- Content encryption: AES-256-GCM encrypts the invitation payload with the content key and AAD `z4sk-invitation-content-v2`.
+- Envelope: `{v:2, alg, salt, keyIv, wrappedKey, iv, ciphertext}`.
+- Payload: creator/recipient display names, title, locale, level, questions, feature settings, pack, library version, creation time and the response ECDH public key.
+- Link transport: only the link secret is base64url encoded in `#invite=`. URL fragments are not included in ordinary HTTP navigation requests.
+- Shared-key transport: the QR payload is `Z4SK-KEY-V1:<32-byte-key>:<context-checksum>`. The 24 Spanish BIP39 words encode the same 256-bit key plus its BIP39 checksum. This is not a cryptocurrency wallet seed and must never be imported into a wallet.
 
-#### Response envelope
+The context checksum detects scanning/transcription mistakes; it is not an authentication factor. The QR may be reused for one trusted person, but reusing it links the risk of all invitations protected by it: rotate it after suspected exposure.
 
-- Key agreement: creator static ECDH P-256 public key + recipient ephemeral ECDH P-256 private key.
-- Key derivation: HKDF-SHA-256 with a random 32-byte salt and a versioned context.
-- Content encryption: AES-256-GCM with a random 12-byte IV.
-- Encrypted payload: respondent display name, answers, reactions and the double-blind match choice.
-- The creator's ECDH private key remains in the creator-link fragment.
+### Response envelope
 
-#### Authorization and deletion
+- Key agreement: creator static ECDH P-256 public key and recipient ephemeral ECDH P-256 private key.
+- Derivation: HKDF-SHA-256 with a random salt and versioned context.
+- Encryption: AES-256-GCM with a fresh 12-byte IV.
+- Content: respondent display name, answers, reactions and double-blind match choice.
+- The creator's ECDH private key stays in the creator URL fragment.
 
-- Creator access token: 24 random bytes; only its SHA-256 hash is stored.
-- Public invitation ID: 16 random bytes for new invitations.
+### Authorization, deletion and retention
+
+- Creator bearer token: 24 random bytes; only its SHA-256 hash is stored.
+- Public invitation identifier: 16 random bytes.
 - Recipient deletion token: 24 random bytes; only its hash is stored.
-- View once: a single database statement locks the row, returns ciphertext and deletes the active invitation graph before the browser decrypts it.
-- Expiry: access is rejected at the exact deadline; a daily task and opportunistic cleanup remove expired active rows.
+- View once: one database statement locks the row, returns ciphertext and deletes the active graph before browser decryption.
+- Expiry: requests are rejected at the exact deadline; scheduled and opportunistic cleanup remove expired rows.
 
 ### Server-visible data
 
 | Category | Server-readable | Encrypted / absent |
 | --- | --- | --- |
-| Invitation | random ID, ciphertext envelope, question count, expiry, view-once flag, opened/closed state, timestamps | names, title, questions, locale, level, settings, response public key |
+| Invitation | random ID, v2 envelope, question count, expiry, state, timestamps | names, title, questions, locale, level, settings, response public key |
 | Response | ciphertext envelope, invitation ID, submission time, single-use state | respondent name, answers, reactions, match choice |
-| Authorization | SHA-256 token hashes; raw creator token is transiently processed in the `Authorization` header | invitation key and response private key never enter the API |
-| Abuse/operations | reason category, timestamps, approximate country, rate-limit HMAC, request path/infrastructure logs | raw IP is not stored by application code; bodies and URL fragments are not logged by application code |
+| Authorization | token hashes; raw bearer token processed transiently | link secret, shared key, content key and response private key are not stored |
+| Operations | reason category, approximate country, rate-limit HMAC, request paths and provider metadata | application code does not log bodies, URL fragments or decrypted content |
 
-### Publicly auditable evidence
+### Trust boundaries and limitations
 
-- Invitation implementation: [`app/lib/invitation-crypto.ts`](../app/lib/invitation-crypto.ts)
-- Response implementation: [`app/lib/response-crypto.ts`](../app/lib/response-crypto.ts)
+- A link without the shared key is insufficient, but it remains sensitive and should not be public.
+- Anyone obtaining both channels can decrypt. The server cannot revoke, recover or distinguish a copied shared key.
+- A malicious future deployment, compromised browser/device/extension, clipboard, camera pipeline, screenshot or person viewing the plaintext can expose it.
+- The browser holds required secrets and plaintext in process memory while the flow is open. Byte buffers are cleared best-effort, but JavaScript strings and browser internals cannot be guaranteed erased.
+- Reusing one shared key is convenient but increases the impact of its compromise. Prefer one per person, compare fingerprints in person, and rotate when in doubt.
+- Public source and runtime evidence improve auditability; they are not remote attestation or an independent cryptographic certification.
+
+### Auditable evidence
+
+- Shared-key encoding and fingerprints: [`app/lib/shared-key.ts`](../app/lib/shared-key.ts)
+- Camera/image/words reader: [`app/components/SharedKeyUnlock.tsx`](../app/components/SharedKeyUnlock.tsx)
+- Invitation v2 cryptography: [`app/lib/invitation-crypto.ts`](../app/lib/invitation-crypto.ts)
+- Response cryptography: [`app/lib/response-crypto.ts`](../app/lib/response-crypto.ts)
 - Creation endpoint: [`app/api/games/route.ts`](../app/api/games/route.ts)
-- Data-flow verifier: [`scripts/verify-e2ee.mjs`](../scripts/verify-e2ee.mjs)
-- Live schema/data checks: [`app/api/privacy-proof/route.ts`](../app/api/privacy-proof/route.ts)
-- Migration history: [`scripts/migrations.mjs`](../scripts/migrations.mjs)
-- CI workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+- Isolated verifier: [`scripts/verify-e2ee.mjs`](../scripts/verify-e2ee.mjs)
+- Runtime self-audit: [`app/api/privacy-proof/route.ts`](../app/api/privacy-proof/route.ts)
 
-The live proof is a self-audit, not an external certification. A reviewer can compare the public production commit, workflow result, endpoint implementation and runtime JSON evidence. A future malicious deployment remains an explicit trust boundary because browser JavaScript controls encryption.
-
-### Legacy compatibility
-
-Invitations created before the encrypted-invitation migration may be served through the legacy readable structure until they expire. New creation requests are accepted only with an authenticated encrypted invitation envelope. The live proof reports any active legacy invitation rather than hiding it.
+The current protocol deliberately rejects legacy v1 invitation envelopes. At the migration time the production database contained zero invitations and zero responses, so no active user link was retained or converted.
 
 ## Español
 
 ### Objetivo y modelo de acceso
 
-Z4SK cifra en el navegador tanto el contenido de la invitación como las respuestas. El objetivo es que una filtración de la base activa o de una copia de recuperación no revele nombres, preguntas, ajustes ni respuestas sin los secretos que permanecen en los enlaces de los usuarios.
+Z4SK cifra en los navegadores el contenido de invitaciones y respuestas. Una filtración de la base debería revelar texto cifrado autenticado y metadatos operativos, no nombres, preguntas, ajustes ni respuestas.
 
-No es un sistema de cuentas: es un sistema de capacidades mediante enlaces. **Compartir el enlace completo es como compartir una contraseña.** El enlace público permite descifrar la invitación y responder; el enlace del creador añade autorización para el panel y la clave privada para descifrar respuestas.
+Cada invitación nueva exige **dos secretos independientes en manos de los usuarios**:
 
-### Qué ocurre al crear y responder
+1. un secreto aleatorio de 256 bits incluido en el fragmento del enlace; y
+2. una llave compartida reutilizable de 256 bits, representada por un QR o por 24 palabras BIP39 en español.
 
-1. El navegador del creador genera una clave aleatoria AES de 256 bits, un token de acceso de 192 bits y un par ECDH P-256.
-2. Cifra localmente nombres, preguntas, ajustes y la clave pública ECDH mediante AES-256-GCM.
-3. La API recibe únicamente el sobre cifrado, el hash SHA-256 del token, el número de preguntas y la política operativa de caducidad/lectura única.
-4. La clave AES queda en `#invite=`. El fragmento no forma parte de la petición HTTP normal.
-5. El destinatario descarga el texto cifrado, lo descifra en su navegador y cifra su respuesta con ECDH P-256, HKDF-SHA-256 y AES-256-GCM.
-6. El panel descarga ambos textos cifrados y los descifra localmente con los secretos de su propio fragmento.
+El enlace solo no puede descifrar la invitación. La llave compartida nunca se añade a la URL, petición, respuesta de API o base de datos. Se lee con la cámara, desde una imagen local o introduciendo las 24 palabras. El QR y las palabras son dos formatos de la misma llave, no dos factores diferentes.
 
-### Límites
+> Trata el enlace como la primera mitad de una contraseña y la llave compartida como la segunda. Envíalos por canales diferentes. Quien consiga ambos podrá descifrar la invitación. El enlace del creador añade la autorización del panel y la clave privada de respuestas.
 
-La infraestructura sigue viendo identificadores aleatorios, fechas, estado, caducidad, número de preguntas, rutas y metadatos de red. Quien obtenga un enlace completo obtiene su capacidad. Un navegador, extensión, dispositivo, portapapeles, captura o despliegue malicioso puede revelar el contenido. El cifrado no elimina lo que una persona ya haya visto o copiado, ni ofrece recuperación de un enlace perdido.
+### Flujo resumido
 
-La página pública [z4sk.vercel.app/audit](https://z4sk.vercel.app/audit) reúne el diseño, el código relevante y la evidencia en vivo. El endpoint [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof) es una autoauditoría generada por el propio servicio, no una certificación independiente.
+1. El navegador crea el secreto del enlace, una llave de contenido, un token y el par ECDH de respuestas.
+2. El creador genera una llave compartida o escanea el QR fijo que ya usa con esa persona.
+3. HKDF-SHA-256 combina `secreto_enlace || llave_compartida` con sal aleatoria y deriva una llave de envoltura.
+4. AES-256-GCM envuelve la llave de contenido y cifra la invitación con contextos autenticados distintos.
+5. La API recibe el sobre v2 cifrado, el hash del token y los metadatos mínimos.
+6. El destinatario recibe enlace y QR/palabras por canales separados, combina ambos localmente y descifra.
+7. La respuesta se cifra en el navegador con ECDH P-256, HKDF-SHA-256 y AES-256-GCM.
+8. El creador vuelve a presentar la llave compartida para abrir la invitación y sus respuestas en el panel.
+
+### Aleatoriedad y formato recuperable
+
+Las llaves de 32 bytes se generan con `crypto.getRandomValues` de Web Crypto. Las 24 palabras españolas codifican exactamente los 256 bits de la llave y la suma de comprobación BIP39; no son una contraseña elegida por una persona ni una semilla de monedero. No deben importarse jamás en una cartera de criptomonedas.
+
+El QR fijo incluye un prefijo de versión y una suma de comprobación contextual. La huella visible permite comparar copias. Reutilizar una llave con la misma persona es posible, pero aumenta el impacto de una filtración: conviene usar una por persona y sustituirla si hay cualquier duda.
+
+### Límites honestos
+
+El servidor sigue viendo identificadores aleatorios, fechas, estado, caducidad, número de preguntas, rutas y metadatos de red. Un atacante que consiga los dos secretos puede descifrar. También pueden revelar el contenido un navegador, dispositivo, extensión o despliegue malicioso, el portapapeles, una captura o la propia persona que ya ha visto el texto.
+
+Los secretos y el texto legible permanecen temporalmente en la memoria del navegador mientras se usan. Los buffers binarios se limpian en lo posible, pero JavaScript no permite garantizar el borrado de cadenas ni de copias internas. No hay recuperación desde el servidor.
+
+La página [z4sk.vercel.app/audit](https://z4sk.vercel.app/audit) reúne código y evidencia. [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof) es una autoauditoría, no una certificación independiente.

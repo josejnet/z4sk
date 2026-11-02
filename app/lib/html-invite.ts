@@ -1,18 +1,156 @@
 import type { Locale } from "./i18n";
-type InviteCopy={title:string;from:string;headline:string;body:string;open:string;privacy:string;sponsor:string};
-const copy:Record<Locale,InviteCopy>={
-  en:{title:"You have something pending · Z4SK",from:"AN INVITATION FROM",headline:"{name}, there are questions only you can answer.",body:"Answer honestly. Only the sender can read your answers. This link decrypts the invitation, so treat it like a password.",open:"OPEN QUESTIONNAIRE",privacy:"Private bearer link · No account",sponsor:"SPONSOR SPACE"},
-  es:{title:"Tienes algo pendiente · Z4SK",from:"UNA INVITACIÓN DE",headline:"{name}, hay preguntas que solo tú puedes responder.",body:"Contesta con sinceridad. Solo quien te lo ha enviado podrá leer tus respuestas. Este enlace descifra la invitación: trátalo como una contraseña.",open:"ABRIR CUESTIONARIO",privacy:"Enlace privado al portador · Sin registro",sponsor:"ESPACIO DE PATROCINIO"},
-  it:{title:"Hai qualcosa in sospeso · Z4SK",from:"UN INVITO DA",headline:"{name}, ci sono domande a cui solo tu puoi rispondere.",body:"Rispondi sinceramente. Solo chi te lo ha inviato potrà leggere le risposte.",open:"APRI IL QUESTIONARIO",privacy:"Link privato · Senza account",sponsor:"SPAZIO SPONSOR"},
-  fr:{title:"Quelque chose vous attend · Z4SK",from:"UNE INVITATION DE",headline:"{name}, certaines questions n’attendent que votre réponse.",body:"Répondez sincèrement. Seule la personne qui vous l’a envoyé pourra lire vos réponses.",open:"OUVRIR LE QUESTIONNAIRE",privacy:"Lien privé · Sans compte",sponsor:"ESPACE SPONSOR"},
-  de:{title:"Etwas wartet auf dich · Z4SK",from:"EINE EINLADUNG VON",headline:"{name}, manche Fragen kannst nur du beantworten.",body:"Antworte ehrlich. Nur die sendende Person kann deine Antworten lesen.",open:"FRAGEBOGEN ÖFFNEN",privacy:"Privater Link · Ohne Konto",sponsor:"SPONSORENBEREICH"},
-  nl:{title:"Er staat iets voor je klaar · Z4SK",from:"EEN UITNODIGING VAN",headline:"{name}, er zijn vragen die alleen jij kunt beantwoorden.",body:"Antwoord eerlijk. Alleen de afzender kan jouw antwoorden lezen.",open:"VRAGENLIJST OPENEN",privacy:"Privélink · Geen account",sponsor:"SPONSORRUIMTE"},
-  eo:{title:"Io atendas vin · Z4SK",from:"INVITO DE",headline:"{name}, estas demandoj, kiujn nur vi povas respondi.",body:"Respondu sincere. Nur la sendinto povas legi viajn respondojn.",open:"MALFERMI DEMANDARON",privacy:"Privata ligilo · Sen konto",sponsor:"SPONSORA SPACO"},
-  pt:{title:"Tens algo por responder · Z4SK",from:"UM CONVITE DE",headline:"{name}, há perguntas que só tu podes responder.",body:"Responde com sinceridade. Só quem enviou poderá ler as tuas respostas.",open:"ABRIR QUESTIONÁRIO",privacy:"Link privado · Sem conta",sponsor:"ESPAÇO DE PATROCÍNIO"},
-  zh:{title:"你有一份待回答的邀请 · Z4SK",from:"邀请来自",headline:"{name}，有些问题只有你能回答。",body:"请诚实回答，只有发送者能看到你的答案。",open:"打开问卷",privacy:"私人链接 · 无需账户",sponsor:"赞助位"},
-  hi:{title:"आपके लिए कुछ बाकी है · Z4SK",from:"निमंत्रण भेजा है",headline:"{name}, कुछ सवालों का जवाब सिर्फ आप दे सकते हैं।",body:"ईमानदारी से जवाब दें। जवाब सिर्फ भेजने वाला देख सकता है।",open:"प्रश्नपत्र खोलें",privacy:"निजी लिंक · खाता नहीं चाहिए",sponsor:"प्रायोजक स्थान"},
-  ja:{title:"あなたへの質問があります・Z4SK",from:"招待の送信者",headline:"{name}さん、あなただけが答えられる質問があります。",body:"正直に答えてください。回答を読めるのは送信者だけです。",open:"質問を開く",privacy:"非公開リンク・登録不要",sponsor:"スポンサー枠"},
-  tr:{title:"Seni bekleyen bir şey var · Z4SK",from:"DAVETİ GÖNDEREN",headline:"{name}, yalnızca senin yanıtlayabileceğin sorular var.",body:"Dürüstçe yanıtla. Yanıtlarını yalnızca gönderen kişi okuyabilir.",open:"SORU FORMUNU AÇ",privacy:"Özel bağlantı · Hesap yok",sponsor:"SPONSOR ALANI"},
-  machine:{title:"PENDING_PAYLOAD · Z4SK",from:"INVITATION_FROM",headline:"recipient={name}; questions.require=recipient",body:"answer.mode=honest; answers.acl=[sender]",open:"OPEN questionnaire_url",privacy:"link.private=true · auth=null",sponsor:"SPONSOR_SLOT"}
+import { SHARED_KEY_COPY } from "./shared-key-copy";
+type InviteCopy = {
+  title: string;
+  from: string;
+  headline: string;
+  body: string;
+  open: string;
+  privacy: string;
+  sponsor: string;
 };
-export function downloadInvitationHtml(input:{recipientName:string;creatorName:string;playUrl:string;locale:Locale}){const s=copy[input.locale];const data={...input,...s,headline:s.headline.replace("{name}",input.recipientName)};const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));const html=`<!doctype html><html lang="${input.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${s.title}</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0b0b;color:#f4efe8;font-family:Arial,sans-serif;padding:22px}.card{width:min(100%,420px);border:1px solid #302b28;background:linear-gradient(145deg,#181513,#101010);padding:34px;box-shadow:0 30px 80px #000}.logo{font-weight:800;letter-spacing:.2em;font-size:12px}.spark{color:#ff5a1f;font-size:50px;margin:50px 0 20px}small{color:#ff5a1f;letter-spacing:.15em;font-weight:700}h1{font:400 42px/1.03 Georgia,serif;letter-spacing:-.04em;margin:14px 0 18px}p{color:#aaa19a;line-height:1.6}.cta{display:block;background:#ff5a1f;color:#111;text-decoration:none;padding:17px 20px;margin-top:30px;font-weight:800;text-align:center}.ad{border-top:1px solid #2d2927;margin-top:30px;padding-top:18px;color:#625d59;font-size:10px;text-align:center}.privacy{font-size:11px;color:#6f6964;text-align:center;margin-top:18px}</style></head><body><main class="card"><div class="logo">Z4SK</div><div class="spark">✦</div><small><span id="fl"></span> <span id="from"></span></small><h1 id="headline"></h1><p id="body"></p><a class="cta" id="open"></a><div class="privacy" id="privacy"></div><div class="ad" id="ad"></div></main><script>const d=JSON.parse(decodeURIComponent(escape(atob('${encoded}'))));fl.textContent=d.from;from.textContent=d.creatorName;headline.textContent=d.headline;body.textContent=d.body;open.textContent=d.open+' →';open.href=d.playUrl;privacy.textContent='◆ '+d.privacy;ad.textContent=d.sponsor+' · Z4SK';</script></body></html>`;const blob=new Blob([html],{type:"text/html;charset=utf-8"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=`open-${input.recipientName.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi,"-")}.html`;link.click();URL.revokeObjectURL(url)}
+const copy: Record<Locale, InviteCopy> = {
+  en: {
+    title: "You have something pending · Z4SK",
+    from: "AN INVITATION FROM",
+    headline: "{name}, there are questions only you can answer.",
+    body: "Answer honestly. Opening this invitation requires this link and the shared key sent through a different channel.",
+    open: "OPEN QUESTIONNAIRE",
+    privacy: "Private bearer link · No account",
+    sponsor: "SPONSOR SPACE",
+  },
+  es: {
+    title: "Tienes algo pendiente · Z4SK",
+    from: "UNA INVITACIÓN DE",
+    headline: "{name}, hay preguntas que solo tú puedes responder.",
+    body: "Contesta con sinceridad. Para abrir la invitación hacen falta este enlace y la llave enviada por un canal diferente.",
+    open: "ABRIR CUESTIONARIO",
+    privacy: "Enlace privado al portador · Sin registro",
+    sponsor: "ESPACIO DE PATROCINIO",
+  },
+  it: {
+    title: "Hai qualcosa in sospeso · Z4SK",
+    from: "UN INVITO DA",
+    headline: "{name}, ci sono domande a cui solo tu puoi rispondere.",
+    body: "Rispondi sinceramente. Solo chi te lo ha inviato potrà leggere le risposte.",
+    open: "APRI IL QUESTIONARIO",
+    privacy: "Link privato · Senza account",
+    sponsor: "SPAZIO SPONSOR",
+  },
+  fr: {
+    title: "Quelque chose vous attend · Z4SK",
+    from: "UNE INVITATION DE",
+    headline: "{name}, certaines questions n’attendent que votre réponse.",
+    body: "Répondez sincèrement. Seule la personne qui vous l’a envoyé pourra lire vos réponses.",
+    open: "OUVRIR LE QUESTIONNAIRE",
+    privacy: "Lien privé · Sans compte",
+    sponsor: "ESPACE SPONSOR",
+  },
+  de: {
+    title: "Etwas wartet auf dich · Z4SK",
+    from: "EINE EINLADUNG VON",
+    headline: "{name}, manche Fragen kannst nur du beantworten.",
+    body: "Antworte ehrlich. Nur die sendende Person kann deine Antworten lesen.",
+    open: "FRAGEBOGEN ÖFFNEN",
+    privacy: "Privater Link · Ohne Konto",
+    sponsor: "SPONSORENBEREICH",
+  },
+  nl: {
+    title: "Er staat iets voor je klaar · Z4SK",
+    from: "EEN UITNODIGING VAN",
+    headline: "{name}, er zijn vragen die alleen jij kunt beantwoorden.",
+    body: "Antwoord eerlijk. Alleen de afzender kan jouw antwoorden lezen.",
+    open: "VRAGENLIJST OPENEN",
+    privacy: "Privélink · Geen account",
+    sponsor: "SPONSORRUIMTE",
+  },
+  eo: {
+    title: "Io atendas vin · Z4SK",
+    from: "INVITO DE",
+    headline: "{name}, estas demandoj, kiujn nur vi povas respondi.",
+    body: "Respondu sincere. Nur la sendinto povas legi viajn respondojn.",
+    open: "MALFERMI DEMANDARON",
+    privacy: "Privata ligilo · Sen konto",
+    sponsor: "SPONSORA SPACO",
+  },
+  pt: {
+    title: "Tens algo por responder · Z4SK",
+    from: "UM CONVITE DE",
+    headline: "{name}, há perguntas que só tu podes responder.",
+    body: "Responde com sinceridade. Só quem enviou poderá ler as tuas respostas.",
+    open: "ABRIR QUESTIONÁRIO",
+    privacy: "Link privado · Sem conta",
+    sponsor: "ESPAÇO DE PATROCÍNIO",
+  },
+  zh: {
+    title: "你有一份待回答的邀请 · Z4SK",
+    from: "邀请来自",
+    headline: "{name}，有些问题只有你能回答。",
+    body: "请诚实回答，只有发送者能看到你的答案。",
+    open: "打开问卷",
+    privacy: "私人链接 · 无需账户",
+    sponsor: "赞助位",
+  },
+  hi: {
+    title: "आपके लिए कुछ बाकी है · Z4SK",
+    from: "निमंत्रण भेजा है",
+    headline: "{name}, कुछ सवालों का जवाब सिर्फ आप दे सकते हैं।",
+    body: "ईमानदारी से जवाब दें। जवाब सिर्फ भेजने वाला देख सकता है।",
+    open: "प्रश्नपत्र खोलें",
+    privacy: "निजी लिंक · खाता नहीं चाहिए",
+    sponsor: "प्रायोजक स्थान",
+  },
+  ja: {
+    title: "あなたへの質問があります・Z4SK",
+    from: "招待の送信者",
+    headline: "{name}さん、あなただけが答えられる質問があります。",
+    body: "正直に答えてください。回答を読めるのは送信者だけです。",
+    open: "質問を開く",
+    privacy: "非公開リンク・登録不要",
+    sponsor: "スポンサー枠",
+  },
+  tr: {
+    title: "Seni bekleyen bir şey var · Z4SK",
+    from: "DAVETİ GÖNDEREN",
+    headline: "{name}, yalnızca senin yanıtlayabileceğin sorular var.",
+    body: "Dürüstçe yanıtla. Yanıtlarını yalnızca gönderen kişi okuyabilir.",
+    open: "SORU FORMUNU AÇ",
+    privacy: "Özel bağlantı · Hesap yok",
+    sponsor: "SPONSOR ALANI",
+  },
+  machine: {
+    title: "PENDING_PAYLOAD · Z4SK",
+    from: "INVITATION_FROM",
+    headline: "recipient={name}; questions.require=recipient",
+    body: "answer.mode=honest; answers.acl=[sender]",
+    open: "OPEN questionnaire_url",
+    privacy: "link.private=true · auth=null",
+    sponsor: "SPONSOR_SLOT",
+  },
+};
+export function downloadInvitationHtml(input: {
+  recipientName: string;
+  creatorName: string;
+  playUrl: string;
+  locale: Locale;
+  protectedBySharedKey?: boolean;
+}) {
+  const s = copy[input.locale];
+  const data = {
+    ...input,
+    ...s,
+    body: input.protectedBySharedKey
+      ? SHARED_KEY_COPY[input.locale].unlockBody
+      : s.body,
+    headline: s.headline.replace("{name}", input.recipientName),
+  };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  const html = `<!doctype html><html lang="${input.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${s.title}</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0b0b;color:#f4efe8;font-family:Arial,sans-serif;padding:22px}.card{width:min(100%,420px);border:1px solid #302b28;background:linear-gradient(145deg,#181513,#101010);padding:34px;box-shadow:0 30px 80px #000}.logo{font-weight:800;letter-spacing:.2em;font-size:12px}.spark{color:#ff5a1f;font-size:50px;margin:50px 0 20px}small{color:#ff5a1f;letter-spacing:.15em;font-weight:700}h1{font:400 42px/1.03 Georgia,serif;letter-spacing:-.04em;margin:14px 0 18px}p{color:#aaa19a;line-height:1.6}.cta{display:block;background:#ff5a1f;color:#111;text-decoration:none;padding:17px 20px;margin-top:30px;font-weight:800;text-align:center}.ad{border-top:1px solid #2d2927;margin-top:30px;padding-top:18px;color:#625d59;font-size:10px;text-align:center}.privacy{font-size:11px;color:#6f6964;text-align:center;margin-top:18px}</style></head><body><main class="card"><div class="logo">Z4SK</div><div class="spark">✦</div><small><span id="fl"></span> <span id="from"></span></small><h1 id="headline"></h1><p id="body"></p><a class="cta" id="open"></a><div class="privacy" id="privacy"></div><div class="ad" id="ad"></div></main><script>const d=JSON.parse(decodeURIComponent(escape(atob('${encoded}'))));fl.textContent=d.from;from.textContent=d.creatorName;headline.textContent=d.headline;body.textContent=d.body;open.textContent=d.open+' →';open.href=d.playUrl;privacy.textContent='◆ '+d.privacy;ad.textContent=d.sponsor+' · Z4SK';</script></body></html>`;
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `open-${input.recipientName.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, "-")}.html`;
+  link.click();
+  URL.revokeObjectURL(url);
+}

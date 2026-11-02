@@ -60,7 +60,11 @@ OpenSSF Scorecard reported **5.6/10**. Its positive checks were: no known vulner
 
 The technical branch and release gates are in place. The remaining governance work cannot be truthfully automated: add a second independent maintainer/reviewer, verify MFA personally on GitHub, Vercel, Neon and the domain account, register and safely back up a personal signing key before creating local commits, and commission the human review defined in [HUMAN_SECURITY_REVIEW.md](HUMAN_SECURITY_REVIEW.md).
 
-End-to-end encryption does not protect a leaked complete link, compromised device/browser/extension, malicious future deployment, screenshot or copied plaintext. Sharing a complete invitation link remains equivalent to sharing a password.
+The v2 protocol makes a leaked link insufficient without the separately shared reusable key. It still cannot protect when both channels leak, or against a compromised device/browser/extension, malicious future deployment, camera/clipboard compromise, screenshot or copied plaintext. Reusing one shared key increases the impact if matching link secrets are also exposed. The new protocol must receive an independent human cryptographic review before being described as externally certified.
+
+### Protocol v2 change note · 2 November 2026
+
+The two-channel invitation protocol was added after the external baseline runs summarized above. Its implementation has passed the repository's local TypeScript, ESLint, production-build, rendered-policy and dependency-audit gates, plus negative tests for a wrong shared key and server-side secret leakage. The prior CodeQL, Scorecard and ZAP results do **not** by themselves certify this new cryptographic design. The next independent review must cover the HKDF input composition, key wrapping, BIP39/QR representation, mobile camera path, key reuse and the browser/deployment trust boundary described in [HUMAN_SECURITY_REVIEW.md](HUMAN_SECURITY_REVIEW.md).
 
 ## Reproduction
 

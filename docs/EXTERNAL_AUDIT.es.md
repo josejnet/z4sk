@@ -60,7 +60,11 @@ OpenSSF Scorecard obtuvo **5,6/10**. Sus controles positivos fueron: cero vulner
 
 Las barreras técnicas de rama y publicación quedan implantadas. Lo pendiente no puede automatizarse con rigor: añadir un segundo mantenedor/revisor independiente, comprobar personalmente MFA en GitHub, Vercel, Neon y el dominio, registrar y respaldar una clave personal antes de crear commits locales, y contratar la revisión humana definida en [HUMAN_SECURITY_REVIEW.es.md](HUMAN_SECURITY_REVIEW.es.md).
 
-El cifrado de extremo a extremo no protege un enlace completo filtrado, dispositivo/navegador/extensión comprometidos, un despliegue futuro malicioso, una captura o texto copiado. Compartir el enlace completo de invitación sigue equivaliendo a compartir una contraseña.
+El protocolo v2 hace que un enlace filtrado sea insuficiente sin la llave reutilizable compartida por separado. No protege si se filtran ambos canales, ni frente a dispositivo/navegador/extensión comprometidos, despliegue futuro malicioso, cámara/portapapeles, captura o texto copiado. Reutilizar una llave aumenta el impacto si también se filtran los secretos de los enlaces correspondientes. El nuevo protocolo necesita una revisión criptográfica humana independiente antes de presentarse como certificado externamente.
+
+### Nota de cambio del protocolo v2 · 2 de noviembre de 2026
+
+El protocolo de invitación de dos canales se añadió después de las pasadas externas resumidas arriba. La implementación supera localmente TypeScript, ESLint, build de producción, pruebas de políticas renderizadas y auditoría de dependencias, además de pruebas negativas con una llave compartida incorrecta y de ausencia de secretos en el servidor. Los resultados anteriores de CodeQL, Scorecard y ZAP **no** certifican por sí solos este nuevo diseño criptográfico. La próxima revisión independiente deberá cubrir la composición de entrada de HKDF, el envoltorio de claves, la representación BIP39/QR, la cámara móvil, la reutilización de llaves y la frontera de confianza navegador/despliegue descrita en [HUMAN_SECURITY_REVIEW.es.md](HUMAN_SECURITY_REVIEW.es.md).
 
 ## Reproducción
 

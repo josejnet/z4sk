@@ -8,32 +8,31 @@ const reportingDirectives = [
 
 export function contentSecurityPolicy(nonce: string, development = false) {
   return [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "connect-src 'self'",
-  "font-src 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  "frame-src 'none'",
-  "img-src 'self' data: blob:",
-  "manifest-src 'self'",
-  "media-src 'none'",
-  "object-src 'none'",
-  `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ""}`,
-  "script-src-attr 'none'",
-  `style-src 'self' 'nonce-${nonce}'`,
-  "style-src-attr 'none'",
-  "worker-src 'self' blob:",
-  "upgrade-insecure-requests",
-  ...reportingDirectives,
+    "default-src 'self'",
+    "base-uri 'self'",
+    "connect-src 'self'",
+    "font-src 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "frame-src 'none'",
+    "img-src 'self' data: blob:",
+    "manifest-src 'self'",
+    "media-src 'none'",
+    "object-src 'none'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ""}`,
+    "script-src-attr 'none'",
+    `style-src 'self' 'nonce-${nonce}'`,
+    "style-src-attr 'none'",
+    "worker-src 'self' blob:",
+    "upgrade-insecure-requests",
+    ...reportingDirectives,
   ].join("; ");
 }
 
 export function trustedTypesReportOnlyPolicy() {
-  return [
-    "require-trusted-types-for 'script'",
-    ...reportingDirectives,
-  ].join("; ");
+  return ["require-trusted-types-for 'script'", ...reportingDirectives].join(
+    "; ",
+  );
 }
 
 export function reportingEndpoints(origin: string) {
@@ -44,15 +43,22 @@ export function reportingEndpoints(origin: string) {
 export function securityHeaders(development = false) {
   void development;
   return [
-  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-  { key: "Origin-Agent-Cluster", value: "?1" },
-  { key: "Permissions-Policy", value: "browsing-topics=(), camera=(), geolocation=(), microphone=(), payment=(), usb=()" },
-  { key: "Referrer-Policy", value: "no-referrer" },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-DNS-Prefetch-Control", value: "off" },
-  { key: "X-Frame-Options", value: "DENY" },
+    { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
+    { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+    { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+    { key: "Origin-Agent-Cluster", value: "?1" },
+    {
+      key: "Permissions-Policy",
+      value:
+        "browsing-topics=(), camera=(self), geolocation=(), microphone=(), payment=(), usb=()",
+    },
+    { key: "Referrer-Policy", value: "no-referrer" },
+    {
+      key: "Strict-Transport-Security",
+      value: "max-age=63072000; includeSubDomains; preload",
+    },
+    { key: "X-Content-Type-Options", value: "nosniff" },
+    { key: "X-DNS-Prefetch-Control", value: "off" },
+    { key: "X-Frame-Options", value: "DENY" },
   ] as const;
 }

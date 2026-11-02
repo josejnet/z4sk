@@ -99,8 +99,11 @@ export function SharedKeyCard({
           )}
         </div>
         {showRecovery && (
-          <div className="shared-key-recovery">
-            <span>{copy.phrase}</span>
+          <details className="shared-key-recovery">
+            <summary>
+              <span>{copy.phrase}</span>
+              <i aria-hidden="true">+</i>
+            </summary>
             <p>{copy.phraseHelp}</p>
             <ol>
               {words.map((word, index) => (
@@ -110,7 +113,7 @@ export function SharedKeyCard({
                 </li>
               ))}
             </ol>
-          </div>
+          </details>
         )}
       </div>
       <div className="shared-key-card-actions">

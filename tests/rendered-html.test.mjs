@@ -422,6 +422,14 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(securityDoc, /GitHub private vulnerability reporting/);
   assert.match(migrations, /encrypted_invitation TEXT NOT NULL DEFAULT ''/);
   assert.match(migrations, /question_count INTEGER NOT NULL DEFAULT 0/);
+  assert.match(
+    migrations,
+    /2026-11-02-remove-expired-and-pre-v2-invitations/,
+  );
+  assert.match(
+    migrations,
+    /encrypted_invitation::jsonb->>'v' IS DISTINCT FROM '2'/,
+  );
   assert.match(proofRoute, /No expired answers remain in the active database/);
   assert.match(privacyEngine, /purgeExpiredData/);
   assert.match(privacyEngine, /DELETE FROM responses WHERE game_id IN/);

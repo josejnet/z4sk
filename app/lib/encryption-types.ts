@@ -15,8 +15,11 @@ export type EncryptedResponseEnvelope = {
 };
 
 export type EncryptedInvitationEnvelope = {
-  v: 1;
-  alg: "A256GCM";
+  v: 2;
+  alg: "HKDF-SHA256+A256GCM+A256GCM";
+  salt: string;
+  keyIv: string;
+  wrappedKey: string;
   iv: string;
   ciphertext: string;
 };
@@ -30,20 +33,68 @@ export type PrivateResponsePayload = {
 
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 
-export function isEncryptionPublicKey(value: unknown): value is EncryptionPublicKey {
+export function isEncryptionPublicKey(
+  value: unknown,
+): value is EncryptionPublicKey {
   if (!value || typeof value !== "object") return false;
   const key = value as Partial<EncryptionPublicKey>;
-  return key.kty === "EC" && key.crv === "P-256" && typeof key.x === "string" && key.x.length === 43 && BASE64URL.test(key.x) && typeof key.y === "string" && key.y.length === 43 && BASE64URL.test(key.y);
+  return (
+    key.kty === "EC" &&
+    key.crv === "P-256" &&
+    typeof key.x === "string" &&
+    key.x.length === 43 &&
+    BASE64URL.test(key.x) &&
+    typeof key.y === "string" &&
+    key.y.length === 43 &&
+    BASE64URL.test(key.y)
+  );
 }
 
-export function isEncryptedResponseEnvelope(value: unknown): value is EncryptedResponseEnvelope {
+export function isEncryptedResponseEnvelope(
+  value: unknown,
+): value is EncryptedResponseEnvelope {
   if (!value || typeof value !== "object") return false;
   const envelope = value as Partial<EncryptedResponseEnvelope>;
-  return envelope.v === 1 && envelope.alg === "ECDH-P256+HKDF-SHA256+A256GCM" && isEncryptionPublicKey(envelope.ephemeralPublicKey) && typeof envelope.salt === "string" && envelope.salt.length === 22 && BASE64URL.test(envelope.salt) && typeof envelope.iv === "string" && envelope.iv.length === 16 && BASE64URL.test(envelope.iv) && typeof envelope.ciphertext === "string" && envelope.ciphertext.length >= 24 && envelope.ciphertext.length <= 30_000 && BASE64URL.test(envelope.ciphertext);
+  return (
+    envelope.v === 1 &&
+    envelope.alg === "ECDH-P256+HKDF-SHA256+A256GCM" &&
+    isEncryptionPublicKey(envelope.ephemeralPublicKey) &&
+    typeof envelope.salt === "string" &&
+    envelope.salt.length === 22 &&
+    BASE64URL.test(envelope.salt) &&
+    typeof envelope.iv === "string" &&
+    envelope.iv.length === 16 &&
+    BASE64URL.test(envelope.iv) &&
+    typeof envelope.ciphertext === "string" &&
+    envelope.ciphertext.length >= 24 &&
+    envelope.ciphertext.length <= 30_000 &&
+    BASE64URL.test(envelope.ciphertext)
+  );
 }
 
-export function isEncryptedInvitationEnvelope(value: unknown): value is EncryptedInvitationEnvelope {
+export function isEncryptedInvitationEnvelope(
+  value: unknown,
+): value is EncryptedInvitationEnvelope {
   if (!value || typeof value !== "object") return false;
   const envelope = value as Partial<EncryptedInvitationEnvelope>;
-  return envelope.v === 1 && envelope.alg === "A256GCM" && typeof envelope.iv === "string" && envelope.iv.length === 16 && BASE64URL.test(envelope.iv) && typeof envelope.ciphertext === "string" && envelope.ciphertext.length >= 64 && envelope.ciphertext.length <= 12_000 && BASE64URL.test(envelope.ciphertext);
+  return (
+    envelope.v === 2 &&
+    envelope.alg === "HKDF-SHA256+A256GCM+A256GCM" &&
+    typeof envelope.salt === "string" &&
+    envelope.salt.length === 43 &&
+    BASE64URL.test(envelope.salt) &&
+    typeof envelope.keyIv === "string" &&
+    envelope.keyIv.length === 16 &&
+    BASE64URL.test(envelope.keyIv) &&
+    typeof envelope.wrappedKey === "string" &&
+    envelope.wrappedKey.length === 64 &&
+    BASE64URL.test(envelope.wrappedKey) &&
+    typeof envelope.iv === "string" &&
+    envelope.iv.length === 16 &&
+    BASE64URL.test(envelope.iv) &&
+    typeof envelope.ciphertext === "string" &&
+    envelope.ciphertext.length >= 64 &&
+    envelope.ciphertext.length <= 12_000 &&
+    BASE64URL.test(envelope.ciphertext)
+  );
 }

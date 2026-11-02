@@ -13,7 +13,8 @@ La persona revisora no debe haber desarrollado Z4SK y debe declarar conflictos p
 - código público en `https://github.com/josejnet/z4sk`;
 - commit exacto mostrado en `https://z4sk.vercel.app/audit` y `/api/privacy-proof`;
 - invitaciones desechables creadas exclusivamente para la revisión;
-- criptografía del navegador en `app/lib/invitation-crypto.ts` y `app/lib/response-crypto.ts`;
+- criptografía del navegador en `app/lib/shared-key.ts`, `app/lib/invitation-crypto.ts` y `app/lib/response-crypto.ts`;
+- lectura local de QR por cámara o imagen en `app/components/SharedKeyUnlock.tsx`;
 - autorización, caducidad, consumo único, borrado, abuso y retención de las API;
 - GitHub Actions, migraciones, service worker, CSP y fronteras del despliegue.
 
@@ -21,10 +22,11 @@ La persona revisora no debe haber desarrollado Z4SK y debe declarar conflictos p
 
 1. ¿Puede el servidor, base de datos, logs o panel fundador recuperar texto claro usando solo el estado almacenado?
 2. ¿Puede alguien sin autorización listar, adivinar, leer, modificar, repetir o borrar invitaciones o respuestas?
-3. ¿Son seguros los nonces AES-GCM, claves ECDH, contexto HKDF, entropía y sobres autenticados?
+3. ¿Son seguros los nonces AES-GCM, claves ECDH, contextos HKDF, combinación de secreto de enlace y llave compartida, entropía y sobres autenticados?
 4. ¿Permiten las condiciones de carrera eludir lectura única o respuesta única?
-5. ¿Pueden fragmentos, cabeceras bearer, caché del service worker, historial, referrer, informes CSP o errores filtrar un enlace completo?
+5. ¿Pueden fragmentos, QR/24 palabras, frames de cámara, imágenes, cabeceras bearer, caché del service worker, historial, referrer, informes CSP o errores filtrar alguno de los secretos?
 6. ¿Puede una dependencia, CI, cuenta mantenedora o despliegue comprometido sustituir el código cliente sin evidencia visible?
+7. ¿Es aceptable el riesgo de reutilizar el QR/24 palabras y son sólidos el checksum, huella, rotación y separación de canales?
 
 ## Seguridad y comunicación
 

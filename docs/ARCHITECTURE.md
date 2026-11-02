@@ -1,91 +1,88 @@
 # Architecture
 
-For the protocol, server-visible data and threat boundaries, read [Cryptographic design](CRYPTOGRAPHY.md). For vulnerability reporting and production controls, read [SECURITY.md](../SECURITY.md).
+For the exact protocol and threat boundaries, read [Cryptographic design](CRYPTOGRAPHY.md). For reporting and production controls, read [SECURITY.md](../SECURITY.md).
 
 ## Runtime
 
-- UI and API: React 19 with Next.js App Router
-- application runtime: Vercel Functions
+- UI/API: React 19 and Next.js App Router
+- runtime: Vercel Functions
 - persistence: Neon Postgres
-- schema management: versioned idempotent migrations in `scripts/migrations.mjs`
-- PWA: web manifest and deliberately restricted service-worker cache
-- integration asset: framework-neutral TypeScript client in `packages/z4sk-sdk`
+- migrations: idempotent versions in `scripts/migrations.mjs`
+- PWA: installable manifest and restricted service-worker cache
+- integration: framework-neutral TypeScript client in `packages/z4sk-sdk`
 
-## Encrypted request flow
+## Two-channel invitation flow
 
 ```text
 Creator browser
-  generates invitation AES key + creator token + ECDH response key pair
-  encrypts names, questions, settings and ECDH public key
+  generates link secret + content key + creator token + ECDH response pair
+  creates or scans a reusable 256-bit shared key
+  HKDF(link secret || shared key) -> AES wrapping key
+  wraps content key and encrypts invitation locally
          |
-         | invitation ciphertext + token hash + minimal policy
+         | v2 ciphertext + token hash + minimal lifecycle metadata
          v
 Vercel Function <--> Neon Postgres
          ^              invitation ciphertext + response ciphertext
          |
-         | ephemeral ECDH + HKDF-SHA-256 + AES-256-GCM ciphertext
 Recipient browser
-
-Public URL fragment: invitation AES key
-Creator URL fragment: invitation AES key + bearer token + response private key
+  receives the link through channel A
+  scans shared-key QR / enters 24 words received through channel B
+  decrypts invitation locally
+  encrypts response using ephemeral ECDH + HKDF + AES-GCM
 ```
 
-URL fragments are not included in normal HTTP requests. The client sends only the bearer token to private APIs in an `Authorization: Bearer` header; Postgres stores its SHA-256 hash. Neither decryption key is sent to the API. Private and mutable responses use `Cache-Control: no-store`.
+The URL fragment contains only the link secret. The reusable shared key never enters a URL, API request, database row, application log, service-worker cache or localStorage. Camera frames and uploaded QR images are decoded locally and are not uploaded. The creator dashboard also needs that shared key to decrypt the invitation context.
 
-The creator browser encrypts the complete invitation payload with AES-256-GCM before `POST /api/games`. The recipient downloads the envelope and decrypts it locally. For each response, the recipient creates an ephemeral ECDH P-256 key pair, derives an AES-256-GCM key through HKDF-SHA-256 and encrypts all response content before `POST /responses`. The creator dashboard performs both decryptions locally.
-
-**The complete invitation URL is a password-equivalent bearer secret.** Its holder can decrypt the invitation. The creator URL adds authority to list ciphertext and the only private key that can decrypt responses.
-
-Invitation and dashboard QR cards are rendered entirely in the browser. Z4SK never receives the optional recovery email; it is used locally to open `mailto:` and the user's email provider processes it only if sent.
+The creator bearer token is sent transiently in an `Authorization` header; Postgres stores only its SHA-256 hash. The response private key remains in the creator URL fragment. Private and mutable responses use `Cache-Control: no-store`.
 
 ## Data model
 
 | Table | Purpose | Server-readable content |
 | --- | --- | --- |
-| `games` | invitation lifecycle and authorization | encrypted invitation envelope, question count, expiry, view-once/open/closed state, token hash and timestamps; legacy readable columns are blank for new rows |
-| `responses` | submitted response lifecycle | authenticated ciphertext envelope, timestamps, single-use marker and hashed recipient deletion token; legacy plaintext columns are blank |
-| `question_metrics` | legacy aggregate selection/completion signals | no answer text; new encrypted invitations do not generate per-question metrics |
+| `games` | invitation lifecycle/authorization | v2 invitation envelope, question count, expiry, view-once/open/closed state, token hash and timestamps |
+| `responses` | submitted response lifecycle | authenticated ciphertext, timestamps, single-use marker and hashed recipient deletion token |
+| `question_metrics` | legacy aggregate signals | no answer text; new encrypted invitations create no per-question metric |
 | `trend_metrics` | aggregate country performance | no invitation or answer text |
 | `product_events` | generic funnel events | keyed pseudonym and operational event type |
 | `abuse_reports` | moderation state | reason category and random invitation ID |
-| `rate_limits` | rotating request counters | keyed HMAC pseudonym; no raw IP |
-| `privacy_status` | purge heartbeat and deletion totals | no content |
+| `rate_limits` | rotating counters | keyed HMAC pseudonym; no raw IP |
+| `privacy_status` | purge evidence | no private content |
 
 ## API map
 
 | Method and route | Responsibility | Access |
 | --- | --- | --- |
-| `POST /api/games` | accept an encrypted invitation | public, rate limited |
-| `GET /api/games/:id` | return invitation ciphertext and state | public random ID |
+| `POST /api/games` | accept a v2 encrypted invitation | public, rate limited |
+| `GET /api/games/:id` | return ciphertext and state | public random ID |
 | `DELETE /api/games/:id` | delete invitation graph | creator bearer token |
-| `POST /api/games/:id/responses` | store browser-encrypted response | public, rate limited |
-| `GET /api/games/:id/responses` | return ciphertext for local creator decryption | creator bearer token |
-| `DELETE /api/games/:id/responses` | delete one response ciphertext | recipient deletion bearer token |
-| `POST /api/games/:id/consume` | atomically delete and return one ciphertext | creator bearer token |
-| `POST /api/games/:id/unlock` | record a generic share-unlock event | public |
+| `POST /api/games/:id/responses` | store encrypted response | public, rate limited |
+| `GET /api/games/:id/responses` | return ciphertext for local decryption | creator bearer token |
+| `DELETE /api/games/:id/responses` | delete one response ciphertext | recipient deletion token |
+| `POST /api/games/:id/consume` | atomically delete/return one ciphertext | creator bearer token |
 | `POST /api/games/:id/report` | report abuse and close at threshold | public, rate limited |
 | `GET /api/founder/metrics` | aggregate business dashboard | founder bearer secret |
-| `GET /api/privacy-proof` | live schema, data and retention checks | public |
+| `GET /api/privacy-proof` | schema/data/control evidence | public |
 
 ## Source map
 
-- `app/lib/invitation-crypto.ts`: invitation encryption, decryption and wire hydration
+- `app/lib/shared-key.ts`: random shared keys, QR payloads, fingerprints and 24-word conversion
+- `app/components/SharedKeySetup.tsx`: generate or select a previous key
+- `app/components/SharedKeyUnlock.tsx`: local camera/image/word reader
+- `app/lib/invitation-crypto.ts`: v2 derivation, key wrapping, encryption and decryption
 - `app/lib/response-crypto.ts`: response ECDH/HKDF/AES encryption
-- `app/components/Builder.tsx`: creator-side secret generation and encrypted creation
-- `app/g/[id]`: recipient-side invitation decryption and response encryption
-- `app/p/[id]`: creator-side invitation/response decryption
-- `app/api`: storage, lifecycle, retention, metrics and sponsor APIs
-- `scripts/verify-e2ee.mjs`: isolated end-to-end encrypted data-flow verifier
-- `app/api/privacy-proof/route.ts`: public live control evidence
-- `packages/z4sk-sdk`: reusable browser SDK implementing the same encrypted creation flow
+- `app/components/Builder.tsx`: encrypted creation
+- `app/g/[id]`: recipient decryption and response encryption
+- `app/p/[id]`: creator decryption
+- `scripts/verify-e2ee.mjs`: isolated end-to-end verifier
+- `packages/z4sk-sdk`: reusable browser client for the same v2 protocol
 
-## Architecture decisions
+## Decisions
 
-- No user accounts: high-entropy bearer links grant narrowly scoped capabilities.
-- Invitation and response E2EE: private content is encrypted before it reaches the API.
-- Minimal readable lifecycle state: expiry and one-time consumption remain enforceable without decryption.
-- No new per-question analytics: encrypted question text never enters server metrics.
-- Payments off by default: growth is validated before adding checkout and compliance scope.
-- Exact access expiry plus asynchronous physical purge: every route rejects expired rows, while daily and opportunistic cleanup remove them.
-- Atomic view-once: Postgres deletes the complete active graph before returning the single ciphertext.
-- Public auditability: the code, CI workflow, protocol documentation and runtime self-audit are linked from the application.
+- No accounts: random bearer capabilities plus a separately shared key.
+- Mandatory two-channel decryption for every new invitation; v1 envelopes are rejected.
+- Reusable key convenience without server-side storage or recovery.
+- No implicit persistence: shared keys live in browser memory only unless users save the QR/words themselves.
+- Minimal server-readable lifecycle state permits expiry, view-once and deletion without plaintext.
+- No new per-question analytics because question text never reaches the server.
+- Public source, CI, a protocol document and runtime self-audit make claims inspectable without calling them an independent certification.

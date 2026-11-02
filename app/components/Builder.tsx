@@ -7,138 +7,774 @@ import { downloadInvitationHtml } from "../lib/html-invite";
 import { interpolate, type Locale, useLanguage } from "../lib/i18n";
 import { QrCard } from "./QrCard";
 import { ShareInvitation } from "./ShareInvitation";
-import { attachPrivateDecryptionKey, generateCreatorAccessCredential, generateResponseKeyPair } from "../lib/response-crypto";
-import { attachInvitationSecret, encryptPrivateInvitation, generateInvitationSecret } from "../lib/invitation-crypto";
+import { SharedKeyCard } from "./SharedKeyCard";
+import { SharedKeySetup } from "./SharedKeySetup";
+import {
+  attachPrivateDecryptionKey,
+  generateCreatorAccessCredential,
+  generateResponseKeyPair,
+} from "../lib/response-crypto";
+import {
+  attachInvitationSecret,
+  encryptPrivateInvitation,
+  generateInvitationSecret,
+} from "../lib/invitation-crypto";
 import { NAME_RULE_COPY } from "../lib/name-copy";
-const localized=<T,>(base:Record<Locale,T>)=>base;
+const localized = <T,>(base: Record<Locale, T>) => base;
 
 type Created = { id: string; playUrl: string; adminUrl: string };
-const growthCopy = localized<{ title: string; copy: string; button: string; unlocked: string; share: string }>({
-  en: { title: "Make this questionnaire ad-free", copy: "Share Z4SK once. You bring someone new; we remove every ad from this questionnaire.", button: "Share once & remove ads", unlocked: "Unlocked · This questionnaire is now ad-free", share: "Create a private questionnaire and share it on WhatsApp. Ask. Answer. Dare." },
-  es: { title: "Deja este cuestionario sin anuncios", copy: "Comparte Z4SK una vez. Tú traes a alguien nuevo y nosotros quitamos todos los anuncios.", button: "Compartir una vez y quitar anuncios", unlocked: "Desbloqueado · Este cuestionario ya no tiene anuncios", share: "Crea un cuestionario privado y compártelo por WhatsApp. Pregunta. Responde. Atrévete." },
-  it: { title: "Rendi questo questionario senza pubblicità", copy: "Condividi Z4SK una volta. Tu porti una nuova persona, noi togliamo tutta la pubblicità.", button: "Condividi e rimuovi la pubblicità", unlocked: "Sbloccato · Questo questionario è senza pubblicità", share: "Crea un questionario privato e condividilo su WhatsApp. Domanda. Rispondi. Osa." },
-  fr: { title: "Rendez ce questionnaire sans publicité", copy: "Partagez Z4SK une fois. Vous invitez une personne, nous retirons toutes les publicités.", button: "Partager et retirer les publicités", unlocked: "Débloqué · Ce questionnaire est sans publicité", share: "Créez un questionnaire privé et partagez-le sur WhatsApp. Demandez. Répondez. Osez." },
-  de: { title: "Diesen Fragebogen werbefrei machen", copy: "Teile Z4SK einmal. Du bringst eine neue Person, wir entfernen sämtliche Werbung.", button: "Teilen und Werbung entfernen", unlocked: "Freigeschaltet · Dieser Fragebogen ist werbefrei", share: "Erstelle einen privaten Fragebogen und teile ihn über WhatsApp. Fragen. Antworten. Trauen." },
-  nl: { title:"Maak deze vragenlijst advertentievrij", copy:"Deel Z4SK één keer. Jij brengt iemand nieuws; wij verwijderen alle advertenties.", button:"Eenmaal delen en advertenties verwijderen", unlocked:"Ontgrendeld · Deze vragenlijst is nu advertentievrij", share:"Maak een privévragenlijst en deel die via WhatsApp. Vraag. Antwoord. Durf." },
-  eo: { title:"Forigu reklamojn de ĉi tiu demandaro", copy:"Kundividu Z4SK unufoje. Vi venigas novan personon; ni forigas ĉiujn reklamojn.", button:"Kundividi kaj forigi reklamojn", unlocked:"Malŝlosita · Ĉi tiu demandaro nun estas sen reklamoj", share:"Kreu privatan demandaron kaj kundividu ĝin per WhatsApp. Demandu. Respondu. Kuraĝu." },
-  pt: { title:"Deixa este questionário sem anúncios", copy:"Partilha o Z4SK uma vez. Trazes uma pessoa nova e retiramos todos os anúncios.", button:"Partilhar e retirar anúncios", unlocked:"Desbloqueado · Este questionário está sem anúncios", share:"Cria um questionário privado e partilha-o no WhatsApp. Pergunta. Responde. Arrisca." },
-  zh: { title:"让问卷无广告",copy:"分享一次 Z4SK，我们就会移除这份问卷中的广告。",button:"分享并移除广告",unlocked:"已解锁 · 这份问卷现在无广告",share:"创建私人问卷，通过 WhatsApp 分享。提问、回答、勇敢一点。" },
-  hi: { title:"इस प्रश्नपत्र से विज्ञापन हटाएँ",copy:"Z4SK को एक बार साझा करें और हम इस प्रश्नपत्र से विज्ञापन हटा देंगे।",button:"साझा करें और विज्ञापन हटाएँ",unlocked:"अनलॉक · अब यह प्रश्नपत्र विज्ञापन-मुक्त है",share:"निजी प्रश्नपत्र बनाएँ और WhatsApp पर साझा करें। पूछें। जवाब दें। हिम्मत करें।" },
-  ja: { title:"この質問を広告なしにする", copy:"Z4SKを一度共有すると、この質問から広告をすべて削除します。", button:"共有して広告を削除", unlocked:"解除済み・この質問は広告なしです", share:"非公開の質問を作り、WhatsAppで共有。聞く。答える。踏み出す。" },
-  tr: { title:"Bu soru formunu reklamsız yap", copy:"Z4SK'i bir kez paylaş. Sen yeni birini getir, biz tüm reklamları kaldıralım.", button:"Paylaş ve reklamları kaldır", unlocked:"Açıldı · Bu soru formu artık reklamsız", share:"Özel bir soru formu oluştur ve WhatsApp'ta paylaş. Sor. Yanıtla. Cesaret et." },
-  machine: { title:"SET questionnaire.ads=false", copy:"SHARE Z4SK ONCE => referral+1 => ads.remove_all()", button:"SHARE_AND_UNLOCK", unlocked:"UNLOCKED · ads=false", share:"CREATE private_questionnaire; SEND whatsapp://; ASK.ANSWER.DARE." },
+const growthCopy = localized<{
+  title: string;
+  copy: string;
+  button: string;
+  unlocked: string;
+  share: string;
+}>({
+  en: {
+    title: "Make this questionnaire ad-free",
+    copy: "Share Z4SK once. You bring someone new; we remove every ad from this questionnaire.",
+    button: "Share once & remove ads",
+    unlocked: "Unlocked · This questionnaire is now ad-free",
+    share:
+      "Create a private questionnaire and share it on WhatsApp. Ask. Answer. Dare.",
+  },
+  es: {
+    title: "Deja este cuestionario sin anuncios",
+    copy: "Comparte Z4SK una vez. Tú traes a alguien nuevo y nosotros quitamos todos los anuncios.",
+    button: "Compartir una vez y quitar anuncios",
+    unlocked: "Desbloqueado · Este cuestionario ya no tiene anuncios",
+    share:
+      "Crea un cuestionario privado y compártelo por WhatsApp. Pregunta. Responde. Atrévete.",
+  },
+  it: {
+    title: "Rendi questo questionario senza pubblicità",
+    copy: "Condividi Z4SK una volta. Tu porti una nuova persona, noi togliamo tutta la pubblicità.",
+    button: "Condividi e rimuovi la pubblicità",
+    unlocked: "Sbloccato · Questo questionario è senza pubblicità",
+    share:
+      "Crea un questionario privato e condividilo su WhatsApp. Domanda. Rispondi. Osa.",
+  },
+  fr: {
+    title: "Rendez ce questionnaire sans publicité",
+    copy: "Partagez Z4SK une fois. Vous invitez une personne, nous retirons toutes les publicités.",
+    button: "Partager et retirer les publicités",
+    unlocked: "Débloqué · Ce questionnaire est sans publicité",
+    share:
+      "Créez un questionnaire privé et partagez-le sur WhatsApp. Demandez. Répondez. Osez.",
+  },
+  de: {
+    title: "Diesen Fragebogen werbefrei machen",
+    copy: "Teile Z4SK einmal. Du bringst eine neue Person, wir entfernen sämtliche Werbung.",
+    button: "Teilen und Werbung entfernen",
+    unlocked: "Freigeschaltet · Dieser Fragebogen ist werbefrei",
+    share:
+      "Erstelle einen privaten Fragebogen und teile ihn über WhatsApp. Fragen. Antworten. Trauen.",
+  },
+  nl: {
+    title: "Maak deze vragenlijst advertentievrij",
+    copy: "Deel Z4SK één keer. Jij brengt iemand nieuws; wij verwijderen alle advertenties.",
+    button: "Eenmaal delen en advertenties verwijderen",
+    unlocked: "Ontgrendeld · Deze vragenlijst is nu advertentievrij",
+    share:
+      "Maak een privévragenlijst en deel die via WhatsApp. Vraag. Antwoord. Durf.",
+  },
+  eo: {
+    title: "Forigu reklamojn de ĉi tiu demandaro",
+    copy: "Kundividu Z4SK unufoje. Vi venigas novan personon; ni forigas ĉiujn reklamojn.",
+    button: "Kundividi kaj forigi reklamojn",
+    unlocked: "Malŝlosita · Ĉi tiu demandaro nun estas sen reklamoj",
+    share:
+      "Kreu privatan demandaron kaj kundividu ĝin per WhatsApp. Demandu. Respondu. Kuraĝu.",
+  },
+  pt: {
+    title: "Deixa este questionário sem anúncios",
+    copy: "Partilha o Z4SK uma vez. Trazes uma pessoa nova e retiramos todos os anúncios.",
+    button: "Partilhar e retirar anúncios",
+    unlocked: "Desbloqueado · Este questionário está sem anúncios",
+    share:
+      "Cria um questionário privado e partilha-o no WhatsApp. Pergunta. Responde. Arrisca.",
+  },
+  zh: {
+    title: "让问卷无广告",
+    copy: "分享一次 Z4SK，我们就会移除这份问卷中的广告。",
+    button: "分享并移除广告",
+    unlocked: "已解锁 · 这份问卷现在无广告",
+    share: "创建私人问卷，通过 WhatsApp 分享。提问、回答、勇敢一点。",
+  },
+  hi: {
+    title: "इस प्रश्नपत्र से विज्ञापन हटाएँ",
+    copy: "Z4SK को एक बार साझा करें और हम इस प्रश्नपत्र से विज्ञापन हटा देंगे।",
+    button: "साझा करें और विज्ञापन हटाएँ",
+    unlocked: "अनलॉक · अब यह प्रश्नपत्र विज्ञापन-मुक्त है",
+    share:
+      "निजी प्रश्नपत्र बनाएँ और WhatsApp पर साझा करें। पूछें। जवाब दें। हिम्मत करें।",
+  },
+  ja: {
+    title: "この質問を広告なしにする",
+    copy: "Z4SKを一度共有すると、この質問から広告をすべて削除します。",
+    button: "共有して広告を削除",
+    unlocked: "解除済み・この質問は広告なしです",
+    share: "非公開の質問を作り、WhatsAppで共有。聞く。答える。踏み出す。",
+  },
+  tr: {
+    title: "Bu soru formunu reklamsız yap",
+    copy: "Z4SK'i bir kez paylaş. Sen yeni birini getir, biz tüm reklamları kaldıralım.",
+    button: "Paylaş ve reklamları kaldır",
+    unlocked: "Açıldı · Bu soru formu artık reklamsız",
+    share:
+      "Özel bir soru formu oluştur ve WhatsApp'ta paylaş. Sor. Yanıtla. Cesaret et.",
+  },
+  machine: {
+    title: "SET questionnaire.ads=false",
+    copy: "SHARE Z4SK ONCE => referral+1 => ads.remove_all()",
+    button: "SHARE_AND_UNLOCK",
+    unlocked: "UNLOCKED · ads=false",
+    share: "CREATE private_questionnaire; SEND whatsapp://; ASK.ANSWER.DARE.",
+  },
 });
 const smartCopy = localized<{ button: string; note: string }>({
-  en: { button: "✦ SMART MIX™", note: "Optimized from anonymous completion patterns — never answer text." },
-  es: { button: "✦ SMART MIX™", note: "Optimizado con patrones anónimos de finalización, nunca con el texto de las respuestas." },
-  it: { button: "✦ SMART MIX™", note: "Ottimizzato con dati anonimi di completamento, mai con il testo delle risposte." },
-  fr: { button: "✦ SMART MIX™", note: "Optimisé avec des données anonymes de complétion, jamais avec le texte des réponses." },
-  de: { button: "✦ SMART MIX™", note: "Optimiert mit anonymen Abschlussdaten, niemals mit Antworttexten." },
-  nl:{button:"✦ SLIMME MIX™",note:"Geoptimaliseerd met anonieme voltooiingspatronen, nooit met antwoordtekst."},
-  eo:{button:"✦ LERTA MIKSO™",note:"Optimumigita per anonimaj kompletigaj ŝablonoj, neniam per la teksto de respondoj."},
-  pt:{button:"✦ MISTURA INTELIGENTE™",note:"Otimizado com padrões anónimos de conclusão, nunca com o texto das respostas."},
-  zh:{button:"✦ 智能组合™",note:"根据匿名完成率优化，绝不读取回答内容。"},
-  hi:{button:"✦ स्मार्ट मिक्स™",note:"सिर्फ गुमनाम पूर्णता पैटर्न से बेहतर बनाया गया—जवाब के टेक्स्ट से कभी नहीं।"},
-  ja:{button:"✦ スマートミックス™",note:"匿名の完了パターンだけで最適化し、回答本文は一切使用しません。"},
-  tr:{button:"✦ AKILLI KARIŞIM™",note:"Yalnızca anonim tamamlama örüntüleriyle optimize edilir; yanıt metni asla kullanılmaz."},
-  machine:{button:"✦ SMART_MIX()",note:"optimize(source=anonymous_completion_patterns); answer_text_access=false"},
+  en: {
+    button: "✦ SMART MIX™",
+    note: "Optimized from anonymous completion patterns — never answer text.",
+  },
+  es: {
+    button: "✦ SMART MIX™",
+    note: "Optimizado con patrones anónimos de finalización, nunca con el texto de las respuestas.",
+  },
+  it: {
+    button: "✦ SMART MIX™",
+    note: "Ottimizzato con dati anonimi di completamento, mai con il testo delle risposte.",
+  },
+  fr: {
+    button: "✦ SMART MIX™",
+    note: "Optimisé avec des données anonymes de complétion, jamais avec le texte des réponses.",
+  },
+  de: {
+    button: "✦ SMART MIX™",
+    note: "Optimiert mit anonymen Abschlussdaten, niemals mit Antworttexten.",
+  },
+  nl: {
+    button: "✦ SLIMME MIX™",
+    note: "Geoptimaliseerd met anonieme voltooiingspatronen, nooit met antwoordtekst.",
+  },
+  eo: {
+    button: "✦ LERTA MIKSO™",
+    note: "Optimumigita per anonimaj kompletigaj ŝablonoj, neniam per la teksto de respondoj.",
+  },
+  pt: {
+    button: "✦ MISTURA INTELIGENTE™",
+    note: "Otimizado com padrões anónimos de conclusão, nunca com o texto das respostas.",
+  },
+  zh: { button: "✦ 智能组合™", note: "根据匿名完成率优化，绝不读取回答内容。" },
+  hi: {
+    button: "✦ स्मार्ट मिक्स™",
+    note: "सिर्फ गुमनाम पूर्णता पैटर्न से बेहतर बनाया गया—जवाब के टेक्स्ट से कभी नहीं।",
+  },
+  ja: {
+    button: "✦ スマートミックス™",
+    note: "匿名の完了パターンだけで最適化し、回答本文は一切使用しません。",
+  },
+  tr: {
+    button: "✦ AKILLI KARIŞIM™",
+    note: "Yalnızca anonim tamamlama örüntüleriyle optimize edilir; yanıt metni asla kullanılmaz.",
+  },
+  machine: {
+    button: "✦ SMART_MIX()",
+    note: "optimize(source=anonymous_completion_patterns); answer_text_access=false",
+  },
 });
-const responseModeCopy = localized<{ heading:string; normal:string; normalCopy:string; once:string; onceCopy:string; selected:string }>({
-  en:{heading:"HOW MANY RESPONSES?",normal:"Normal mode",normalCopy:"Several people can answer with the same link. You can view every response until the link expires or you delete it.",once:"View once",onceCopy:"Only the first response is accepted. It stays sealed; when you tap “View and destroy”, the invitation and response are deleted from the active database.",selected:"SELECTED"},
-  es:{heading:"¿CUÁNTAS RESPUESTAS?",normal:"Modo normal",normalCopy:"Varias personas pueden responder con el mismo enlace. Verás todas las respuestas hasta que el enlace caduque o tú las elimines.",once:"Ver una vez",onceCopy:"Solo se acepta la primera respuesta. Queda sellada y, al pulsar «Ver y destruir», la invitación y la respuesta se borran de la base de datos activa.",selected:"SELECCIONADO"},
-  it:{heading:"QUANTE RISPOSTE?",normal:"Modalità normale",normalCopy:"Più persone possono rispondere con lo stesso link. Vedrai tutte le risposte finché il link non scade o le elimini.",once:"Visualizza una volta",onceCopy:"Viene accettata solo la prima risposta. Resta sigillata e, toccando “Visualizza ed elimina”, invito e risposta vengono cancellati dal database attivo.",selected:"SELEZIONATO"},
-  fr:{heading:"COMBIEN DE RÉPONSES ?",normal:"Mode normal",normalCopy:"Plusieurs personnes peuvent répondre avec le même lien. Toutes les réponses restent visibles jusqu'à l'expiration du lien ou leur suppression.",once:"Voir une fois",onceCopy:"Seule la première réponse est acceptée. Elle reste scellée ; en touchant « Voir et détruire », l'invitation et la réponse sont supprimées de la base active.",selected:"SÉLECTIONNÉ"},
-  de:{heading:"WIE VIELE ANTWORTEN?",normal:"Normaler Modus",normalCopy:"Mehrere Personen können über denselben Link antworten. Alle Antworten bleiben bis zum Ablauf oder bis zum Löschen sichtbar.",once:"Einmal ansehen",onceCopy:"Nur die erste Antwort wird angenommen. Sie bleibt versiegelt; bei „Ansehen und löschen“ werden Einladung und Antwort aus der aktiven Datenbank gelöscht.",selected:"AUSGEWÄHLT"},
-  nl:{heading:"HOEVEEL ANTWOORDEN?",normal:"Normale modus",normalCopy:"Meerdere mensen kunnen via dezelfde link antwoorden. Je ziet alle antwoorden totdat de link verloopt of je ze verwijdert.",once:"Eenmalig bekijken",onceCopy:"Alleen het eerste antwoord wordt geaccepteerd. Het blijft verzegeld; met ‘Bekijk en vernietig’ worden uitnodiging en antwoord uit de actieve database verwijderd.",selected:"GESELECTEERD"},
-  eo:{heading:"KIOM DA RESPONDOJ?",normal:"Normala reĝimo",normalCopy:"Pluraj homoj povas respondi per la sama ligilo. Ĉiuj respondoj videblas ĝis la ligilo eksvalidiĝas aŭ vi forigas ilin.",once:"Vidi unufoje",onceCopy:"Nur la unua respondo estas akceptata. Ĝi restas sigelita; per “Vidi kaj detrui” la invito kaj respondo estas forigitaj el la aktiva datumbazo.",selected:"ELEKTITA"},
-  pt:{heading:"QUANTAS RESPOSTAS?",normal:"Modo normal",normalCopy:"Várias pessoas podem responder pelo mesmo link. Verás todas as respostas até o link expirar ou até as eliminares.",once:"Ver uma vez",onceCopy:"Só é aceite a primeira resposta. Fica selada e, ao tocar em «Ver e destruir», o convite e a resposta são eliminados da base de dados ativa.",selected:"SELECIONADO"},
-  zh:{heading:"允许多少份回答？",normal:"普通模式",normalCopy:"多人可以使用同一链接回答。所有回答会保留到链接到期或你主动删除。",once:"仅看一次",onceCopy:"只接受第一份回答。回答会保持密封；点击“查看并销毁”后，邀请和回答将从活跃数据库中删除。",selected:"已选择"},
-  hi:{heading:"कितने जवाब?",normal:"सामान्य मोड",normalCopy:"एक ही लिंक से कई लोग जवाब दे सकते हैं। लिंक की अवधि खत्म होने या आपके मिटाने तक सभी जवाब दिखेंगे।",once:"एक बार देखें",onceCopy:"सिर्फ पहला जवाब स्वीकार होगा। वह सील रहेगा; “देखें और मिटाएँ” दबाने पर आमंत्रण और जवाब सक्रिय डेटाबेस से मिट जाते हैं।",selected:"चुना गया"},
-  ja:{heading:"回答数は？",normal:"通常モード",normalCopy:"同じリンクから複数人が回答できます。期限切れまたは削除するまで、すべての回答を確認できます。",once:"一度だけ見る",onceCopy:"最初の1件だけ受け付けます。回答は封印され、「表示して削除」を押すと招待と回答がアクティブデータベースから削除されます。",selected:"選択中"},
-  tr:{heading:"KAÇ YANIT?",normal:"Normal mod",normalCopy:"Aynı bağlantıyla birden fazla kişi yanıt verebilir. Bağlantı sona erene veya sen silene kadar tüm yanıtları görürsün.",once:"Bir kez görüntüle",onceCopy:"Yalnızca ilk yanıt kabul edilir. Yanıt mühürlü kalır; “Görüntüle ve yok et” seçilince davet ve yanıt aktif veritabanından silinir.",selected:"SEÇİLDİ"},
-  machine:{heading:"RESPONSE_CARDINALITY",normal:"MULTI_RESPONSE",normalCopy:"same_link accepts N responses UNTIL expiry OR creator_delete.",once:"SINGLE_CONSUME",onceCopy:"accept FIRST only; keep SEALED; on creator_consume DELETE invitation+response FROM active_db.",selected:"SELECTED"}
+const responseModeCopy = localized<{
+  heading: string;
+  normal: string;
+  normalCopy: string;
+  once: string;
+  onceCopy: string;
+  selected: string;
+}>({
+  en: {
+    heading: "HOW MANY RESPONSES?",
+    normal: "Normal mode",
+    normalCopy:
+      "Several people can answer with the same link. You can view every response until the link expires or you delete it.",
+    once: "View once",
+    onceCopy:
+      "Only the first response is accepted. It stays sealed; when you tap “View and destroy”, the invitation and response are deleted from the active database.",
+    selected: "SELECTED",
+  },
+  es: {
+    heading: "¿CUÁNTAS RESPUESTAS?",
+    normal: "Modo normal",
+    normalCopy:
+      "Varias personas pueden responder con el mismo enlace. Verás todas las respuestas hasta que el enlace caduque o tú las elimines.",
+    once: "Ver una vez",
+    onceCopy:
+      "Solo se acepta la primera respuesta. Queda sellada y, al pulsar «Ver y destruir», la invitación y la respuesta se borran de la base de datos activa.",
+    selected: "SELECCIONADO",
+  },
+  it: {
+    heading: "QUANTE RISPOSTE?",
+    normal: "Modalità normale",
+    normalCopy:
+      "Più persone possono rispondere con lo stesso link. Vedrai tutte le risposte finché il link non scade o le elimini.",
+    once: "Visualizza una volta",
+    onceCopy:
+      "Viene accettata solo la prima risposta. Resta sigillata e, toccando “Visualizza ed elimina”, invito e risposta vengono cancellati dal database attivo.",
+    selected: "SELEZIONATO",
+  },
+  fr: {
+    heading: "COMBIEN DE RÉPONSES ?",
+    normal: "Mode normal",
+    normalCopy:
+      "Plusieurs personnes peuvent répondre avec le même lien. Toutes les réponses restent visibles jusqu'à l'expiration du lien ou leur suppression.",
+    once: "Voir une fois",
+    onceCopy:
+      "Seule la première réponse est acceptée. Elle reste scellée ; en touchant « Voir et détruire », l'invitation et la réponse sont supprimées de la base active.",
+    selected: "SÉLECTIONNÉ",
+  },
+  de: {
+    heading: "WIE VIELE ANTWORTEN?",
+    normal: "Normaler Modus",
+    normalCopy:
+      "Mehrere Personen können über denselben Link antworten. Alle Antworten bleiben bis zum Ablauf oder bis zum Löschen sichtbar.",
+    once: "Einmal ansehen",
+    onceCopy:
+      "Nur die erste Antwort wird angenommen. Sie bleibt versiegelt; bei „Ansehen und löschen“ werden Einladung und Antwort aus der aktiven Datenbank gelöscht.",
+    selected: "AUSGEWÄHLT",
+  },
+  nl: {
+    heading: "HOEVEEL ANTWOORDEN?",
+    normal: "Normale modus",
+    normalCopy:
+      "Meerdere mensen kunnen via dezelfde link antwoorden. Je ziet alle antwoorden totdat de link verloopt of je ze verwijdert.",
+    once: "Eenmalig bekijken",
+    onceCopy:
+      "Alleen het eerste antwoord wordt geaccepteerd. Het blijft verzegeld; met ‘Bekijk en vernietig’ worden uitnodiging en antwoord uit de actieve database verwijderd.",
+    selected: "GESELECTEERD",
+  },
+  eo: {
+    heading: "KIOM DA RESPONDOJ?",
+    normal: "Normala reĝimo",
+    normalCopy:
+      "Pluraj homoj povas respondi per la sama ligilo. Ĉiuj respondoj videblas ĝis la ligilo eksvalidiĝas aŭ vi forigas ilin.",
+    once: "Vidi unufoje",
+    onceCopy:
+      "Nur la unua respondo estas akceptata. Ĝi restas sigelita; per “Vidi kaj detrui” la invito kaj respondo estas forigitaj el la aktiva datumbazo.",
+    selected: "ELEKTITA",
+  },
+  pt: {
+    heading: "QUANTAS RESPOSTAS?",
+    normal: "Modo normal",
+    normalCopy:
+      "Várias pessoas podem responder pelo mesmo link. Verás todas as respostas até o link expirar ou até as eliminares.",
+    once: "Ver uma vez",
+    onceCopy:
+      "Só é aceite a primeira resposta. Fica selada e, ao tocar em «Ver e destruir», o convite e a resposta são eliminados da base de dados ativa.",
+    selected: "SELECIONADO",
+  },
+  zh: {
+    heading: "允许多少份回答？",
+    normal: "普通模式",
+    normalCopy:
+      "多人可以使用同一链接回答。所有回答会保留到链接到期或你主动删除。",
+    once: "仅看一次",
+    onceCopy:
+      "只接受第一份回答。回答会保持密封；点击“查看并销毁”后，邀请和回答将从活跃数据库中删除。",
+    selected: "已选择",
+  },
+  hi: {
+    heading: "कितने जवाब?",
+    normal: "सामान्य मोड",
+    normalCopy:
+      "एक ही लिंक से कई लोग जवाब दे सकते हैं। लिंक की अवधि खत्म होने या आपके मिटाने तक सभी जवाब दिखेंगे।",
+    once: "एक बार देखें",
+    onceCopy:
+      "सिर्फ पहला जवाब स्वीकार होगा। वह सील रहेगा; “देखें और मिटाएँ” दबाने पर आमंत्रण और जवाब सक्रिय डेटाबेस से मिट जाते हैं।",
+    selected: "चुना गया",
+  },
+  ja: {
+    heading: "回答数は？",
+    normal: "通常モード",
+    normalCopy:
+      "同じリンクから複数人が回答できます。期限切れまたは削除するまで、すべての回答を確認できます。",
+    once: "一度だけ見る",
+    onceCopy:
+      "最初の1件だけ受け付けます。回答は封印され、「表示して削除」を押すと招待と回答がアクティブデータベースから削除されます。",
+    selected: "選択中",
+  },
+  tr: {
+    heading: "KAÇ YANIT?",
+    normal: "Normal mod",
+    normalCopy:
+      "Aynı bağlantıyla birden fazla kişi yanıt verebilir. Bağlantı sona erene veya sen silene kadar tüm yanıtları görürsün.",
+    once: "Bir kez görüntüle",
+    onceCopy:
+      "Yalnızca ilk yanıt kabul edilir. Yanıt mühürlü kalır; “Görüntüle ve yok et” seçilince davet ve yanıt aktif veritabanından silinir.",
+    selected: "SEÇİLDİ",
+  },
+  machine: {
+    heading: "RESPONSE_CARDINALITY",
+    normal: "MULTI_RESPONSE",
+    normalCopy: "same_link accepts N responses UNTIL expiry OR creator_delete.",
+    once: "SINGLE_CONSUME",
+    onceCopy:
+      "accept FIRST only; keep SEALED; on creator_consume DELETE invitation+response FROM active_db.",
+    selected: "SELECTED",
+  },
 });
-const matchQuestionCopy=localized<{label:string;help:string;placeholder:string}>({
-  en:{label:"YOUR SECRET MATCH QUESTION",help:"This is exactly what the other person will see. The answer remains hidden unless you both say Yes.",placeholder:"Would you go on a date with {name}?"},
-  es:{label:"TU PREGUNTA PARA EL MATCH SECRETO",help:"Esto es exactamente lo que verá la otra persona. La respuesta seguirá oculta salvo que ambos digáis «Sí».",placeholder:"¿Tendrías una cita con {name}?"},
-  it:{label:"LA TUA DOMANDA PER IL MATCH SEGRETO",help:"È esattamente ciò che vedrà l’altra persona. La risposta resta nascosta a meno che entrambi diciate Sì.",placeholder:"Usciresti con {name}?"},
-  fr:{label:"VOTRE QUESTION DE MATCH SECRET",help:"C’est exactement ce que verra l’autre personne. La réponse reste cachée sauf si vous dites Oui tous les deux.",placeholder:"Accepterais-tu un rendez-vous avec {name} ?"},
-  de:{label:"DEINE FRAGE FÜR DAS GEHEIME MATCH",help:"Genau diesen Text sieht die andere Person. Die Antwort bleibt verborgen, außer ihr sagt beide Ja.",placeholder:"Würdest du mit {name} ausgehen?"},
-  nl:{label:"JOUW VRAAG VOOR DE GEHEIME MATCH",help:"Dit is precies wat de ander ziet. Het antwoord blijft verborgen, tenzij jullie allebei Ja zeggen.",placeholder:"Zou je met {name} op date gaan?"},
-  eo:{label:"VIA DEMANDO POR LA SEKRETA KONGRUO",help:"Ĝuste ĉi tion vidos la alia persono. La respondo restas kaŝita krom se ambaŭ diras Jes.",placeholder:"Ĉu vi rendevuus kun {name}?"},
-  pt:{label:"A TUA PERGUNTA PARA O MATCH SECRETO",help:"É exatamente isto que a outra pessoa verá. A resposta fica oculta, a menos que ambos digam Sim.",placeholder:"Terias um encontro com {name}?"},
-  zh:{label:"你的秘密匹配问题",help:"对方将看到这段原文。除非双方都回答“愿意”，否则答案始终隐藏。",placeholder:"你愿意和 {name} 约会吗？"},
-  hi:{label:"गुप्त मैच के लिए आपका सवाल",help:"दूसरे व्यक्ति को यही सवाल दिखाई देगा। जब तक दोनों हाँ नहीं कहते, जवाब छिपा रहेगा।",placeholder:"क्या आप {name} के साथ डेट पर जाना चाहेंगे?"},
-  ja:{label:"シークレットマッチの質問",help:"相手にはこの文章がそのまま表示されます。二人とも「はい」と答えない限り、回答は公開されません。",placeholder:"{name}さんとデートしたいですか？"},
-  tr:{label:"GİZLİ EŞLEŞME SORUN",help:"Diğer kişi tam olarak bu metni görecek. İkiniz de Evet demedikçe yanıt gizli kalır.",placeholder:"{name} ile buluşur muydun?"},
-  machine:{label:"SECRET_MATCH.question",help:"DISPLAY exact_value; REVEAL answer IFF creator_interest==true AND respondent_interest==true",placeholder:"DATE_INTEREST target={name}?"}
+const matchQuestionCopy = localized<{
+  label: string;
+  help: string;
+  placeholder: string;
+}>({
+  en: {
+    label: "YOUR SECRET MATCH QUESTION",
+    help: "This is exactly what the other person will see. The answer remains hidden unless you both say Yes.",
+    placeholder: "Would you go on a date with {name}?",
+  },
+  es: {
+    label: "TU PREGUNTA PARA EL MATCH SECRETO",
+    help: "Esto es exactamente lo que verá la otra persona. La respuesta seguirá oculta salvo que ambos digáis «Sí».",
+    placeholder: "¿Tendrías una cita con {name}?",
+  },
+  it: {
+    label: "LA TUA DOMANDA PER IL MATCH SEGRETO",
+    help: "È esattamente ciò che vedrà l’altra persona. La risposta resta nascosta a meno che entrambi diciate Sì.",
+    placeholder: "Usciresti con {name}?",
+  },
+  fr: {
+    label: "VOTRE QUESTION DE MATCH SECRET",
+    help: "C’est exactement ce que verra l’autre personne. La réponse reste cachée sauf si vous dites Oui tous les deux.",
+    placeholder: "Accepterais-tu un rendez-vous avec {name} ?",
+  },
+  de: {
+    label: "DEINE FRAGE FÜR DAS GEHEIME MATCH",
+    help: "Genau diesen Text sieht die andere Person. Die Antwort bleibt verborgen, außer ihr sagt beide Ja.",
+    placeholder: "Würdest du mit {name} ausgehen?",
+  },
+  nl: {
+    label: "JOUW VRAAG VOOR DE GEHEIME MATCH",
+    help: "Dit is precies wat de ander ziet. Het antwoord blijft verborgen, tenzij jullie allebei Ja zeggen.",
+    placeholder: "Zou je met {name} op date gaan?",
+  },
+  eo: {
+    label: "VIA DEMANDO POR LA SEKRETA KONGRUO",
+    help: "Ĝuste ĉi tion vidos la alia persono. La respondo restas kaŝita krom se ambaŭ diras Jes.",
+    placeholder: "Ĉu vi rendevuus kun {name}?",
+  },
+  pt: {
+    label: "A TUA PERGUNTA PARA O MATCH SECRETO",
+    help: "É exatamente isto que a outra pessoa verá. A resposta fica oculta, a menos que ambos digam Sim.",
+    placeholder: "Terias um encontro com {name}?",
+  },
+  zh: {
+    label: "你的秘密匹配问题",
+    help: "对方将看到这段原文。除非双方都回答“愿意”，否则答案始终隐藏。",
+    placeholder: "你愿意和 {name} 约会吗？",
+  },
+  hi: {
+    label: "गुप्त मैच के लिए आपका सवाल",
+    help: "दूसरे व्यक्ति को यही सवाल दिखाई देगा। जब तक दोनों हाँ नहीं कहते, जवाब छिपा रहेगा।",
+    placeholder: "क्या आप {name} के साथ डेट पर जाना चाहेंगे?",
+  },
+  ja: {
+    label: "シークレットマッチの質問",
+    help: "相手にはこの文章がそのまま表示されます。二人とも「はい」と答えない限り、回答は公開されません。",
+    placeholder: "{name}さんとデートしたいですか？",
+  },
+  tr: {
+    label: "GİZLİ EŞLEŞME SORUN",
+    help: "Diğer kişi tam olarak bu metni görecek. İkiniz de Evet demedikçe yanıt gizli kalır.",
+    placeholder: "{name} ile buluşur muydun?",
+  },
+  machine: {
+    label: "SECRET_MATCH.question",
+    help: "DISPLAY exact_value; REVEAL answer IFF creator_interest==true AND respondent_interest==true",
+    placeholder: "DATE_INTEREST target={name}?",
+  },
 });
-const creatorMatchAnswerCopy=localized<{label:string;help:string}>({
-  en:{label:"YOUR PRIVATE ANSWER TO THIS QUESTION",help:"Your choice stays secret unless the other person also says Yes."},
-  es:{label:"TU RESPUESTA PRIVADA A ESTA PREGUNTA",help:"Tu elección será secreta salvo que la otra persona también diga «Sí»."},
-  it:{label:"LA TUA RISPOSTA PRIVATA A QUESTA DOMANDA",help:"La tua scelta resta segreta, a meno che anche l’altra persona dica Sì."},
-  fr:{label:"VOTRE RÉPONSE PRIVÉE À CETTE QUESTION",help:"Votre choix reste secret, sauf si l’autre personne répond aussi Oui."},
-  de:{label:"DEINE PRIVATE ANTWORT AUF DIESE FRAGE",help:"Deine Wahl bleibt geheim, außer die andere Person sagt ebenfalls Ja."},
-  nl:{label:"JOUW PRIVÉANTWOORD OP DEZE VRAAG",help:"Je keuze blijft geheim, tenzij de ander ook Ja zegt."},
-  eo:{label:"VIA PRIVATA RESPONDO AL ĈI TIU DEMANDO",help:"Via elekto restas sekreta krom se la alia persono ankaŭ diras Jes."},
-  pt:{label:"A TUA RESPOSTA PRIVADA A ESTA PERGUNTA",help:"A tua escolha fica secreta, a menos que a outra pessoa também diga Sim."},
-  zh:{label:"你对这个问题的私密回答",help:"除非对方也回答“愿意”，否则你的选择始终保密。"},
-  hi:{label:"इस सवाल का आपका निजी जवाब",help:"जब तक दूसरा व्यक्ति भी हाँ नहीं कहता, आपकी पसंद गुप्त रहेगी।"},
-  ja:{label:"この質問へのあなたの非公開回答",help:"相手も「はい」と答えない限り、あなたの選択は秘密です。"},
-  tr:{label:"BU SORUYA ÖZEL YANITIN",help:"Diğer kişi de Evet demedikçe seçimin gizli kalır."},
-  machine:{label:"CREATOR_PRIVATE_ANSWER",help:"REVEAL IFF respondent_answer==TRUE"}
+const creatorMatchAnswerCopy = localized<{ label: string; help: string }>({
+  en: {
+    label: "YOUR PRIVATE ANSWER TO THIS QUESTION",
+    help: "Your choice stays secret unless the other person also says Yes.",
+  },
+  es: {
+    label: "TU RESPUESTA PRIVADA A ESTA PREGUNTA",
+    help: "Tu elección será secreta salvo que la otra persona también diga «Sí».",
+  },
+  it: {
+    label: "LA TUA RISPOSTA PRIVATA A QUESTA DOMANDA",
+    help: "La tua scelta resta segreta, a meno che anche l’altra persona dica Sì.",
+  },
+  fr: {
+    label: "VOTRE RÉPONSE PRIVÉE À CETTE QUESTION",
+    help: "Votre choix reste secret, sauf si l’autre personne répond aussi Oui.",
+  },
+  de: {
+    label: "DEINE PRIVATE ANTWORT AUF DIESE FRAGE",
+    help: "Deine Wahl bleibt geheim, außer die andere Person sagt ebenfalls Ja.",
+  },
+  nl: {
+    label: "JOUW PRIVÉANTWOORD OP DEZE VRAAG",
+    help: "Je keuze blijft geheim, tenzij de ander ook Ja zegt.",
+  },
+  eo: {
+    label: "VIA PRIVATA RESPONDO AL ĈI TIU DEMANDO",
+    help: "Via elekto restas sekreta krom se la alia persono ankaŭ diras Jes.",
+  },
+  pt: {
+    label: "A TUA RESPOSTA PRIVADA A ESTA PERGUNTA",
+    help: "A tua escolha fica secreta, a menos que a outra pessoa também diga Sim.",
+  },
+  zh: {
+    label: "你对这个问题的私密回答",
+    help: "除非对方也回答“愿意”，否则你的选择始终保密。",
+  },
+  hi: {
+    label: "इस सवाल का आपका निजी जवाब",
+    help: "जब तक दूसरा व्यक्ति भी हाँ नहीं कहता, आपकी पसंद गुप्त रहेगी।",
+  },
+  ja: {
+    label: "この質問へのあなたの非公開回答",
+    help: "相手も「はい」と答えない限り、あなたの選択は秘密です。",
+  },
+  tr: {
+    label: "BU SORUYA ÖZEL YANITIN",
+    help: "Diğer kişi de Evet demedikçe seçimin gizli kalır.",
+  },
+  machine: {
+    label: "CREATOR_PRIVATE_ANSWER",
+    help: "REVEAL IFF respondent_answer==TRUE",
+  },
 });
-const timedModeCopy=localized<{title:string;copy:string}>({
-  en:{title:"30-second challenge",copy:"The recipient gets 30 seconds per question and must confirm it twice before starting. At zero, what they typed is locked and the next question opens. They cannot go back."},
-  es:{title:"Reto de 30 segundos",copy:"La persona tendrá 30 segundos por pregunta y deberá confirmarlo dos veces antes de empezar. Al llegar a cero, se guarda lo escrito y se abre la siguiente pregunta. No podrá volver atrás."},
-  it:{title:"Sfida da 30 secondi",copy:"Chi risponde ha 30 secondi per domanda e deve confermarlo due volte prima di iniziare. A zero, il testo viene bloccato e si apre la domanda successiva. Non può tornare indietro."},
-  fr:{title:"Défi de 30 secondes",copy:"La personne dispose de 30 secondes par question et doit le confirmer deux fois avant de commencer. À zéro, son texte est verrouillé et la question suivante s’ouvre. Impossible de revenir en arrière."},
-  de:{title:"30-Sekunden-Challenge",copy:"Die antwortende Person hat 30 Sekunden pro Frage und muss dies vor dem Start zweimal bestätigen. Bei null wird der Text gesperrt und die nächste Frage geöffnet. Zurückgehen ist nicht möglich."},
-  nl:{title:"30-secondenchallenge",copy:"De ontvanger krijgt 30 seconden per vraag en moet dit vóór de start twee keer bevestigen. Bij nul wordt de tekst vastgezet en opent de volgende vraag. Teruggaan kan niet."},
-  eo:{title:"30-sekunda defio",copy:"La respondanto ricevas 30 sekundojn por ĉiu demando kaj devas tion konfirmi dufoje antaŭ la komenco. Je nulo la tajpita teksto fiksiĝas kaj la sekva demando malfermiĝas. Reiri ne eblas."},
-  pt:{title:"Desafio de 30 segundos",copy:"A pessoa terá 30 segundos por pergunta e terá de o confirmar duas vezes antes de começar. Ao chegar a zero, o texto fica bloqueado e abre-se a pergunta seguinte. Não é possível voltar atrás."},
-  zh:{title:"30 秒挑战",copy:"回答者每题只有 30 秒，开始前必须确认两次。倒计时归零时，已输入内容会被锁定并自动进入下一题，无法返回。"},
-  hi:{title:"30 सेकंड चुनौती",copy:"जवाब देने वाले को हर सवाल के लिए 30 सेकंड मिलेंगे और शुरू करने से पहले उसे दो बार इसकी पुष्टि करनी होगी। समय समाप्त होने पर लिखा हुआ जवाब लॉक होगा और अगला सवाल खुलेगा। वापस नहीं जा सकेंगे।"},
-  ja:{title:"30秒チャレンジ",copy:"回答者は1問につき30秒で、開始前に2回確認する必要があります。0秒になると入力内容が確定し、次の質問へ自動で進みます。前には戻れません。"},
-  tr:{title:"30 saniye meydan okuması",copy:"Yanıtlayan kişinin her soru için 30 saniyesi vardır ve başlamadan önce bunu iki kez onaylaması gerekir. Süre sıfırlanınca yazılanlar kilitlenir ve sonraki soru açılır. Geri dönülemez."},
-  machine:{title:"MODE::30S_PER_QUESTION",copy:"REQUIRE acknowledgements=2 BEFORE start; deadline=30s EACH; ON timeout LOCK current_input; ADVANCE; navigation.back=false"}
+const timedModeCopy = localized<{ title: string; copy: string }>({
+  en: {
+    title: "30-second challenge",
+    copy: "The recipient gets 30 seconds per question and must confirm it twice before starting. At zero, what they typed is locked and the next question opens. They cannot go back.",
+  },
+  es: {
+    title: "Reto de 30 segundos",
+    copy: "La persona tendrá 30 segundos por pregunta y deberá confirmarlo dos veces antes de empezar. Al llegar a cero, se guarda lo escrito y se abre la siguiente pregunta. No podrá volver atrás.",
+  },
+  it: {
+    title: "Sfida da 30 secondi",
+    copy: "Chi risponde ha 30 secondi per domanda e deve confermarlo due volte prima di iniziare. A zero, il testo viene bloccato e si apre la domanda successiva. Non può tornare indietro.",
+  },
+  fr: {
+    title: "Défi de 30 secondes",
+    copy: "La personne dispose de 30 secondes par question et doit le confirmer deux fois avant de commencer. À zéro, son texte est verrouillé et la question suivante s’ouvre. Impossible de revenir en arrière.",
+  },
+  de: {
+    title: "30-Sekunden-Challenge",
+    copy: "Die antwortende Person hat 30 Sekunden pro Frage und muss dies vor dem Start zweimal bestätigen. Bei null wird der Text gesperrt und die nächste Frage geöffnet. Zurückgehen ist nicht möglich.",
+  },
+  nl: {
+    title: "30-secondenchallenge",
+    copy: "De ontvanger krijgt 30 seconden per vraag en moet dit vóór de start twee keer bevestigen. Bij nul wordt de tekst vastgezet en opent de volgende vraag. Teruggaan kan niet.",
+  },
+  eo: {
+    title: "30-sekunda defio",
+    copy: "La respondanto ricevas 30 sekundojn por ĉiu demando kaj devas tion konfirmi dufoje antaŭ la komenco. Je nulo la tajpita teksto fiksiĝas kaj la sekva demando malfermiĝas. Reiri ne eblas.",
+  },
+  pt: {
+    title: "Desafio de 30 segundos",
+    copy: "A pessoa terá 30 segundos por pergunta e terá de o confirmar duas vezes antes de começar. Ao chegar a zero, o texto fica bloqueado e abre-se a pergunta seguinte. Não é possível voltar atrás.",
+  },
+  zh: {
+    title: "30 秒挑战",
+    copy: "回答者每题只有 30 秒，开始前必须确认两次。倒计时归零时，已输入内容会被锁定并自动进入下一题，无法返回。",
+  },
+  hi: {
+    title: "30 सेकंड चुनौती",
+    copy: "जवाब देने वाले को हर सवाल के लिए 30 सेकंड मिलेंगे और शुरू करने से पहले उसे दो बार इसकी पुष्टि करनी होगी। समय समाप्त होने पर लिखा हुआ जवाब लॉक होगा और अगला सवाल खुलेगा। वापस नहीं जा सकेंगे।",
+  },
+  ja: {
+    title: "30秒チャレンジ",
+    copy: "回答者は1問につき30秒で、開始前に2回確認する必要があります。0秒になると入力内容が確定し、次の質問へ自動で進みます。前には戻れません。",
+  },
+  tr: {
+    title: "30 saniye meydan okuması",
+    copy: "Yanıtlayan kişinin her soru için 30 saniyesi vardır ve başlamadan önce bunu iki kez onaylaması gerekir. Süre sıfırlanınca yazılanlar kilitlenir ve sonraki soru açılır. Geri dönülemez.",
+  },
+  machine: {
+    title: "MODE::30S_PER_QUESTION",
+    copy: "REQUIRE acknowledgements=2 BEFORE start; deadline=30s EACH; ON timeout LOCK current_input; ADVANCE; navigation.back=false",
+  },
 });
-const paymentCopy=localized<{title:string;copy:string;soon:string}>({
-  en:{title:"Custom background + advanced stats · $0.99",copy:"One-tap Apple Pay / Google Pay",soon:"NOT ACTIVE YET"},es:{title:"Fondo personalizado + estadísticas · 0,50 €",copy:"Apple Pay / Google Pay en un toque",soon:"AÚN NO ACTIVO"},it:{title:"Sfondo personalizzato + statistiche · 0,50 €",copy:"Apple Pay / Google Pay con un tocco",soon:"NON ANCORA ATTIVO"},fr:{title:"Fond personnalisé + statistiques · 0,50 €",copy:"Apple Pay / Google Pay en un geste",soon:"PAS ENCORE ACTIF"},de:{title:"Eigenes Hintergrundbild + Statistiken · 0,50 €",copy:"Apple Pay / Google Pay mit einem Tippen",soon:"NOCH NICHT AKTIV"},
-  nl:{title:"Eigen achtergrond + uitgebreide statistieken · € 0,50",copy:"Apple Pay / Google Pay met één tik",soon:"NOG NIET ACTIEF"},eo:{title:"Propra fono + detalaj statistikoj · 0,50 €",copy:"Apple Pay / Google Pay per unu tuŝo",soon:"ANKORAŬ NE AKTIVA"},pt:{title:"Fundo personalizado + estatísticas avançadas · 0,50 €",copy:"Apple Pay / Google Pay com um toque",soon:"AINDA NÃO ATIVO"},zh:{title:"自定义背景 + 高级统计 · $0.99",copy:"Apple Pay / Google Pay 一键支付",soon:"尚未启用"},hi:{title:"कस्टम बैकग्राउंड + उन्नत आँकड़े · $0.99",copy:"एक टैप में Apple Pay / Google Pay",soon:"अभी सक्रिय नहीं"},ja:{title:"カスタム背景＋詳細統計・$0.99",copy:"Apple Pay / Google Payでワンタップ決済",soon:"まだ利用できません"},tr:{title:"Özel arka plan + gelişmiş istatistikler · $0.99",copy:"Tek dokunuşla Apple Pay / Google Pay",soon:"HENÜZ AKTİF DEĞİL"},machine:{title:"custom_background+advanced_stats; price=0.99",copy:"payment=apple_pay|google_pay; taps=1",soon:"STATUS=DISABLED"}
+const paymentCopy = localized<{ title: string; copy: string; soon: string }>({
+  en: {
+    title: "Custom background + advanced stats · $0.99",
+    copy: "One-tap Apple Pay / Google Pay",
+    soon: "NOT ACTIVE YET",
+  },
+  es: {
+    title: "Fondo personalizado + estadísticas · 0,50 €",
+    copy: "Apple Pay / Google Pay en un toque",
+    soon: "AÚN NO ACTIVO",
+  },
+  it: {
+    title: "Sfondo personalizzato + statistiche · 0,50 €",
+    copy: "Apple Pay / Google Pay con un tocco",
+    soon: "NON ANCORA ATTIVO",
+  },
+  fr: {
+    title: "Fond personnalisé + statistiques · 0,50 €",
+    copy: "Apple Pay / Google Pay en un geste",
+    soon: "PAS ENCORE ACTIF",
+  },
+  de: {
+    title: "Eigenes Hintergrundbild + Statistiken · 0,50 €",
+    copy: "Apple Pay / Google Pay mit einem Tippen",
+    soon: "NOCH NICHT AKTIV",
+  },
+  nl: {
+    title: "Eigen achtergrond + uitgebreide statistieken · € 0,50",
+    copy: "Apple Pay / Google Pay met één tik",
+    soon: "NOG NIET ACTIEF",
+  },
+  eo: {
+    title: "Propra fono + detalaj statistikoj · 0,50 €",
+    copy: "Apple Pay / Google Pay per unu tuŝo",
+    soon: "ANKORAŬ NE AKTIVA",
+  },
+  pt: {
+    title: "Fundo personalizado + estatísticas avançadas · 0,50 €",
+    copy: "Apple Pay / Google Pay com um toque",
+    soon: "AINDA NÃO ATIVO",
+  },
+  zh: {
+    title: "自定义背景 + 高级统计 · $0.99",
+    copy: "Apple Pay / Google Pay 一键支付",
+    soon: "尚未启用",
+  },
+  hi: {
+    title: "कस्टम बैकग्राउंड + उन्नत आँकड़े · $0.99",
+    copy: "एक टैप में Apple Pay / Google Pay",
+    soon: "अभी सक्रिय नहीं",
+  },
+  ja: {
+    title: "カスタム背景＋詳細統計・$0.99",
+    copy: "Apple Pay / Google Payでワンタップ決済",
+    soon: "まだ利用できません",
+  },
+  tr: {
+    title: "Özel arka plan + gelişmiş istatistikler · $0.99",
+    copy: "Tek dokunuşla Apple Pay / Google Pay",
+    soon: "HENÜZ AKTİF DEĞİL",
+  },
+  machine: {
+    title: "custom_background+advanced_stats; price=0.99",
+    copy: "payment=apple_pay|google_pay; taps=1",
+    soon: "STATUS=DISABLED",
+  },
 });
-const accessCopy=localized<{email:string;placeholder:string;security:string;invalid:string;send:string;subject:string;body:string}>({
-  en:{email:"YOUR EMAIL · OPTIONAL",placeholder:"you@example.com",security:"Security measure: Z4SK never receives or stores it. It is used here only to open your email app; your email provider processes it if you send the message. Leave it blank and save the private QR instead. Use a nickname for extra privacy.",invalid:"Enter a valid email or leave it blank.",send:"Open my email app with the access link",subject:"Your private Z4SK access link",body:"This is your unique private dashboard link. Keep it secret:"},
-  es:{email:"TU CORREO · OPCIONAL",placeholder:"tu@ejemplo.com",security:"Medida de seguridad: Z4SK nunca lo recibe ni lo guarda. Aquí solo se usa para abrir tu aplicación de correo; tu proveedor lo tratará si envías el mensaje. Puedes dejarlo vacío y conservar el QR privado. Usa un alias para mayor privacidad.",invalid:"Introduce un correo válido o déjalo vacío.",send:"Abrir mi correo con el enlace de acceso",subject:"Tu enlace privado de acceso a Z4SK",body:"Este es tu enlace único al panel privado. Guárdalo en secreto:"},
-  it:{email:"LA TUA EMAIL · FACOLTATIVA",placeholder:"tu@esempio.com",security:"Misura di sicurezza: Z4SK non la riceve né la salva. Qui serve solo ad aprire l'app e-mail; il provider la tratterà se invii il messaggio. Puoi lasciarla vuota e conservare il QR privato. Usa un alias per maggiore privacy.",invalid:"Inserisci un indirizzo valido o lascia il campo vuoto.",send:"Apri l'app e-mail con il link di accesso",subject:"Il tuo link privato Z4SK",body:"Questo è il link unico al pannello privato. Tienilo segreto:"},
-  fr:{email:"VOTRE E-MAIL · FACULTATIVE",placeholder:"vous@exemple.com",security:"Mesure de sécurité : Z4SK ne la reçoit ni ne la stocke. Elle sert ici uniquement à ouvrir votre application e-mail ; votre fournisseur la traitera si vous envoyez le message. Laissez-la vide et conservez le QR privé. Utilisez un pseudonyme pour plus de confidentialité.",invalid:"Saisissez une adresse valide ou laissez le champ vide.",send:"Ouvrir mon e-mail avec le lien d'accès",subject:"Votre lien privé Z4SK",body:"Voici votre lien unique vers l’espace privé. Gardez-le secret :"},
-  de:{email:"DEINE E-MAIL · OPTIONAL",placeholder:"du@beispiel.de",security:"Sicherheitsmaßnahme: Z4SK empfängt oder speichert sie nicht. Sie dient hier nur zum Öffnen deiner E-Mail-App; beim Senden verarbeitet sie dein Anbieter. Lass sie leer und sichere den privaten QR. Nutze für mehr Privatsphäre einen Alias.",invalid:"Gib eine gültige E-Mail ein oder lass das Feld leer.",send:"E-Mail-App mit Zugangslink öffnen",subject:"Dein privater Z4SK-Link",body:"Dies ist dein einmaliger privater Dashboard-Link. Halte ihn geheim:"},
-  nl:{email:"JOUW E-MAIL · OPTIONEEL",placeholder:"jij@voorbeeld.nl",security:"Beveiligingsmaatregel: Z4SK ontvangt of bewaart het adres niet. Het wordt hier alleen gebruikt om je e-mailapp te openen; bij verzenden verwerkt je provider het. Laat het leeg en bewaar de privé-QR. Gebruik een alias voor extra privacy.",invalid:"Vul een geldig adres in of laat het veld leeg.",send:"E-mailapp openen met toegangslink",subject:"Jouw privétoegangslink voor Z4SK",body:"Dit is de unieke link naar je privédashboard. Houd hem geheim:"},
-  eo:{email:"VIA RETPOŜTO · NEDEVIGA",placeholder:"vi@ekzemplo.org",security:"Sekureca rimedo: Z4SK ne ricevas aŭ konservas ĝin. Ĝi estas uzata ĉi tie nur por malfermi la retpoŝtan aplikaĵon; via provizanto prilaboros ĝin se vi sendos. Lasu ĝin malplena kaj konservu la privatan QR. Uzu kaŝnomon por pli da privateco.",invalid:"Enigu validan adreson aŭ lasu ĝin malplena.",send:"Malfermi retpoŝton kun la alirligilo",subject:"Via privata alirligilo al Z4SK",body:"Jen via unika ligilo al la privata panelo. Tenu ĝin sekreta:"},
-  pt:{email:"O TEU E-MAIL · OPCIONAL",placeholder:"tu@exemplo.pt",security:"Medida de segurança: o Z4SK nunca o recebe nem guarda. Aqui só é usado para abrir a aplicação de e-mail; o teu fornecedor processa-o se enviares a mensagem. Deixa-o vazio e guarda o QR privado. Usa um pseudónimo para maior privacidade.",invalid:"Introduz um e-mail válido ou deixa o campo vazio.",send:"Abrir o e-mail com o link de acesso",subject:"O teu link privado de acesso ao Z4SK",body:"Este é o teu link único para o painel privado. Guarda-o em segredo:"},
-  zh:{email:"你的邮箱 · 可选",placeholder:"you@example.com",security:"安全措施：Z4SK 不会接收或保存邮箱。这里只用于打开邮件应用；发送后由你的邮件服务商处理。你可以留空并保存私人二维码。如需更高隐私，请使用昵称。",invalid:"请输入有效邮箱，或将其留空。",send:"用邮件应用打开访问链接",subject:"你的 Z4SK 私人访问链接",body:"这是你的专属私人面板链接，请妥善保管："},
-  hi:{email:"आपका ईमेल · वैकल्पिक",placeholder:"you@example.com",security:"सुरक्षा उपाय: Z4SK ईमेल को न प्राप्त करता है, न सहेजता है। यहाँ यह सिर्फ ईमेल ऐप खोलने के लिए है; संदेश भेजने पर आपका ईमेल प्रदाता इसे संभालेगा। इसे खाली छोड़कर निजी QR सहेज सकते हैं। अधिक गोपनीयता के लिए उपनाम रखें।",invalid:"सही ईमेल डालें या इसे खाली छोड़ें।",send:"एक्सेस लिंक के साथ ईमेल ऐप खोलें",subject:"आपका निजी Z4SK एक्सेस लिंक",body:"यह आपके निजी डैशबोर्ड का अनोखा लिंक है। इसे गुप्त रखें:"},
-  ja:{email:"メールアドレス · 任意",placeholder:"you@example.com",security:"安全対策：Z4SKはメールアドレスを受信も保存もしません。ここではメールアプリを開くためだけに使い、送信後はメール事業者が処理します。空欄にして非公開QRを保存できます。より匿名にするなら別名を使ってください。",invalid:"正しいメールアドレスを入力するか、空欄にしてください。",send:"アクセスリンクをメールアプリで開く",subject:"Z4SKの非公開アクセスリンク",body:"非公開パネルへの専用リンクです。秘密に保管してください："},
-  tr:{email:"E-POSTAN · İSTEĞE BAĞLI",placeholder:"sen@ornek.com",security:"Güvenlik önlemi: Z4SK e-postayı almaz veya saklamaz. Burada yalnızca e-posta uygulamanı açmak için kullanılır; mesajı gönderirsen sağlayıcın işler. Boş bırakıp özel QR'ı kaydedebilirsin. Daha fazla gizlilik için takma ad kullan.",invalid:"Geçerli bir e-posta gir veya boş bırak.",send:"Erişim bağlantısıyla e-posta uygulamasını aç",subject:"Özel Z4SK erişim bağlantın",body:"Bu, özel paneline ait benzersiz bağlantıdır. Gizli tut:"},
-  machine:{email:"creator.email? // OPTIONAL",placeholder:"user@example.net",security:"SECURITY: Z4SK_receive=false; database_store=false; mailto.local_compose=true; on_send=>email_provider_process=true; display_name.visible=true",invalid:"ASSERT email==null OR email.valid",send:"OPEN mailto: WITH admin_url",subject:"Z4SK_PRIVATE_ACCESS_URL",body:"admin_url follows; classification=SECRET:"}
+const accessCopy = localized<{
+  email: string;
+  placeholder: string;
+  security: string;
+  invalid: string;
+  send: string;
+  subject: string;
+  body: string;
+}>({
+  en: {
+    email: "YOUR EMAIL · OPTIONAL",
+    placeholder: "you@example.com",
+    security:
+      "Security measure: Z4SK never receives or stores it. It is used here only to open your email app; your email provider processes it if you send the message. Leave it blank and save the private QR instead. Use a nickname for extra privacy.",
+    invalid: "Enter a valid email or leave it blank.",
+    send: "Open my email app with the access link",
+    subject: "Your private Z4SK access link",
+    body: "This is your unique private dashboard link. Keep it secret:",
+  },
+  es: {
+    email: "TU CORREO · OPCIONAL",
+    placeholder: "tu@ejemplo.com",
+    security:
+      "Medida de seguridad: Z4SK nunca lo recibe ni lo guarda. Aquí solo se usa para abrir tu aplicación de correo; tu proveedor lo tratará si envías el mensaje. Puedes dejarlo vacío y conservar el QR privado. Usa un alias para mayor privacidad.",
+    invalid: "Introduce un correo válido o déjalo vacío.",
+    send: "Abrir mi correo con el enlace de acceso",
+    subject: "Tu enlace privado de acceso a Z4SK",
+    body: "Este es tu enlace único al panel privado. Guárdalo en secreto:",
+  },
+  it: {
+    email: "LA TUA EMAIL · FACOLTATIVA",
+    placeholder: "tu@esempio.com",
+    security:
+      "Misura di sicurezza: Z4SK non la riceve né la salva. Qui serve solo ad aprire l'app e-mail; il provider la tratterà se invii il messaggio. Puoi lasciarla vuota e conservare il QR privato. Usa un alias per maggiore privacy.",
+    invalid: "Inserisci un indirizzo valido o lascia il campo vuoto.",
+    send: "Apri l'app e-mail con il link di accesso",
+    subject: "Il tuo link privato Z4SK",
+    body: "Questo è il link unico al pannello privato. Tienilo segreto:",
+  },
+  fr: {
+    email: "VOTRE E-MAIL · FACULTATIVE",
+    placeholder: "vous@exemple.com",
+    security:
+      "Mesure de sécurité : Z4SK ne la reçoit ni ne la stocke. Elle sert ici uniquement à ouvrir votre application e-mail ; votre fournisseur la traitera si vous envoyez le message. Laissez-la vide et conservez le QR privé. Utilisez un pseudonyme pour plus de confidentialité.",
+    invalid: "Saisissez une adresse valide ou laissez le champ vide.",
+    send: "Ouvrir mon e-mail avec le lien d'accès",
+    subject: "Votre lien privé Z4SK",
+    body: "Voici votre lien unique vers l’espace privé. Gardez-le secret :",
+  },
+  de: {
+    email: "DEINE E-MAIL · OPTIONAL",
+    placeholder: "du@beispiel.de",
+    security:
+      "Sicherheitsmaßnahme: Z4SK empfängt oder speichert sie nicht. Sie dient hier nur zum Öffnen deiner E-Mail-App; beim Senden verarbeitet sie dein Anbieter. Lass sie leer und sichere den privaten QR. Nutze für mehr Privatsphäre einen Alias.",
+    invalid: "Gib eine gültige E-Mail ein oder lass das Feld leer.",
+    send: "E-Mail-App mit Zugangslink öffnen",
+    subject: "Dein privater Z4SK-Link",
+    body: "Dies ist dein einmaliger privater Dashboard-Link. Halte ihn geheim:",
+  },
+  nl: {
+    email: "JOUW E-MAIL · OPTIONEEL",
+    placeholder: "jij@voorbeeld.nl",
+    security:
+      "Beveiligingsmaatregel: Z4SK ontvangt of bewaart het adres niet. Het wordt hier alleen gebruikt om je e-mailapp te openen; bij verzenden verwerkt je provider het. Laat het leeg en bewaar de privé-QR. Gebruik een alias voor extra privacy.",
+    invalid: "Vul een geldig adres in of laat het veld leeg.",
+    send: "E-mailapp openen met toegangslink",
+    subject: "Jouw privétoegangslink voor Z4SK",
+    body: "Dit is de unieke link naar je privédashboard. Houd hem geheim:",
+  },
+  eo: {
+    email: "VIA RETPOŜTO · NEDEVIGA",
+    placeholder: "vi@ekzemplo.org",
+    security:
+      "Sekureca rimedo: Z4SK ne ricevas aŭ konservas ĝin. Ĝi estas uzata ĉi tie nur por malfermi la retpoŝtan aplikaĵon; via provizanto prilaboros ĝin se vi sendos. Lasu ĝin malplena kaj konservu la privatan QR. Uzu kaŝnomon por pli da privateco.",
+    invalid: "Enigu validan adreson aŭ lasu ĝin malplena.",
+    send: "Malfermi retpoŝton kun la alirligilo",
+    subject: "Via privata alirligilo al Z4SK",
+    body: "Jen via unika ligilo al la privata panelo. Tenu ĝin sekreta:",
+  },
+  pt: {
+    email: "O TEU E-MAIL · OPCIONAL",
+    placeholder: "tu@exemplo.pt",
+    security:
+      "Medida de segurança: o Z4SK nunca o recebe nem guarda. Aqui só é usado para abrir a aplicação de e-mail; o teu fornecedor processa-o se enviares a mensagem. Deixa-o vazio e guarda o QR privado. Usa um pseudónimo para maior privacidade.",
+    invalid: "Introduz um e-mail válido ou deixa o campo vazio.",
+    send: "Abrir o e-mail com o link de acesso",
+    subject: "O teu link privado de acesso ao Z4SK",
+    body: "Este é o teu link único para o painel privado. Guarda-o em segredo:",
+  },
+  zh: {
+    email: "你的邮箱 · 可选",
+    placeholder: "you@example.com",
+    security:
+      "安全措施：Z4SK 不会接收或保存邮箱。这里只用于打开邮件应用；发送后由你的邮件服务商处理。你可以留空并保存私人二维码。如需更高隐私，请使用昵称。",
+    invalid: "请输入有效邮箱，或将其留空。",
+    send: "用邮件应用打开访问链接",
+    subject: "你的 Z4SK 私人访问链接",
+    body: "这是你的专属私人面板链接，请妥善保管：",
+  },
+  hi: {
+    email: "आपका ईमेल · वैकल्पिक",
+    placeholder: "you@example.com",
+    security:
+      "सुरक्षा उपाय: Z4SK ईमेल को न प्राप्त करता है, न सहेजता है। यहाँ यह सिर्फ ईमेल ऐप खोलने के लिए है; संदेश भेजने पर आपका ईमेल प्रदाता इसे संभालेगा। इसे खाली छोड़कर निजी QR सहेज सकते हैं। अधिक गोपनीयता के लिए उपनाम रखें।",
+    invalid: "सही ईमेल डालें या इसे खाली छोड़ें।",
+    send: "एक्सेस लिंक के साथ ईमेल ऐप खोलें",
+    subject: "आपका निजी Z4SK एक्सेस लिंक",
+    body: "यह आपके निजी डैशबोर्ड का अनोखा लिंक है। इसे गुप्त रखें:",
+  },
+  ja: {
+    email: "メールアドレス · 任意",
+    placeholder: "you@example.com",
+    security:
+      "安全対策：Z4SKはメールアドレスを受信も保存もしません。ここではメールアプリを開くためだけに使い、送信後はメール事業者が処理します。空欄にして非公開QRを保存できます。より匿名にするなら別名を使ってください。",
+    invalid: "正しいメールアドレスを入力するか、空欄にしてください。",
+    send: "アクセスリンクをメールアプリで開く",
+    subject: "Z4SKの非公開アクセスリンク",
+    body: "非公開パネルへの専用リンクです。秘密に保管してください：",
+  },
+  tr: {
+    email: "E-POSTAN · İSTEĞE BAĞLI",
+    placeholder: "sen@ornek.com",
+    security:
+      "Güvenlik önlemi: Z4SK e-postayı almaz veya saklamaz. Burada yalnızca e-posta uygulamanı açmak için kullanılır; mesajı gönderirsen sağlayıcın işler. Boş bırakıp özel QR'ı kaydedebilirsin. Daha fazla gizlilik için takma ad kullan.",
+    invalid: "Geçerli bir e-posta gir veya boş bırak.",
+    send: "Erişim bağlantısıyla e-posta uygulamasını aç",
+    subject: "Özel Z4SK erişim bağlantın",
+    body: "Bu, özel paneline ait benzersiz bağlantıdır. Gizli tut:",
+  },
+  machine: {
+    email: "creator.email? // OPTIONAL",
+    placeholder: "user@example.net",
+    security:
+      "SECURITY: Z4SK_receive=false; database_store=false; mailto.local_compose=true; on_send=>email_provider_process=true; display_name.visible=true",
+    invalid: "ASSERT email==null OR email.valid",
+    send: "OPEN mailto: WITH admin_url",
+    subject: "Z4SK_PRIVATE_ACCESS_URL",
+    body: "admin_url follows; classification=SECRET:",
+  },
 });
-const encryptionCopy=localized<Record<"notice",string>>({
-  en:{notice:"End-to-end encrypted: the audited servers receive invitation and response ciphertext, not the private content. Your links contain the decryption keys. Treat them like passwords: anyone with a complete link receives its capability, and a lost link cannot be recovered."},
-  es:{notice:"Cifrado de extremo a extremo: los servidores auditados reciben texto cifrado de invitación y respuestas, no el contenido privado. Tus enlaces contienen las claves. Trátalos como contraseñas: quien tenga un enlace completo obtiene su capacidad y un enlace perdido no se puede recuperar."},
-  it:{notice:"Crittografia end-to-end: la chiave privata è stata creata su questo dispositivo ed esiste solo nel link e nel QR segreti. Z4SK non può leggere le risposte né recuperare una chiave persa."},
-  fr:{notice:"Chiffrement de bout en bout : la clé privée a été créée sur cet appareil et n’existe que dans votre lien et QR secrets. Z4SK ne peut ni lire les réponses ni récupérer une clé perdue."},
-  de:{notice:"Ende-zu-Ende-verschlüsselt: Der private Schlüssel wurde auf diesem Gerät erstellt und existiert nur im geheimen Link und QR. Z4SK kann Antworten weder lesen noch einen verlorenen Schlüssel wiederherstellen."},
-  nl:{notice:"End-to-end versleuteld: de privésleutel is op dit apparaat gemaakt en bestaat alleen in je geheime link en QR. Z4SK kan antwoorden niet lezen en een verloren sleutel niet herstellen."},
-  eo:{notice:"Fine-al-fina ĉifrado: la privata ŝlosilo estis kreita en ĉi tiu aparato kaj ekzistas nur en via sekreta ligilo kaj QR. Z4SK ne povas legi respondojn aŭ reakiri perditan ŝlosilon."},
-  pt:{notice:"Cifrado de ponta a ponta: a chave privada foi criada neste dispositivo e só existe no link e QR secretos. O Z4SK não consegue ler as respostas nem recuperar uma chave perdida."},
-  zh:{notice:"端到端加密：私钥在此设备上生成，只存在于你的秘密链接和二维码中。Z4SK 无法读取回答，也无法找回丢失的密钥。"},
-  hi:{notice:"एंड-टू-एंड एन्क्रिप्शन: निजी कुंजी इसी डिवाइस पर बनी है और केवल आपके गुप्त लिंक व QR में है। Z4SK जवाब नहीं पढ़ सकता और खोई कुंजी वापस नहीं ला सकता।"},
-  ja:{notice:"エンドツーエンド暗号化：秘密鍵はこの端末で生成され、秘密リンクとQRの中だけに存在します。Z4SKは回答を読めず、紛失した鍵も復元できません。"},
-  tr:{notice:"Uçtan uca şifreleme: özel anahtar bu cihazda üretildi ve yalnızca gizli bağlantı ile QR içinde bulunur. Z4SK yanıtları okuyamaz veya kayıp anahtarı kurtaramaz."},
-  machine:{notice:"E2EE=true; private_decryption_key.location=admin_url_fragment_only; database.private_key=false; Z4SK.decrypt=false; recovery=false"}
+const encryptionCopy = localized<Record<"notice", string>>({
+  en: {
+    notice:
+      "End-to-end encrypted: audited servers receive ciphertext, not private content. Opening an invitation requires its link and the reusable key shared separately. Z4SK cannot recover either secret.",
+  },
+  es: {
+    notice:
+      "Cifrado de extremo a extremo: los servidores auditados reciben texto cifrado, no contenido privado. Para abrir una invitación hacen falta su enlace y la llave reutilizable compartida por separado. Z4SK no puede recuperar ninguno de los dos secretos.",
+  },
+  it: {
+    notice:
+      "Crittografia end-to-end: la chiave privata è stata creata su questo dispositivo ed esiste solo nel link e nel QR segreti. Z4SK non può leggere le risposte né recuperare una chiave persa.",
+  },
+  fr: {
+    notice:
+      "Chiffrement de bout en bout : la clé privée a été créée sur cet appareil et n’existe que dans votre lien et QR secrets. Z4SK ne peut ni lire les réponses ni récupérer une clé perdue.",
+  },
+  de: {
+    notice:
+      "Ende-zu-Ende-verschlüsselt: Der private Schlüssel wurde auf diesem Gerät erstellt und existiert nur im geheimen Link und QR. Z4SK kann Antworten weder lesen noch einen verlorenen Schlüssel wiederherstellen.",
+  },
+  nl: {
+    notice:
+      "End-to-end versleuteld: de privésleutel is op dit apparaat gemaakt en bestaat alleen in je geheime link en QR. Z4SK kan antwoorden niet lezen en een verloren sleutel niet herstellen.",
+  },
+  eo: {
+    notice:
+      "Fine-al-fina ĉifrado: la privata ŝlosilo estis kreita en ĉi tiu aparato kaj ekzistas nur en via sekreta ligilo kaj QR. Z4SK ne povas legi respondojn aŭ reakiri perditan ŝlosilon.",
+  },
+  pt: {
+    notice:
+      "Cifrado de ponta a ponta: a chave privada foi criada neste dispositivo e só existe no link e QR secretos. O Z4SK não consegue ler as respostas nem recuperar uma chave perdida.",
+  },
+  zh: {
+    notice:
+      "端到端加密：私钥在此设备上生成，只存在于你的秘密链接和二维码中。Z4SK 无法读取回答，也无法找回丢失的密钥。",
+  },
+  hi: {
+    notice:
+      "एंड-टू-एंड एन्क्रिप्शन: निजी कुंजी इसी डिवाइस पर बनी है और केवल आपके गुप्त लिंक व QR में है। Z4SK जवाब नहीं पढ़ सकता और खोई कुंजी वापस नहीं ला सकता।",
+  },
+  ja: {
+    notice:
+      "エンドツーエンド暗号化：秘密鍵はこの端末で生成され、秘密リンクとQRの中だけに存在します。Z4SKは回答を読めず、紛失した鍵も復元できません。",
+  },
+  tr: {
+    notice:
+      "Uçtan uca şifreleme: özel anahtar bu cihazda üretildi ve yalnızca gizli bağlantı ile QR içinde bulunur. Z4SK yanıtları okuyamaz veya kayıp anahtarı kurtaramaz.",
+  },
+  machine: {
+    notice:
+      "E2EE=true; decrypt.requires=[link_secret,shared_key]; shared_key.transport=separate_channel; server.shared_key=false; recovery=false",
+  },
 });
-const builderUi=localized<{done:string;remove:string}>({
-  en:{done:"Done",remove:"Remove {question}"},es:{done:"Listo",remove:"Eliminar {question}"},it:{done:"Fatto",remove:"Rimuovi {question}"},fr:{done:"Terminé",remove:"Supprimer {question}"},de:{done:"Fertig",remove:"{question} entfernen"},nl:{done:"Klaar",remove:"{question} verwijderen"},eo:{done:"Farite",remove:"Forigi {question}"},pt:{done:"Concluído",remove:"Remover {question}"},zh:{done:"完成",remove:"移除 {question}"},hi:{done:"हो गया",remove:"{question} हटाएँ"},ja:{done:"完了",remove:"{question}を削除"},tr:{done:"Bitti",remove:"{question} sorusunu kaldır"},machine:{done:"DONE",remove:"REMOVE::{question}"}
+const builderUi = localized<{ done: string; remove: string }>({
+  en: { done: "Done", remove: "Remove {question}" },
+  es: { done: "Listo", remove: "Eliminar {question}" },
+  it: { done: "Fatto", remove: "Rimuovi {question}" },
+  fr: { done: "Terminé", remove: "Supprimer {question}" },
+  de: { done: "Fertig", remove: "{question} entfernen" },
+  nl: { done: "Klaar", remove: "{question} verwijderen" },
+  eo: { done: "Farite", remove: "Forigi {question}" },
+  pt: { done: "Concluído", remove: "Remover {question}" },
+  zh: { done: "完成", remove: "移除 {question}" },
+  hi: { done: "हो गया", remove: "{question} हटाएँ" },
+  ja: { done: "完了", remove: "{question}を削除" },
+  tr: { done: "Bitti", remove: "{question} sorusunu kaldır" },
+  machine: { done: "DONE", remove: "REMOVE::{question}" },
 });
 
 export function Builder({ onClose }: { onClose?: () => void }) {
@@ -156,7 +792,9 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [creatorInterest, setCreatorInterest] = useState(true);
   const [expiresInHours, setExpiresInHours] = useState(12);
   const [packSlug, setPackSlug] = useState("original");
-  const [selected, setSelected] = useState<string[]>(() => getDefaultQuestions(locale, "coqueto"));
+  const [selected, setSelected] = useState<string[]>(() =>
+    getDefaultQuestions(locale, "coqueto"),
+  );
   const [custom, setCustom] = useState("");
   const [created, setCreated] = useState<Created | null>(null);
   const [loading, setLoading] = useState(false);
@@ -164,97 +802,1094 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [copied, setCopied] = useState<"play" | "admin" | null>(null);
   const [unlocked, setUnlocked] = useState(false);
   const [mixing, setMixing] = useState(false);
+  const [sharedKey, setSharedKey] = useState("");
+  const [sharedKeyConfirmed, setSharedKeyConfirmed] = useState(false);
+  const [sharedKeyGenerated, setSharedKeyGenerated] = useState(false);
   const questions = getQuestions(locale, level);
-  const emailValid = !creatorEmail.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail);
-  const identityValid = creatorName.trim().length >= 1 && recipientName.trim().length >= 1 && emailValid;
+  const emailValid =
+    !creatorEmail.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail);
+  const identityValid =
+    creatorName.trim().length >= 1 &&
+    recipientName.trim().length >= 1 &&
+    emailValid;
   const intensityValid = level !== "sinfiltro" || adultConfirmed;
 
-  function chooseLevel(next: Level) { setLevel(next); setSelected(getDefaultQuestions(locale, next)); }
-  function toggleQuestion(question: string) { setSelected((current) => current.includes(question) ? current.filter((item) => item !== question) : current.length < 12 ? [...current, question] : current); }
-  function addCustom() { const value = custom.trim().replace(/\s+/g, " "); if (value.length >= 5 && value.length <= 180 && !selected.includes(value) && selected.length < 12) { setSelected((current) => [...current, value]); setCustom(""); } }
-
-  async function createGame() {
-    setLoading(true); setError("");
-    try {
-      const normalizedCreatorName = creatorName.trim().replace(/\s+/g, " ");
-      const normalizedRecipientName = recipientName.trim().replace(/\s+/g, " ");
-      const [encryptionKeys, access] = await Promise.all([generateResponseKeyPair(), generateCreatorAccessCredential()]);
-      const invitationSecret = generateInvitationSecret();
-      const encryptedInvitation = await encryptPrivateInvitation({ creatorName: normalizedCreatorName, recipientName: normalizedRecipientName, title: `${normalizedRecipientName} · Z4SK`, level, questions: selected, locale, libraryVersion: "2026.08", doubleBlind, matchQuestion: doubleBlind ? matchQuestion.trim().replace(/\s+/g, " ").slice(0, 180) : "", timedMode, packSlug, encryptionPublicKey: encryptionKeys.publicKey, createdAt: new Date().toISOString() }, invitationSecret);
-      const response = await fetch("/api/games", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ encryptedInvitation, questionCount: selected.length, viewOnce, expiresInHours, creatorTokenHash: access.tokenHash }) });
-      const data = await response.json() as Omit<Created,"adminUrl"> & { error?: string };
-      if (!response.ok) throw new Error(t("formError"));
-      const playUrl = attachInvitationSecret(data.playUrl, invitationSecret);
-      const privateUrl = attachInvitationSecret(`${window.location.origin}/p/${data.id}#key=${encodeURIComponent(access.token)}`, invitationSecret);
-      setCreatorName(normalizedCreatorName);
-      setRecipientName(normalizedRecipientName);
-      setCreated({ ...data, playUrl, adminUrl: attachPrivateDecryptionKey(privateUrl, encryptionKeys.privateSecret, doubleBlind && creatorInterest) });
-      setStep(4);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : t("formError")); } finally { setLoading(false); }
+  function chooseLevel(next: Level) {
+    setLevel(next);
+    setSelected(getDefaultQuestions(locale, next));
+  }
+  function toggleQuestion(question: string) {
+    setSelected((current) =>
+      current.includes(question)
+        ? current.filter((item) => item !== question)
+        : current.length < 12
+          ? [...current, question]
+          : current,
+    );
+  }
+  function addCustom() {
+    const value = custom.trim().replace(/\s+/g, " ");
+    if (
+      value.length >= 5 &&
+      value.length <= 180 &&
+      !selected.includes(value) &&
+      selected.length < 12
+    ) {
+      setSelected((current) => [...current, value]);
+      setCustom("");
+    }
   }
 
-  async function copy(value: string, type: "play" | "admin") { await navigator.clipboard.writeText(value); setCopied(type); setTimeout(() => setCopied(null), 1800); }
-  function emailAccessLink(){if(!created)return;const c=accessCopy[locale];window.location.href=`mailto:${encodeURIComponent(creatorEmail)}?subject=${encodeURIComponent(c.subject)}&body=${encodeURIComponent(`${c.body}\n\n${created.adminUrl}`)}`;}
+  async function createGame() {
+    setLoading(true);
+    setError("");
+    try {
+      if (!sharedKey || !sharedKeyConfirmed)
+        throw new Error(
+          locale === "es"
+            ? "Prepara y guarda la llave compartida antes de crear la invitación."
+            : "Prepare and save the shared key before creating the invitation.",
+        );
+      const normalizedCreatorName = creatorName.trim().replace(/\s+/g, " ");
+      const normalizedRecipientName = recipientName.trim().replace(/\s+/g, " ");
+      const [encryptionKeys, access] = await Promise.all([
+        generateResponseKeyPair(),
+        generateCreatorAccessCredential(),
+      ]);
+      const invitationSecret = generateInvitationSecret();
+      const encryptedInvitation = await encryptPrivateInvitation(
+        {
+          creatorName: normalizedCreatorName,
+          recipientName: normalizedRecipientName,
+          title: `${normalizedRecipientName} · Z4SK`,
+          level,
+          questions: selected,
+          locale,
+          libraryVersion: "2026.11",
+          doubleBlind,
+          matchQuestion: doubleBlind
+            ? matchQuestion.trim().replace(/\s+/g, " ").slice(0, 180)
+            : "",
+          timedMode,
+          packSlug,
+          encryptionPublicKey: encryptionKeys.publicKey,
+          createdAt: new Date().toISOString(),
+        },
+        invitationSecret,
+        sharedKey,
+      );
+      const response = await fetch("/api/games", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          encryptedInvitation,
+          questionCount: selected.length,
+          viewOnce,
+          expiresInHours,
+          creatorTokenHash: access.tokenHash,
+        }),
+      });
+      const data = (await response.json()) as Omit<Created, "adminUrl"> & {
+        error?: string;
+      };
+      if (!response.ok) throw new Error(t("formError"));
+      const playUrl = attachInvitationSecret(data.playUrl, invitationSecret);
+      const privateUrl = attachInvitationSecret(
+        `${window.location.origin}/p/${data.id}#key=${encodeURIComponent(access.token)}`,
+        invitationSecret,
+      );
+      setCreatorName(normalizedCreatorName);
+      setRecipientName(normalizedRecipientName);
+      setCreated({
+        ...data,
+        playUrl,
+        adminUrl: attachPrivateDecryptionKey(
+          privateUrl,
+          encryptionKeys.privateSecret,
+          doubleBlind && creatorInterest,
+        ),
+      });
+      setStep(4);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t("formError"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function copy(value: string, type: "play" | "admin") {
+    await navigator.clipboard.writeText(value);
+    setCopied(type);
+    setTimeout(() => setCopied(null), 1800);
+  }
+  function emailAccessLink() {
+    if (!created) return;
+    const c = accessCopy[locale];
+    window.location.href = `mailto:${encodeURIComponent(creatorEmail)}?subject=${encodeURIComponent(c.subject)}&body=${encodeURIComponent(`${c.body}\n\n${created.adminUrl}`)}`;
+  }
 
   async function shareToUnlock() {
     if (!created) return;
     try {
-      if (navigator.share) await navigator.share({ title: "Z4SK", text: growthCopy[locale].share, url: window.location.origin });
-      else window.open(`https://wa.me/?text=${encodeURIComponent(`${growthCopy[locale].share}\n\n${window.location.origin}`)}`, "_blank", "noopener,noreferrer");
-      const key = new URLSearchParams(new URL(created.adminUrl).hash.slice(1)).get("key");
-      const response = await fetch(`/api/games/${created.id}/unlock`, { method: "POST", headers: { authorization: `Bearer ${key || ""}` } });
+      if (navigator.share)
+        await navigator.share({
+          title: "Z4SK",
+          text: growthCopy[locale].share,
+          url: window.location.origin,
+        });
+      else
+        window.open(
+          `https://wa.me/?text=${encodeURIComponent(`${growthCopy[locale].share}\n\n${window.location.origin}`)}`,
+          "_blank",
+          "noopener,noreferrer",
+        );
+      const key = new URLSearchParams(
+        new URL(created.adminUrl).hash.slice(1),
+      ).get("key");
+      const response = await fetch(`/api/games/${created.id}/unlock`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${key || ""}` },
+      });
       if (response.ok) setUnlocked(true);
-    } catch { /* A cancelled share leaves the questionnaire unchanged. */ }
+    } catch {
+      /* A cancelled share leaves the questionnaire unchanged. */
+    }
   }
-  async function applySmartMix() { setMixing(true); try { const response = await fetch(`/api/smart-mix?locale=${locale}&level=${level}&library=2026.08.1`); const data = await response.json() as { questions?: string[] }; if (response.ok && data.questions?.length) setSelected(data.questions); } finally { setMixing(false); } }
+  async function applySmartMix() {
+    setMixing(true);
+    try {
+      const response = await fetch(
+        `/api/smart-mix?locale=${locale}&level=${level}&library=2026.08.1`,
+      );
+      const data = (await response.json()) as { questions?: string[] };
+      if (response.ok && data.questions?.length) setSelected(data.questions);
+    } finally {
+      setMixing(false);
+    }
+  }
 
-  return <div className="builder-shell"><div className="builder-top"><div><span className="step">{t("step")} {step} {t("of")} 4</span><h2 id="builder-title">{step === 1 ? t("who") : step === 2 ? t("chooseIntensity") : step === 3 ? t("chooseQuestions") : t("ready")}</h2></div><span className="counter">0{step}</span></div><progress className="steps-line" max={4} value={step} aria-label={`${t("step")} ${step} ${t("of")} 4`} />
-    {step === 1 && <div className="step-panel"><div className="two-fields"><div><label htmlFor="creator">{t("yourName")}</label><input id="creator" required minLength={1} maxLength={40} autoComplete="name" aria-describedby="creator-name-rule" value={creatorName} onChange={(event) => setCreatorName(event.target.value.slice(0, 40))} placeholder={t("yourExample")} /><small id="creator-name-rule" className="name-rule">{NAME_RULE_COPY[locale]}</small></div><div><label htmlFor="recipient">{t("theirName")}</label><input id="recipient" required minLength={1} maxLength={40} autoComplete="off" aria-describedby="recipient-name-rule" value={recipientName} onChange={(event) => setRecipientName(event.target.value.slice(0, 40))} placeholder={t("theirExample")} /><small id="recipient-name-rule" className="name-rule">{NAME_RULE_COPY[locale]}</small></div><div className="email-field"><label htmlFor="creator-email">{accessCopy[locale].email}</label><input id="creator-email" type="email" autoComplete="email" value={creatorEmail} onChange={(event)=>setCreatorEmail(event.target.value.slice(0,120))} placeholder={accessCopy[locale].placeholder} aria-describedby="email-security email-error" aria-invalid={!emailValid}/><p id="email-security" className="email-security"><span>◆</span>{accessCopy[locale].security}</p>{!emailValid&&<p id="email-error" className="form-error" role="alert">{accessCopy[locale].invalid}</p>}</div></div><button className="primary wizard-next" disabled={!identityValid} onClick={() => setStep(2)}>{t("chooseIntensity")} <span>→</span></button></div>}
-    {step === 2 && <div className="step-panel"><fieldset className="intensity-fieldset"><legend>{t("chooseIntensity")}</legend><div className="level-grid">{getLevels(locale).map((item) => <button type="button" key={item.id} className={level === item.id ? "active" : ""} onClick={() => chooseLevel(item.id)} aria-pressed={level === item.id}><span className="level-icon">{item.icon}</span><span><b>{item.label}</b><small>{item.copy}</small></span></button>)}</div></fieldset>{level === "sinfiltro" && <label className="age-check"><input type="checkbox" checked={adultConfirmed} onChange={(event) => setAdultConfirmed(event.target.checked)} /><span>{t("adultConfirm")}</span></label>}<ResponseMode locale={locale} viewOnce={viewOnce} setViewOnce={setViewOnce}/><div className="button-row"><button className="secondary" onClick={() => setStep(1)}>← {t("back")}</button><button className="primary" disabled={!intensityValid} onClick={() => setStep(3)}>{t("chooseQuestionsBtn")} <span>→</span></button></div></div>}
-    {step === 3 && <><FeatureConfig locale={locale} doubleBlind={doubleBlind} setDoubleBlind={setDoubleBlind} creatorName={creatorName} matchQuestion={matchQuestion} setMatchQuestion={setMatchQuestion} timedMode={timedMode} setTimedMode={setTimedMode} creatorInterest={creatorInterest} setCreatorInterest={setCreatorInterest} expiresInHours={expiresInHours} setExpiresInHours={setExpiresInHours} packSlug={packSlug} setPackSlug={setPackSlug} /><div className="step-panel"><div className="selection-meta"><div><p>{t("selectHint")}</p><small>{smartCopy[locale].note}</small></div><strong>{selected.length}/12</strong></div><button className="smart-mix" type="button" onClick={applySmartMix} disabled={mixing}>{mixing ? "…" : smartCopy[locale].button}</button><div className="questions-list">{questions.map((question, index) => <button type="button" key={question} className={selected.includes(question) ? "selected" : ""} onClick={() => toggleQuestion(question)}><span>{String(index + 1).padStart(2, "0")}</span><p>{question}</p><i>{selected.includes(question) ? "✓" : "+"}</i></button>)}</div>{selected.filter((item) => !questions.includes(item)).map((question) => <div className="custom-chip" key={question}><span>{t("own")}</span><p>{question}</p><button onClick={() => toggleQuestion(question)} aria-label={interpolate(builderUi[locale].remove,{question})}>×</button></div>)}<div className="custom-row"><input value={custom} onChange={(event) => setCustom(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addCustom(); } }} maxLength={180} placeholder={t("customPlaceholder")} /><button type="button" onClick={addCustom}>{t("add")}</button></div>{error && <p className="form-error" role="alert">{error}</p>}<div className="button-row"><button className="secondary" onClick={() => setStep(2)}>← {t("back")}</button><button className="primary" disabled={selected.length < 3 || loading || (doubleBlind && matchQuestion.trim().length < 5)} onClick={createGame}>{loading ? t("creating") : t("createLink")}<span>→</span></button></div></div></>}
-    {step === 4 && created && <div className="success-panel"><div className="success-icon">✓</div><span className="success-kicker">{t("created")}</span><h3>{t("interesting")}</h3><p>{interpolate(t("successCopy"), { name: recipientName })}</p><ShareInvitation locale={locale} recipientName={recipientName} playUrl={created.playUrl} shareText={t("shareText")} /><QrCard kind="invitation" locale={locale} name={recipientName} url={created.playUrl}/><div className="link-box"><span>{t("answerLink")}</span><div><code>{created.playUrl}</code><button onClick={() => copy(created.playUrl, "play")}>{copied === "play" ? t("copied") : t("copy")}</button></div></div><div className="admin-box"><span className="lock">◆</span><div><b>{viewOnce ? t("privateOnce") : t("privatePanel")}</b><p>{viewOnce ? t("privateOnceCopy") : t("secretCopy")}</p><div className="admin-actions"><a href={created.adminUrl} target="_blank" rel="noopener noreferrer">{t("openPanel")}</a><button onClick={() => copy(created.adminUrl, "admin")}>{copied === "admin" ? t("copied") : t("copySecret")}</button></div></div></div><p className="encryption-notice"><span>◆</span>{encryptionCopy[locale].notice}</p><QrCard kind="dashboard" locale={locale} name={creatorName} url={created.adminUrl}/>{creatorEmail.trim()&&emailValid&&<button className="html-download" onClick={emailAccessLink}>{accessCopy[locale].send}</button>}<button className="html-download" onClick={() => downloadInvitationHtml({ creatorName, recipientName, playUrl: created.playUrl, locale })}>{t("downloadHtml")}</button><div className={`growth-unlock ${unlocked ? "unlocked" : ""}`}><span>{unlocked ? "✓" : "↗"}</span><div><b>{unlocked ? growthCopy[locale].unlocked : growthCopy[locale].title}</b>{!unlocked && <p>{growthCopy[locale].copy}</p>}</div>{!unlocked && <button onClick={shareToUnlock}>{growthCopy[locale].button}</button>}</div><button className="text-button" onClick={() => { setCreated(null); setCreatorEmail(""); setUnlocked(false); setStep(1); }}>{t("createAnother")}</button></div>}
-    {step===4&&created&&<><div className="one-tap-disabled"><span>◉</span><div><b>{paymentCopy[locale].title}</b><p>{paymentCopy[locale].copy}</p></div><em>{paymentCopy[locale].soon}</em></div>{onClose&&<button className="modal-done" type="button" onClick={onClose}>{builderUi[locale].done}</button>}</>}
-  </div>;
-}
-
-function ResponseMode({locale,viewOnce,setViewOnce}:{locale:Locale;viewOnce:boolean;setViewOnce:(value:boolean)=>void}) {
-  const c=responseModeCopy[locale];
-  return <fieldset className="response-mode"><legend>{c.heading}</legend><div className="response-mode-grid">
-    <button type="button" className={!viewOnce?"active":""} onClick={()=>setViewOnce(false)} aria-pressed={!viewOnce}><span className="response-mode-icon">◎</span><span><b>{c.normal}</b><small>{c.normalCopy}</small></span>{!viewOnce&&<i>✓ {c.selected}</i>}</button>
-    <button type="button" className={viewOnce?"active once":"once"} onClick={()=>setViewOnce(true)} aria-pressed={viewOnce}><span className="response-mode-icon">◉</span><span><b>{c.once}</b><small>{c.onceCopy}</small></span>{viewOnce&&<i>✓ {c.selected}</i>}</button>
-  </div></fieldset>;
-}
-
-type FeatureText = { heading:string; intro:string; blind:string; blindCopy:string; interested:string; interestedCopy:string; yes:string; no:string; enable:string; enabled:string; expires:string; expiresCopy:string; hours:string; theme:string; themeCopy:string; original:string; nightlife:string; creator:string };
-const featureText = localized<FeatureText>({
-  en:{heading:"Optional settings",intro:"Choose how private, temporary and visual this invitation should be.",blind:"Secret match",blindCopy:"You answer first. A match is shown only if the other person also says Yes. Otherwise, neither answer is revealed.",interested:"Before you send it: would you date this person?",interestedCopy:"Your answer stays secret unless both of you say Yes.",yes:"Yes",no:"No",enable:"TURN ON",enabled:"ON",expires:"WHEN SHOULD IT DISAPPEAR?",expiresCopy:"After this time, the link stops working and its active data is deleted automatically.",hours:"hours",theme:"INVITATION STYLE",themeCopy:"Only changes the colors and mood. It does not affect questions or privacy.",original:"Original · Orange",nightlife:"Nightlife · Pink",creator:"Creator · Green"},
-  es:{heading:"Ajustes opcionales",intro:"Elige cómo de privada, temporal y visual será esta invitación.",blind:"Match secreto",blindCopy:"Tú respondes primero. Solo habrá match si la otra persona también dice «Sí». Si no, nadie verá la respuesta del otro.",interested:"Antes de enviarlo: ¿tú tendrías una cita con esta persona?",interestedCopy:"Tu respuesta será secreta salvo que ambos digáis «Sí».",yes:"Sí",no:"No",enable:"ACTIVAR",enabled:"ACTIVO",expires:"¿CUÁNDO DESAPARECE?",expiresCopy:"Al cumplirse este plazo, el enlace deja de funcionar y sus datos activos se eliminan automáticamente.",hours:"horas",theme:"ESTILO DE LA INVITACIÓN",themeCopy:"Solo cambia los colores y el ambiente. No afecta a las preguntas ni a la privacidad.",original:"Original · Naranja",nightlife:"Noche · Rosa",creator:"Creator · Verde"},
-  it:{heading:"Impostazioni facoltative",intro:"Scegli quanto privata, temporanea e visiva sarà questa invitazione.",blind:"Match segreto",blindCopy:"Rispondi prima tu. Il match appare solo se anche l'altra persona dice Sì. Altrimenti nessuno vedrà la risposta dell'altro.",interested:"Prima di inviarlo: usciresti con questa persona?",interestedCopy:"La tua risposta resta segreta, a meno che entrambi diciate Sì.",yes:"Sì",no:"No",enable:"ATTIVA",enabled:"ATTIVO",expires:"QUANDO DEVE SPARIRE?",expiresCopy:"Dopo questo periodo, il link smette di funzionare e i dati attivi vengono eliminati automaticamente.",hours:"ore",theme:"STILE DELL'INVITO",themeCopy:"Cambia solo colori e atmosfera. Non modifica domande o privacy.",original:"Originale · Arancione",nightlife:"Notte · Rosa",creator:"Creator · Verde"},
-  fr:{heading:"Réglages facultatifs",intro:"Choisissez le niveau de confidentialité, la durée et le style de cette invitation.",blind:"Match secret",blindCopy:"Vous répondez d'abord. Le match apparaît uniquement si l'autre personne répond aussi Oui. Sinon, aucune réponse n'est révélée.",interested:"Avant l'envoi : accepteriez-vous un rendez-vous avec cette personne ?",interestedCopy:"Votre réponse reste secrète, sauf si vous répondez Oui tous les deux.",yes:"Oui",no:"Non",enable:"ACTIVER",enabled:"ACTIF",expires:"QUAND DOIT-ELLE DISPARAÎTRE ?",expiresCopy:"Après ce délai, le lien cesse de fonctionner et ses données actives sont supprimées automatiquement.",hours:"heures",theme:"STYLE DE L'INVITATION",themeCopy:"Change uniquement les couleurs et l'ambiance, pas les questions ni la confidentialité.",original:"Original · Orange",nightlife:"Nuit · Rose",creator:"Creator · Vert"},
-  de:{heading:"Optionale Einstellungen",intro:"Lege Privatsphäre, Dauer und Aussehen dieser Einladung fest.",blind:"Geheimes Match",blindCopy:"Du antwortest zuerst. Ein Match erscheint nur, wenn die andere Person ebenfalls Ja sagt. Sonst sieht niemand die Antwort des anderen.",interested:"Vor dem Senden: Würdest du diese Person daten?",interestedCopy:"Deine Antwort bleibt geheim, außer ihr sagt beide Ja.",yes:"Ja",no:"Nein",enable:"AKTIVIEREN",enabled:"AKTIV",expires:"WANN SOLL ES VERSCHWINDEN?",expiresCopy:"Danach funktioniert der Link nicht mehr und seine aktiven Daten werden automatisch gelöscht.",hours:"Stunden",theme:"EINLADUNGSSTIL",themeCopy:"Ändert nur Farben und Stimmung, nicht Fragen oder Privatsphäre.",original:"Original · Orange",nightlife:"Nacht · Pink",creator:"Creator · Grün"},
-  nl:{heading:"Optionele instellingen",intro:"Kies hoe privé, tijdelijk en visueel deze uitnodiging is.",blind:"Geheime match",blindCopy:"Jij antwoordt eerst. Er verschijnt alleen een match als de ander ook Ja zegt. Anders ziet niemand elkaars antwoord.",interested:"Voor je verstuurt: zou je met deze persoon daten?",interestedCopy:"Je antwoord blijft geheim, tenzij jullie allebei Ja zeggen.",yes:"Ja",no:"Nee",enable:"AANZETTEN",enabled:"AAN",expires:"WANNEER MOET DIT VERDWIJNEN?",expiresCopy:"Daarna werkt de link niet meer en worden de actieve gegevens automatisch verwijderd.",hours:"uur",theme:"STIJL VAN DE UITNODIGING",themeCopy:"Verandert alleen kleuren en sfeer, niet de vragen of privacy.",original:"Origineel · Oranje",nightlife:"Nacht · Roze",creator:"Creator · Groen"},
-  eo:{heading:"Nedevigaj agordoj",intro:"Elektu la privatecon, daŭron kaj aspekton de ĉi tiu invito.",blind:"Sekreta kongruo",blindCopy:"Vi respondas unue. Kongruo aperas nur se la alia persono ankaŭ diras Jes. Alie neniu vidas la respondon de la alia.",interested:"Antaŭ sendo: ĉu vi rendevuus kun ĉi tiu persono?",interestedCopy:"Via respondo restas sekreta krom se ambaŭ diras Jes.",yes:"Jes",no:"Ne",enable:"ŜALTI",enabled:"AKTIVA",expires:"KIAM ĜI MALAPERU?",expiresCopy:"Post tiu tempo la ligilo ĉesas funkcii kaj ĝiaj aktivaj datumoj aŭtomate foriĝas.",hours:"horoj",theme:"STILO DE LA INVITO",themeCopy:"Ŝanĝas nur la kolorojn kaj etoson, ne la demandojn aŭ privatecon.",original:"Originala · Oranĝa",nightlife:"Nokto · Rozkolora",creator:"Kreinto · Verda"},
-  pt:{heading:"Definições opcionais",intro:"Escolhe quão privado, temporário e visual será este convite.",blind:"Match secreto",blindCopy:"Tu respondes primeiro. O match só aparece se a outra pessoa também disser Sim. Caso contrário, ninguém vê a resposta do outro.",interested:"Antes de enviar: terias um encontro com esta pessoa?",interestedCopy:"A tua resposta fica secreta, a menos que ambos digam Sim.",yes:"Sim",no:"Não",enable:"ATIVAR",enabled:"ATIVO",expires:"QUANDO DEVE DESAPARECER?",expiresCopy:"Depois deste prazo, o link deixa de funcionar e os dados ativos são eliminados automaticamente.",hours:"horas",theme:"ESTILO DO CONVITE",themeCopy:"Só muda as cores e o ambiente. Não afeta as perguntas nem a privacidade.",original:"Original · Laranja",nightlife:"Noite · Rosa",creator:"Creator · Verde"},
-  zh:{heading:"可选设置",intro:"选择这份邀请的隐私程度、有效时间和视觉风格。",blind:"秘密匹配",blindCopy:"你先回答。只有对方也回答“愿意”时才会显示匹配；否则双方都看不到对方的答案。",interested:"发送前：你愿意和这个人约会吗？",interestedCopy:"除非双方都回答“愿意”，否则你的答案始终保密。",yes:"愿意",no:"不愿意",enable:"开启",enabled:"已开启",expires:"何时失效？",expiresCopy:"到期后，链接将停止工作，活跃数据会被自动删除。",hours:"小时",theme:"邀请风格",themeCopy:"只改变颜色和氛围，不影响问题或隐私。",original:"原版 · 橙色",nightlife:"夜色 · 粉色",creator:"创作者 · 绿色"},
-  hi:{heading:"वैकल्पिक सेटिंग्स",intro:"इस आमंत्रण की गोपनीयता, अवधि और रूप चुनें।",blind:"गुप्त मैच",blindCopy:"पहले आप जवाब देते हैं। मैच तभी दिखेगा जब दूसरा व्यक्ति भी हाँ कहे। अन्यथा किसी को दूसरे का जवाब नहीं दिखेगा।",interested:"भेजने से पहले: क्या आप इस व्यक्ति को डेट करेंगे?",interestedCopy:"आपका जवाब गुप्त रहेगा, जब तक दोनों हाँ न कहें।",yes:"हाँ",no:"नहीं",enable:"चालू करें",enabled:"चालू",expires:"यह कब गायब हो?",expiresCopy:"इस समय के बाद लिंक काम करना बंद कर देगा और सक्रिय डेटा अपने आप मिट जाएगा।",hours:"घंटे",theme:"आमंत्रण की शैली",themeCopy:"सिर्फ रंग और माहौल बदलता है, सवाल या गोपनीयता नहीं।",original:"मूल · नारंगी",nightlife:"नाइट · गुलाबी",creator:"क्रिएटर · हरा"},
-  ja:{heading:"オプション設定",intro:"招待のプライバシー、期限、見た目を選べます。",blind:"シークレットマッチ",blindCopy:"まずあなたが回答します。相手も「はい」と答えた場合だけマッチを表示し、それ以外はお互いの回答を公開しません。",interested:"送信前に：この人とデートしたいですか？",interestedCopy:"二人とも「はい」と答えない限り、回答は秘密です。",yes:"はい",no:"いいえ",enable:"有効にする",enabled:"有効",expires:"いつ消えますか？",expiresCopy:"期限後はリンクが使えなくなり、アクティブデータは自動的に削除されます。",hours:"時間",theme:"招待のスタイル",themeCopy:"色と雰囲気だけを変更し、質問やプライバシーには影響しません。",original:"オリジナル・オレンジ",nightlife:"ナイト・ピンク",creator:"クリエイター・グリーン"},
-  tr:{heading:"İsteğe bağlı ayarlar",intro:"Bu davetin gizliliğini, süresini ve görünümünü seç.",blind:"Gizli eşleşme",blindCopy:"Önce sen cevap verirsin. Eşleşme yalnızca diğer kişi de Evet derse görünür. Aksi halde kimse diğerinin cevabını görmez.",interested:"Göndermeden önce: bu kişiyle buluşur muydun?",interestedCopy:"İkiniz de Evet demedikçe cevabın gizli kalır.",yes:"Evet",no:"Hayır",enable:"AÇ",enabled:"AÇIK",expires:"NE ZAMAN KAYBOLSUN?",expiresCopy:"Bu süreden sonra bağlantı çalışmaz ve aktif verileri otomatik olarak silinir.",hours:"saat",theme:"DAVET STİLİ",themeCopy:"Yalnızca renkleri ve havayı değiştirir; soruları veya gizliliği etkilemez.",original:"Orijinal · Turuncu",nightlife:"Gece · Pembe",creator:"Creator · Yeşil"},
-  machine:{heading:"OPTIONAL_CONFIG",intro:"SET privacy_duration_visual_mode.",blind:"SECRET_MATCH",blindCopy:"CREATOR_INPUT first. REVEAL match IFF recipient_input == YES. ELSE reveal NONE.",interested:"CREATOR_INTEREST?",interestedCopy:"VALUE remains PRIVATE unless BOTH == YES.",yes:"TRUE",no:"FALSE",enable:"ENABLE",enabled:"ENABLED",expires:"TTL",expiresCopy:"ON expiry: LINK_DISABLED; ACTIVE_DATA_DELETE=AUTO.",hours:"hours",theme:"VISUAL_THEME",themeCopy:"COLOR_ONLY; QUESTIONS_UNCHANGED; PRIVACY_UNCHANGED.",original:"ORIGINAL_ORANGE",nightlife:"NIGHT_PINK",creator:"CREATOR_GREEN"}
-});
-function FeatureConfig({locale,doubleBlind,setDoubleBlind,creatorName,matchQuestion,setMatchQuestion,timedMode,setTimedMode,creatorInterest,setCreatorInterest,expiresInHours,setExpiresInHours,packSlug,setPackSlug}:{locale:Locale;doubleBlind:boolean;setDoubleBlind:(value:boolean)=>void;creatorName:string;matchQuestion:string;setMatchQuestion:(value:string)=>void;timedMode:boolean;setTimedMode:(value:boolean)=>void;creatorInterest:boolean;setCreatorInterest:(value:boolean)=>void;expiresInHours:number;setExpiresInHours:(value:number)=>void;packSlug:string;setPackSlug:(value:string)=>void}) {
-  const c=featureText[locale];
-  const questionCopy=matchQuestionCopy[locale];
-  const answerCopy=creatorMatchAnswerCopy[locale];
-  const toggleDoubleBlind=()=>{const next=!doubleBlind;if(next&&!matchQuestion.trim())setMatchQuestion(interpolate(questionCopy.placeholder,{name:creatorName}));setDoubleBlind(next);};
-  return <section className="feature-config" aria-labelledby="feature-heading">
-    <div className="feature-intro"><span>✦</span><div><h3 id="feature-heading">{c.heading}</h3><p>{c.intro}</p></div></div>
-    <button type="button" className={`blind-toggle ${doubleBlind?"active":""}`} onClick={toggleDoubleBlind} aria-pressed={doubleBlind}><span>◐</span><div><b>{c.blind}</b><small>{c.blindCopy}</small></div><i>{doubleBlind?c.enabled:c.enable}</i></button>
-    {doubleBlind&&<div className="match-question-editor"><label htmlFor="match-question">{questionCopy.label}</label><textarea id="match-question" value={matchQuestion} onChange={(event)=>setMatchQuestion(event.target.value.slice(0,180))} maxLength={180} rows={2} placeholder={interpolate(questionCopy.placeholder,{name:creatorName})} aria-describedby="match-question-help"/><div><small id="match-question-help">{questionCopy.help}</small><span>{matchQuestion.length}/180</span></div></div>}
-    {doubleBlind&&<div className="interest-row"><div><b>{answerCopy.label}</b><small>{answerCopy.help}</small></div><span><button type="button" className={creatorInterest?"active":""} onClick={()=>setCreatorInterest(true)}>{c.yes}</button><button type="button" className={!creatorInterest?"active":""} onClick={()=>setCreatorInterest(false)}>{c.no}</button></span></div>}
-    <button type="button" className={`blind-toggle timed-toggle ${timedMode?"active":""}`} onClick={()=>setTimedMode(!timedMode)} aria-pressed={timedMode}><span>30</span><div><b>{timedModeCopy[locale].title}</b><small>{timedModeCopy[locale].copy}</small></div><i>{timedMode?c.enabled:c.enable}</i></button>
-    <div className="feature-selects">
-      <label>{c.expires}<select value={expiresInHours} onChange={(event)=>setExpiresInHours(Number(event.target.value))} aria-describedby="expiry-help">{[12,24,48,72].map((value)=><option key={value} value={value}>{value} {c.hours}</option>)}</select><small id="expiry-help">{c.expiresCopy}</small></label>
-      <label>{c.theme}<select value={packSlug} onChange={(event)=>setPackSlug(event.target.value)} aria-describedby="theme-help"><option value="original">{c.original}</option><option value="nightlife">{c.nightlife}</option><option value="creator">{c.creator}</option></select><small id="theme-help">{c.themeCopy}</small></label>
+  return (
+    <div className="builder-shell">
+      <div className="builder-top">
+        <div>
+          <span className="step">
+            {t("step")} {step} {t("of")} 4
+          </span>
+          <h2 id="builder-title">
+            {step === 1
+              ? t("who")
+              : step === 2
+                ? t("chooseIntensity")
+                : step === 3
+                  ? t("chooseQuestions")
+                  : t("ready")}
+          </h2>
+        </div>
+        <span className="counter">0{step}</span>
+      </div>
+      <progress
+        className="steps-line"
+        max={4}
+        value={step}
+        aria-label={`${t("step")} ${step} ${t("of")} 4`}
+      />
+      {step === 1 && (
+        <div className="step-panel">
+          <div className="two-fields">
+            <div>
+              <label htmlFor="creator">{t("yourName")}</label>
+              <input
+                id="creator"
+                required
+                minLength={1}
+                maxLength={40}
+                autoComplete="name"
+                aria-describedby="creator-name-rule"
+                value={creatorName}
+                onChange={(event) =>
+                  setCreatorName(event.target.value.slice(0, 40))
+                }
+                placeholder={t("yourExample")}
+              />
+              <small id="creator-name-rule" className="name-rule">
+                {NAME_RULE_COPY[locale]}
+              </small>
+            </div>
+            <div>
+              <label htmlFor="recipient">{t("theirName")}</label>
+              <input
+                id="recipient"
+                required
+                minLength={1}
+                maxLength={40}
+                autoComplete="off"
+                aria-describedby="recipient-name-rule"
+                value={recipientName}
+                onChange={(event) =>
+                  setRecipientName(event.target.value.slice(0, 40))
+                }
+                placeholder={t("theirExample")}
+              />
+              <small id="recipient-name-rule" className="name-rule">
+                {NAME_RULE_COPY[locale]}
+              </small>
+            </div>
+            <div className="email-field">
+              <label htmlFor="creator-email">{accessCopy[locale].email}</label>
+              <input
+                id="creator-email"
+                type="email"
+                autoComplete="email"
+                value={creatorEmail}
+                onChange={(event) =>
+                  setCreatorEmail(event.target.value.slice(0, 120))
+                }
+                placeholder={accessCopy[locale].placeholder}
+                aria-describedby="email-security email-error"
+                aria-invalid={!emailValid}
+              />
+              <p id="email-security" className="email-security">
+                <span>◆</span>
+                {accessCopy[locale].security}
+              </p>
+              {!emailValid && (
+                <p id="email-error" className="form-error" role="alert">
+                  {accessCopy[locale].invalid}
+                </p>
+              )}
+            </div>
+          </div>
+          <button
+            className="primary wizard-next"
+            disabled={!identityValid}
+            onClick={() => setStep(2)}
+          >
+            {t("chooseIntensity")} <span>→</span>
+          </button>
+        </div>
+      )}
+      {step === 2 && (
+        <div className="step-panel">
+          <fieldset className="intensity-fieldset">
+            <legend>{t("chooseIntensity")}</legend>
+            <div className="level-grid">
+              {getLevels(locale).map((item) => (
+                <button
+                  type="button"
+                  key={item.id}
+                  className={level === item.id ? "active" : ""}
+                  onClick={() => chooseLevel(item.id)}
+                  aria-pressed={level === item.id}
+                >
+                  <span className="level-icon">{item.icon}</span>
+                  <span>
+                    <b>{item.label}</b>
+                    <small>{item.copy}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          {level === "sinfiltro" && (
+            <label className="age-check">
+              <input
+                type="checkbox"
+                checked={adultConfirmed}
+                onChange={(event) => setAdultConfirmed(event.target.checked)}
+              />
+              <span>{t("adultConfirm")}</span>
+            </label>
+          )}
+          <ResponseMode
+            locale={locale}
+            viewOnce={viewOnce}
+            setViewOnce={setViewOnce}
+          />
+          <div className="button-row">
+            <button className="secondary" onClick={() => setStep(1)}>
+              ← {t("back")}
+            </button>
+            <button
+              className="primary"
+              disabled={!intensityValid}
+              onClick={() => setStep(3)}
+            >
+              {t("chooseQuestionsBtn")} <span>→</span>
+            </button>
+          </div>
+        </div>
+      )}
+      {step === 3 && (
+        <>
+          <FeatureConfig
+            locale={locale}
+            doubleBlind={doubleBlind}
+            setDoubleBlind={setDoubleBlind}
+            creatorName={creatorName}
+            matchQuestion={matchQuestion}
+            setMatchQuestion={setMatchQuestion}
+            timedMode={timedMode}
+            setTimedMode={setTimedMode}
+            creatorInterest={creatorInterest}
+            setCreatorInterest={setCreatorInterest}
+            expiresInHours={expiresInHours}
+            setExpiresInHours={setExpiresInHours}
+            packSlug={packSlug}
+            setPackSlug={setPackSlug}
+          />
+          <div className="step-panel">
+            <div className="selection-meta">
+              <div>
+                <p>{t("selectHint")}</p>
+                <small>{smartCopy[locale].note}</small>
+              </div>
+              <strong>{selected.length}/12</strong>
+            </div>
+            <button
+              className="smart-mix"
+              type="button"
+              onClick={applySmartMix}
+              disabled={mixing}
+            >
+              {mixing ? "…" : smartCopy[locale].button}
+            </button>
+            <div className="questions-list">
+              {questions.map((question, index) => (
+                <button
+                  type="button"
+                  key={question}
+                  className={selected.includes(question) ? "selected" : ""}
+                  onClick={() => toggleQuestion(question)}
+                >
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <p>{question}</p>
+                  <i>{selected.includes(question) ? "✓" : "+"}</i>
+                </button>
+              ))}
+            </div>
+            {selected
+              .filter((item) => !questions.includes(item))
+              .map((question) => (
+                <div className="custom-chip" key={question}>
+                  <span>{t("own")}</span>
+                  <p>{question}</p>
+                  <button
+                    onClick={() => toggleQuestion(question)}
+                    aria-label={interpolate(builderUi[locale].remove, {
+                      question,
+                    })}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            <div className="custom-row">
+              <input
+                value={custom}
+                onChange={(event) => setCustom(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addCustom();
+                  }
+                }}
+                maxLength={180}
+                placeholder={t("customPlaceholder")}
+              />
+              <button type="button" onClick={addCustom}>
+                {t("add")}
+              </button>
+            </div>
+            <SharedKeySetup
+              locale={locale}
+              sharedKey={sharedKey}
+              confirmed={sharedKeyConfirmed}
+              onChange={(key, generated) => {
+                setSharedKey(key);
+                setSharedKeyGenerated(generated);
+                setSharedKeyConfirmed(false);
+              }}
+              onConfirm={setSharedKeyConfirmed}
+            />
+            {error && (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="button-row">
+              <button className="secondary" onClick={() => setStep(2)}>
+                ← {t("back")}
+              </button>
+              <button
+                className="primary"
+                disabled={
+                  selected.length < 3 ||
+                  loading ||
+                  !sharedKey ||
+                  !sharedKeyConfirmed ||
+                  (doubleBlind && matchQuestion.trim().length < 5)
+                }
+                onClick={createGame}
+              >
+                {loading ? t("creating") : t("createLink")}
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+      {step === 4 && created && (
+        <div className="success-panel">
+          <div className="success-icon">✓</div>
+          <span className="success-kicker">{t("created")}</span>
+          <h3>{t("interesting")}</h3>
+          <p>{interpolate(t("successCopy"), { name: recipientName })}</p>
+          <ShareInvitation
+            locale={locale}
+            recipientName={recipientName}
+            playUrl={created.playUrl}
+            shareText={t("shareText")}
+          />
+          <QrCard
+            kind="invitation"
+            locale={locale}
+            name={recipientName}
+            url={created.playUrl}
+          />
+          <SharedKeyCard
+            locale={locale}
+            sharedKey={sharedKey}
+            showRecovery={sharedKeyGenerated}
+          />
+          <div className="link-box">
+            <span>{t("answerLink")}</span>
+            <div>
+              <code>{created.playUrl}</code>
+              <button onClick={() => copy(created.playUrl, "play")}>
+                {copied === "play" ? t("copied") : t("copy")}
+              </button>
+            </div>
+          </div>
+          <div className="admin-box">
+            <span className="lock">◆</span>
+            <div>
+              <b>{viewOnce ? t("privateOnce") : t("privatePanel")}</b>
+              <p>{viewOnce ? t("privateOnceCopy") : t("secretCopy")}</p>
+              <div className="admin-actions">
+                <a
+                  href={created.adminUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("openPanel")}
+                </a>
+                <button onClick={() => copy(created.adminUrl, "admin")}>
+                  {copied === "admin" ? t("copied") : t("copySecret")}
+                </button>
+              </div>
+            </div>
+          </div>
+          <p className="encryption-notice">
+            <span>◆</span>
+            {encryptionCopy[locale].notice}
+          </p>
+          <QrCard
+            kind="dashboard"
+            locale={locale}
+            name={creatorName}
+            url={created.adminUrl}
+          />
+          {creatorEmail.trim() && emailValid && (
+            <button className="html-download" onClick={emailAccessLink}>
+              {accessCopy[locale].send}
+            </button>
+          )}
+          <button
+            className="html-download"
+            onClick={() =>
+              downloadInvitationHtml({
+                creatorName,
+                recipientName,
+                playUrl: created.playUrl,
+                locale,
+                protectedBySharedKey: true,
+              })
+            }
+          >
+            {t("downloadHtml")}
+          </button>
+          <div className={`growth-unlock ${unlocked ? "unlocked" : ""}`}>
+            <span>{unlocked ? "✓" : "↗"}</span>
+            <div>
+              <b>
+                {unlocked
+                  ? growthCopy[locale].unlocked
+                  : growthCopy[locale].title}
+              </b>
+              {!unlocked && <p>{growthCopy[locale].copy}</p>}
+            </div>
+            {!unlocked && (
+              <button onClick={shareToUnlock}>
+                {growthCopy[locale].button}
+              </button>
+            )}
+          </div>
+          <button
+            className="text-button"
+            onClick={() => {
+              setCreated(null);
+              setCreatorEmail("");
+              setUnlocked(false);
+              setSharedKey("");
+              setSharedKeyConfirmed(false);
+              setSharedKeyGenerated(false);
+              setStep(1);
+            }}
+          >
+            {t("createAnother")}
+          </button>
+        </div>
+      )}
+      {step === 4 && created && (
+        <>
+          <div className="one-tap-disabled">
+            <span>◉</span>
+            <div>
+              <b>{paymentCopy[locale].title}</b>
+              <p>{paymentCopy[locale].copy}</p>
+            </div>
+            <em>{paymentCopy[locale].soon}</em>
+          </div>
+          {onClose && (
+            <button className="modal-done" type="button" onClick={onClose}>
+              {builderUi[locale].done}
+            </button>
+          )}
+        </>
+      )}
     </div>
-  </section>;
+  );
+}
+
+function ResponseMode({
+  locale,
+  viewOnce,
+  setViewOnce,
+}: {
+  locale: Locale;
+  viewOnce: boolean;
+  setViewOnce: (value: boolean) => void;
+}) {
+  const c = responseModeCopy[locale];
+  return (
+    <fieldset className="response-mode">
+      <legend>{c.heading}</legend>
+      <div className="response-mode-grid">
+        <button
+          type="button"
+          className={!viewOnce ? "active" : ""}
+          onClick={() => setViewOnce(false)}
+          aria-pressed={!viewOnce}
+        >
+          <span className="response-mode-icon">◎</span>
+          <span>
+            <b>{c.normal}</b>
+            <small>{c.normalCopy}</small>
+          </span>
+          {!viewOnce && <i>✓ {c.selected}</i>}
+        </button>
+        <button
+          type="button"
+          className={viewOnce ? "active once" : "once"}
+          onClick={() => setViewOnce(true)}
+          aria-pressed={viewOnce}
+        >
+          <span className="response-mode-icon">◉</span>
+          <span>
+            <b>{c.once}</b>
+            <small>{c.onceCopy}</small>
+          </span>
+          {viewOnce && <i>✓ {c.selected}</i>}
+        </button>
+      </div>
+    </fieldset>
+  );
+}
+
+type FeatureText = {
+  heading: string;
+  intro: string;
+  blind: string;
+  blindCopy: string;
+  interested: string;
+  interestedCopy: string;
+  yes: string;
+  no: string;
+  enable: string;
+  enabled: string;
+  expires: string;
+  expiresCopy: string;
+  hours: string;
+  theme: string;
+  themeCopy: string;
+  original: string;
+  nightlife: string;
+  creator: string;
+};
+const featureText = localized<FeatureText>({
+  en: {
+    heading: "Optional settings",
+    intro:
+      "Choose how private, temporary and visual this invitation should be.",
+    blind: "Secret match",
+    blindCopy:
+      "You answer first. A match is shown only if the other person also says Yes. Otherwise, neither answer is revealed.",
+    interested: "Before you send it: would you date this person?",
+    interestedCopy: "Your answer stays secret unless both of you say Yes.",
+    yes: "Yes",
+    no: "No",
+    enable: "TURN ON",
+    enabled: "ON",
+    expires: "WHEN SHOULD IT DISAPPEAR?",
+    expiresCopy:
+      "After this time, the link stops working and its active data is deleted automatically.",
+    hours: "hours",
+    theme: "INVITATION STYLE",
+    themeCopy:
+      "Only changes the colors and mood. It does not affect questions or privacy.",
+    original: "Original · Orange",
+    nightlife: "Nightlife · Pink",
+    creator: "Creator · Green",
+  },
+  es: {
+    heading: "Ajustes opcionales",
+    intro: "Elige cómo de privada, temporal y visual será esta invitación.",
+    blind: "Match secreto",
+    blindCopy:
+      "Tú respondes primero. Solo habrá match si la otra persona también dice «Sí». Si no, nadie verá la respuesta del otro.",
+    interested: "Antes de enviarlo: ¿tú tendrías una cita con esta persona?",
+    interestedCopy: "Tu respuesta será secreta salvo que ambos digáis «Sí».",
+    yes: "Sí",
+    no: "No",
+    enable: "ACTIVAR",
+    enabled: "ACTIVO",
+    expires: "¿CUÁNDO DESAPARECE?",
+    expiresCopy:
+      "Al cumplirse este plazo, el enlace deja de funcionar y sus datos activos se eliminan automáticamente.",
+    hours: "horas",
+    theme: "ESTILO DE LA INVITACIÓN",
+    themeCopy:
+      "Solo cambia los colores y el ambiente. No afecta a las preguntas ni a la privacidad.",
+    original: "Original · Naranja",
+    nightlife: "Noche · Rosa",
+    creator: "Creator · Verde",
+  },
+  it: {
+    heading: "Impostazioni facoltative",
+    intro:
+      "Scegli quanto privata, temporanea e visiva sarà questa invitazione.",
+    blind: "Match segreto",
+    blindCopy:
+      "Rispondi prima tu. Il match appare solo se anche l'altra persona dice Sì. Altrimenti nessuno vedrà la risposta dell'altro.",
+    interested: "Prima di inviarlo: usciresti con questa persona?",
+    interestedCopy:
+      "La tua risposta resta segreta, a meno che entrambi diciate Sì.",
+    yes: "Sì",
+    no: "No",
+    enable: "ATTIVA",
+    enabled: "ATTIVO",
+    expires: "QUANDO DEVE SPARIRE?",
+    expiresCopy:
+      "Dopo questo periodo, il link smette di funzionare e i dati attivi vengono eliminati automaticamente.",
+    hours: "ore",
+    theme: "STILE DELL'INVITO",
+    themeCopy:
+      "Cambia solo colori e atmosfera. Non modifica domande o privacy.",
+    original: "Originale · Arancione",
+    nightlife: "Notte · Rosa",
+    creator: "Creator · Verde",
+  },
+  fr: {
+    heading: "Réglages facultatifs",
+    intro:
+      "Choisissez le niveau de confidentialité, la durée et le style de cette invitation.",
+    blind: "Match secret",
+    blindCopy:
+      "Vous répondez d'abord. Le match apparaît uniquement si l'autre personne répond aussi Oui. Sinon, aucune réponse n'est révélée.",
+    interested:
+      "Avant l'envoi : accepteriez-vous un rendez-vous avec cette personne ?",
+    interestedCopy:
+      "Votre réponse reste secrète, sauf si vous répondez Oui tous les deux.",
+    yes: "Oui",
+    no: "Non",
+    enable: "ACTIVER",
+    enabled: "ACTIF",
+    expires: "QUAND DOIT-ELLE DISPARAÎTRE ?",
+    expiresCopy:
+      "Après ce délai, le lien cesse de fonctionner et ses données actives sont supprimées automatiquement.",
+    hours: "heures",
+    theme: "STYLE DE L'INVITATION",
+    themeCopy:
+      "Change uniquement les couleurs et l'ambiance, pas les questions ni la confidentialité.",
+    original: "Original · Orange",
+    nightlife: "Nuit · Rose",
+    creator: "Creator · Vert",
+  },
+  de: {
+    heading: "Optionale Einstellungen",
+    intro: "Lege Privatsphäre, Dauer und Aussehen dieser Einladung fest.",
+    blind: "Geheimes Match",
+    blindCopy:
+      "Du antwortest zuerst. Ein Match erscheint nur, wenn die andere Person ebenfalls Ja sagt. Sonst sieht niemand die Antwort des anderen.",
+    interested: "Vor dem Senden: Würdest du diese Person daten?",
+    interestedCopy: "Deine Antwort bleibt geheim, außer ihr sagt beide Ja.",
+    yes: "Ja",
+    no: "Nein",
+    enable: "AKTIVIEREN",
+    enabled: "AKTIV",
+    expires: "WANN SOLL ES VERSCHWINDEN?",
+    expiresCopy:
+      "Danach funktioniert der Link nicht mehr und seine aktiven Daten werden automatisch gelöscht.",
+    hours: "Stunden",
+    theme: "EINLADUNGSSTIL",
+    themeCopy:
+      "Ändert nur Farben und Stimmung, nicht Fragen oder Privatsphäre.",
+    original: "Original · Orange",
+    nightlife: "Nacht · Pink",
+    creator: "Creator · Grün",
+  },
+  nl: {
+    heading: "Optionele instellingen",
+    intro: "Kies hoe privé, tijdelijk en visueel deze uitnodiging is.",
+    blind: "Geheime match",
+    blindCopy:
+      "Jij antwoordt eerst. Er verschijnt alleen een match als de ander ook Ja zegt. Anders ziet niemand elkaars antwoord.",
+    interested: "Voor je verstuurt: zou je met deze persoon daten?",
+    interestedCopy:
+      "Je antwoord blijft geheim, tenzij jullie allebei Ja zeggen.",
+    yes: "Ja",
+    no: "Nee",
+    enable: "AANZETTEN",
+    enabled: "AAN",
+    expires: "WANNEER MOET DIT VERDWIJNEN?",
+    expiresCopy:
+      "Daarna werkt de link niet meer en worden de actieve gegevens automatisch verwijderd.",
+    hours: "uur",
+    theme: "STIJL VAN DE UITNODIGING",
+    themeCopy: "Verandert alleen kleuren en sfeer, niet de vragen of privacy.",
+    original: "Origineel · Oranje",
+    nightlife: "Nacht · Roze",
+    creator: "Creator · Groen",
+  },
+  eo: {
+    heading: "Nedevigaj agordoj",
+    intro: "Elektu la privatecon, daŭron kaj aspekton de ĉi tiu invito.",
+    blind: "Sekreta kongruo",
+    blindCopy:
+      "Vi respondas unue. Kongruo aperas nur se la alia persono ankaŭ diras Jes. Alie neniu vidas la respondon de la alia.",
+    interested: "Antaŭ sendo: ĉu vi rendevuus kun ĉi tiu persono?",
+    interestedCopy: "Via respondo restas sekreta krom se ambaŭ diras Jes.",
+    yes: "Jes",
+    no: "Ne",
+    enable: "ŜALTI",
+    enabled: "AKTIVA",
+    expires: "KIAM ĜI MALAPERU?",
+    expiresCopy:
+      "Post tiu tempo la ligilo ĉesas funkcii kaj ĝiaj aktivaj datumoj aŭtomate foriĝas.",
+    hours: "horoj",
+    theme: "STILO DE LA INVITO",
+    themeCopy:
+      "Ŝanĝas nur la kolorojn kaj etoson, ne la demandojn aŭ privatecon.",
+    original: "Originala · Oranĝa",
+    nightlife: "Nokto · Rozkolora",
+    creator: "Kreinto · Verda",
+  },
+  pt: {
+    heading: "Definições opcionais",
+    intro: "Escolhe quão privado, temporário e visual será este convite.",
+    blind: "Match secreto",
+    blindCopy:
+      "Tu respondes primeiro. O match só aparece se a outra pessoa também disser Sim. Caso contrário, ninguém vê a resposta do outro.",
+    interested: "Antes de enviar: terias um encontro com esta pessoa?",
+    interestedCopy: "A tua resposta fica secreta, a menos que ambos digam Sim.",
+    yes: "Sim",
+    no: "Não",
+    enable: "ATIVAR",
+    enabled: "ATIVO",
+    expires: "QUANDO DEVE DESAPARECER?",
+    expiresCopy:
+      "Depois deste prazo, o link deixa de funcionar e os dados ativos são eliminados automaticamente.",
+    hours: "horas",
+    theme: "ESTILO DO CONVITE",
+    themeCopy:
+      "Só muda as cores e o ambiente. Não afeta as perguntas nem a privacidade.",
+    original: "Original · Laranja",
+    nightlife: "Noite · Rosa",
+    creator: "Creator · Verde",
+  },
+  zh: {
+    heading: "可选设置",
+    intro: "选择这份邀请的隐私程度、有效时间和视觉风格。",
+    blind: "秘密匹配",
+    blindCopy:
+      "你先回答。只有对方也回答“愿意”时才会显示匹配；否则双方都看不到对方的答案。",
+    interested: "发送前：你愿意和这个人约会吗？",
+    interestedCopy: "除非双方都回答“愿意”，否则你的答案始终保密。",
+    yes: "愿意",
+    no: "不愿意",
+    enable: "开启",
+    enabled: "已开启",
+    expires: "何时失效？",
+    expiresCopy: "到期后，链接将停止工作，活跃数据会被自动删除。",
+    hours: "小时",
+    theme: "邀请风格",
+    themeCopy: "只改变颜色和氛围，不影响问题或隐私。",
+    original: "原版 · 橙色",
+    nightlife: "夜色 · 粉色",
+    creator: "创作者 · 绿色",
+  },
+  hi: {
+    heading: "वैकल्पिक सेटिंग्स",
+    intro: "इस आमंत्रण की गोपनीयता, अवधि और रूप चुनें।",
+    blind: "गुप्त मैच",
+    blindCopy:
+      "पहले आप जवाब देते हैं। मैच तभी दिखेगा जब दूसरा व्यक्ति भी हाँ कहे। अन्यथा किसी को दूसरे का जवाब नहीं दिखेगा।",
+    interested: "भेजने से पहले: क्या आप इस व्यक्ति को डेट करेंगे?",
+    interestedCopy: "आपका जवाब गुप्त रहेगा, जब तक दोनों हाँ न कहें।",
+    yes: "हाँ",
+    no: "नहीं",
+    enable: "चालू करें",
+    enabled: "चालू",
+    expires: "यह कब गायब हो?",
+    expiresCopy:
+      "इस समय के बाद लिंक काम करना बंद कर देगा और सक्रिय डेटा अपने आप मिट जाएगा।",
+    hours: "घंटे",
+    theme: "आमंत्रण की शैली",
+    themeCopy: "सिर्फ रंग और माहौल बदलता है, सवाल या गोपनीयता नहीं।",
+    original: "मूल · नारंगी",
+    nightlife: "नाइट · गुलाबी",
+    creator: "क्रिएटर · हरा",
+  },
+  ja: {
+    heading: "オプション設定",
+    intro: "招待のプライバシー、期限、見た目を選べます。",
+    blind: "シークレットマッチ",
+    blindCopy:
+      "まずあなたが回答します。相手も「はい」と答えた場合だけマッチを表示し、それ以外はお互いの回答を公開しません。",
+    interested: "送信前に：この人とデートしたいですか？",
+    interestedCopy: "二人とも「はい」と答えない限り、回答は秘密です。",
+    yes: "はい",
+    no: "いいえ",
+    enable: "有効にする",
+    enabled: "有効",
+    expires: "いつ消えますか？",
+    expiresCopy:
+      "期限後はリンクが使えなくなり、アクティブデータは自動的に削除されます。",
+    hours: "時間",
+    theme: "招待のスタイル",
+    themeCopy: "色と雰囲気だけを変更し、質問やプライバシーには影響しません。",
+    original: "オリジナル・オレンジ",
+    nightlife: "ナイト・ピンク",
+    creator: "クリエイター・グリーン",
+  },
+  tr: {
+    heading: "İsteğe bağlı ayarlar",
+    intro: "Bu davetin gizliliğini, süresini ve görünümünü seç.",
+    blind: "Gizli eşleşme",
+    blindCopy:
+      "Önce sen cevap verirsin. Eşleşme yalnızca diğer kişi de Evet derse görünür. Aksi halde kimse diğerinin cevabını görmez.",
+    interested: "Göndermeden önce: bu kişiyle buluşur muydun?",
+    interestedCopy: "İkiniz de Evet demedikçe cevabın gizli kalır.",
+    yes: "Evet",
+    no: "Hayır",
+    enable: "AÇ",
+    enabled: "AÇIK",
+    expires: "NE ZAMAN KAYBOLSUN?",
+    expiresCopy:
+      "Bu süreden sonra bağlantı çalışmaz ve aktif verileri otomatik olarak silinir.",
+    hours: "saat",
+    theme: "DAVET STİLİ",
+    themeCopy:
+      "Yalnızca renkleri ve havayı değiştirir; soruları veya gizliliği etkilemez.",
+    original: "Orijinal · Turuncu",
+    nightlife: "Gece · Pembe",
+    creator: "Creator · Yeşil",
+  },
+  machine: {
+    heading: "OPTIONAL_CONFIG",
+    intro: "SET privacy_duration_visual_mode.",
+    blind: "SECRET_MATCH",
+    blindCopy:
+      "CREATOR_INPUT first. REVEAL match IFF recipient_input == YES. ELSE reveal NONE.",
+    interested: "CREATOR_INTEREST?",
+    interestedCopy: "VALUE remains PRIVATE unless BOTH == YES.",
+    yes: "TRUE",
+    no: "FALSE",
+    enable: "ENABLE",
+    enabled: "ENABLED",
+    expires: "TTL",
+    expiresCopy: "ON expiry: LINK_DISABLED; ACTIVE_DATA_DELETE=AUTO.",
+    hours: "hours",
+    theme: "VISUAL_THEME",
+    themeCopy: "COLOR_ONLY; QUESTIONS_UNCHANGED; PRIVACY_UNCHANGED.",
+    original: "ORIGINAL_ORANGE",
+    nightlife: "NIGHT_PINK",
+    creator: "CREATOR_GREEN",
+  },
+});
+function FeatureConfig({
+  locale,
+  doubleBlind,
+  setDoubleBlind,
+  creatorName,
+  matchQuestion,
+  setMatchQuestion,
+  timedMode,
+  setTimedMode,
+  creatorInterest,
+  setCreatorInterest,
+  expiresInHours,
+  setExpiresInHours,
+  packSlug,
+  setPackSlug,
+}: {
+  locale: Locale;
+  doubleBlind: boolean;
+  setDoubleBlind: (value: boolean) => void;
+  creatorName: string;
+  matchQuestion: string;
+  setMatchQuestion: (value: string) => void;
+  timedMode: boolean;
+  setTimedMode: (value: boolean) => void;
+  creatorInterest: boolean;
+  setCreatorInterest: (value: boolean) => void;
+  expiresInHours: number;
+  setExpiresInHours: (value: number) => void;
+  packSlug: string;
+  setPackSlug: (value: string) => void;
+}) {
+  const c = featureText[locale];
+  const questionCopy = matchQuestionCopy[locale];
+  const answerCopy = creatorMatchAnswerCopy[locale];
+  const toggleDoubleBlind = () => {
+    const next = !doubleBlind;
+    if (next && !matchQuestion.trim())
+      setMatchQuestion(
+        interpolate(questionCopy.placeholder, { name: creatorName }),
+      );
+    setDoubleBlind(next);
+  };
+  return (
+    <section className="feature-config" aria-labelledby="feature-heading">
+      <div className="feature-intro">
+        <span>✦</span>
+        <div>
+          <h3 id="feature-heading">{c.heading}</h3>
+          <p>{c.intro}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        className={`blind-toggle ${doubleBlind ? "active" : ""}`}
+        onClick={toggleDoubleBlind}
+        aria-pressed={doubleBlind}
+      >
+        <span>◐</span>
+        <div>
+          <b>{c.blind}</b>
+          <small>{c.blindCopy}</small>
+        </div>
+        <i>{doubleBlind ? c.enabled : c.enable}</i>
+      </button>
+      {doubleBlind && (
+        <div className="match-question-editor">
+          <label htmlFor="match-question">{questionCopy.label}</label>
+          <textarea
+            id="match-question"
+            value={matchQuestion}
+            onChange={(event) =>
+              setMatchQuestion(event.target.value.slice(0, 180))
+            }
+            maxLength={180}
+            rows={2}
+            placeholder={interpolate(questionCopy.placeholder, {
+              name: creatorName,
+            })}
+            aria-describedby="match-question-help"
+          />
+          <div>
+            <small id="match-question-help">{questionCopy.help}</small>
+            <span>{matchQuestion.length}/180</span>
+          </div>
+        </div>
+      )}
+      {doubleBlind && (
+        <div className="interest-row">
+          <div>
+            <b>{answerCopy.label}</b>
+            <small>{answerCopy.help}</small>
+          </div>
+          <span>
+            <button
+              type="button"
+              className={creatorInterest ? "active" : ""}
+              onClick={() => setCreatorInterest(true)}
+            >
+              {c.yes}
+            </button>
+            <button
+              type="button"
+              className={!creatorInterest ? "active" : ""}
+              onClick={() => setCreatorInterest(false)}
+            >
+              {c.no}
+            </button>
+          </span>
+        </div>
+      )}
+      <button
+        type="button"
+        className={`blind-toggle timed-toggle ${timedMode ? "active" : ""}`}
+        onClick={() => setTimedMode(!timedMode)}
+        aria-pressed={timedMode}
+      >
+        <span>30</span>
+        <div>
+          <b>{timedModeCopy[locale].title}</b>
+          <small>{timedModeCopy[locale].copy}</small>
+        </div>
+        <i>{timedMode ? c.enabled : c.enable}</i>
+      </button>
+      <div className="feature-selects">
+        <label>
+          {c.expires}
+          <select
+            value={expiresInHours}
+            onChange={(event) => setExpiresInHours(Number(event.target.value))}
+            aria-describedby="expiry-help"
+          >
+            {[12, 24, 48, 72].map((value) => (
+              <option key={value} value={value}>
+                {value} {c.hours}
+              </option>
+            ))}
+          </select>
+          <small id="expiry-help">{c.expiresCopy}</small>
+        </label>
+        <label>
+          {c.theme}
+          <select
+            value={packSlug}
+            onChange={(event) => setPackSlug(event.target.value)}
+            aria-describedby="theme-help"
+          >
+            <option value="original">{c.original}</option>
+            <option value="nightlife">{c.nightlife}</option>
+            <option value="creator">{c.creator}</option>
+          </select>
+          <small id="theme-help">{c.themeCopy}</small>
+        </label>
+      </div>
+    </section>
+  );
 }

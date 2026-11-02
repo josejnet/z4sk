@@ -13,7 +13,8 @@ The reviewer must not have authored Z4SK and must disclose commercial or persona
 - public source at `https://github.com/josejnet/z4sk`;
 - the exact production commit displayed at `https://z4sk.vercel.app/audit` and in `/api/privacy-proof`;
 - disposable invitations created solely for the review;
-- browser cryptography in `app/lib/invitation-crypto.ts` and `app/lib/response-crypto.ts`;
+- browser cryptography in `app/lib/shared-key.ts`, `app/lib/invitation-crypto.ts` and `app/lib/response-crypto.ts`;
+- local camera/image QR decoding in `app/components/SharedKeyUnlock.tsx`;
 - API authorization, expiry, one-time consumption, deletion, abuse controls and retention;
 - GitHub Actions, migrations, service worker, CSP and deployment boundaries.
 
@@ -21,10 +22,11 @@ The reviewer must not have authored Z4SK and must disclose commercial or persona
 
 1. Can the server, database, logs or founder endpoint recover invitation or answer plaintext from stored state alone?
 2. Can an unauthorized party list, guess, read, modify, replay or delete invitations or responses?
-3. Are AES-GCM nonces, ECDH keys, HKDF context, entropy and authenticated envelopes used safely?
+3. Are AES-GCM nonces, ECDH keys, HKDF contexts, concatenated link/shared-key input, entropy and authenticated envelopes used safely?
 4. Do concurrent submissions bypass view-once or single-response constraints?
-5. Can URL fragments, bearer headers, service-worker caches, browser history, referrers, CSP reports or errors leak a complete secret link?
+5. Can URL fragments, shared-key QR/words, camera frames, uploaded images, bearer headers, service-worker caches, browser history, referrers, CSP reports or errors leak either secret?
 6. Can a compromised dependency, CI job, maintainer account or deployment substitute client code without visible evidence?
+7. Does QR/24-word reuse create acceptable cross-invitation risk, and are checksum, fingerprint, rotation and channel-separation guidance sound?
 
 ## Safety and reporting
 

@@ -11,9 +11,10 @@
 - No account is required.
 - Invitations expire after 12, 24, 48 or 72 hours.
 - Optional view-once mode removes the active invitation graph before returning the only ciphertext read.
-- Invitation names, questions, settings and response public key are encrypted in the creator browser with AES-256-GCM.
+- Invitation names, questions, settings and response public key are encrypted in the creator browser with a random content key and AES-256-GCM.
 - Responses are encrypted in the recipient browser with ECDH P-256, HKDF-SHA-256 and AES-256-GCM.
-- Both complete links are bearer secrets. Sharing the invitation link is equivalent to sharing a password; the creator link additionally grants response access.
+- Every invitation requires a random link secret plus a separately shared reusable 256-bit key. The key can be a fixed QR or its equivalent 24 Spanish words.
+- The link alone cannot decrypt. Send link and shared key through different channels; anyone who gets both can decrypt, and the creator link additionally grants response access.
 - The creator's private decryption key remains in the secret URL fragment or private QR; it is never sent to the API.
 - A recipient receives a separate deletion link for their own response.
 - Double-blind interest matching reveals a match only when both people opt in.
@@ -30,18 +31,23 @@ The core journey is:
 
 ```text
 Creator browser
-  -> generates invitation AES key + creator token + ECDH key pair
+  -> generates link secret + content key + creator token + ECDH key pair
+  -> creates or scans a reusable shared-key QR
+  -> derives a wrapping key from link secret + shared key
   -> encrypts names, questions, settings and public key locally
   -> sends ciphertext + token hash + minimal lifecycle policy
-  -> shares /g/:id#invite=<invitation-key>
+  -> shares /g/:id#invite=<link-secret> through channel A
+  -> shares the shared-key QR/24 words through channel B
 
 Recipient browser
-  -> decrypts the invitation locally
+  -> scans the shared-key QR (camera/image) or enters 24 words
+  -> combines both secrets and decrypts the invitation locally
   -> encrypts the complete private response locally
   -> stores ciphertext through POST /api/games/:id/responses
 
 Creator browser
-  -> opens /p/:id#key=<bearer>&invite=<invitation-key>&decrypt=<private-key>
+  -> opens /p/:id#key=<bearer>&invite=<link-secret>&decrypt=<private-key>
+  -> scans the same shared key
   -> downloads invitation + response ciphertext with the bearer token
   -> decrypts both locally
 ```
@@ -89,7 +95,7 @@ Put its restricted connection string in `Z4SK_STAGING_DATABASE_URL`, or use a de
 
 Z4SK keeps invitation and response plaintext out of its creation/response APIs and active database for new invitations. It is still not anonymous: random identifiers, question count, lifecycle state, expiry and timestamps remain visible, and infrastructure necessarily processes request paths and network metadata.
 
-**Treat every complete link like a password.** An invitation-link holder can decrypt names, questions and settings and submit until expiry. A creator-link holder can additionally authorize the dashboard and decrypt responses. A compromised browser, device, extension, deployment, clipboard or screenshot can reveal plaintext.
+**Treat each channel as one half of access.** A link is insufficient without the reusable shared key, but it remains sensitive. Send the QR/24 words separately; anyone who obtains both can decrypt names, questions and settings. A creator-link holder who also has the key can authorize the dashboard and decrypt responses. A compromised browser, device, extension, deployment, clipboard, camera pipeline or screenshot can still reveal plaintext.
 
 - [Public audit page](https://z4sk.vercel.app/audit): human-readable protocol, limits, source and live evidence.
 - [External automated audit](docs/EXTERNAL_AUDIT.md): CodeQL, OWASP ZAP and OpenSSF findings, remediation and residual risk.
@@ -110,7 +116,9 @@ The repository and self-audit make the design inspectable; neither is an indepen
 | `app/cancel/[id]` | Recipient-owned response deletion |
 | `app/api` | Invitation, response, retention, metrics and sponsor APIs |
 | `app/lib/response-crypto.ts` | Browser encryption and decryption |
-| `app/lib/invitation-crypto.ts` | Invitation AES-256-GCM encryption and wire hydration |
+| `app/lib/shared-key.ts` | Reusable key generation, QR checksums, fingerprints and 24-word conversion |
+| `app/components/SharedKeyUnlock.tsx` | Local camera/image/words key reader |
+| `app/lib/invitation-crypto.ts` | Invitation v2 HKDF, key wrapping, AES-256-GCM and wire hydration |
 | `db/runtime.ts` | Neon runtime queries and purge operations |
 | `scripts/migrations.mjs` | Versioned, pre-deployment database migrations |
 | `scripts/verify-e2ee.mjs` | Full encrypted data-flow verifier |
@@ -142,6 +150,6 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment setup, rollback and
 
 ## Project status
 
-Z4SK is a beta product with public source for third-party inspection. Payments, push delivery and WhatsApp Business integrations remain disabled. Creator access depends on possession of the secret URL or private QR, and there is deliberately no server-side recovery flow.
+Z4SK is a beta product with public source for third-party inspection. Payments, push delivery and WhatsApp Business integrations remain disabled. Creator access depends on both the creator URL and its separately shared key. There is deliberately no server-side recovery flow.
 
 No open-source license is currently granted. The repository and its commercial assets remain proprietary unless the owner publishes a separate license.

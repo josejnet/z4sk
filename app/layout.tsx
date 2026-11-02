@@ -11,6 +11,7 @@ import "./logo.css";
 import "./share.css";
 import "./ads.css";
 import "./csp-progress.css";
+import "./shared-key.css";
 import { LanguageProvider } from "./lib/i18n";
 import { site } from "./lib/site";
 import { PwaRegister } from "./components/PwaRegister";
@@ -29,9 +30,15 @@ export const metadata: Metadata = {
       { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
-  appleWebApp: { capable: true, title: site.name, statusBarStyle: "black-translucent" },
+  appleWebApp: {
+    capable: true,
+    title: site.name,
+    statusBarStyle: "black-translucent",
+  },
   openGraph: {
     type: "website",
     siteName: site.name,
@@ -55,4 +62,21 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { await connection(); return <html lang="en-US"><head><link rel="shortcut icon" href="/favicon.ico" /></head><body className={`${geist.variable} ${mono.variable}`}><LanguageProvider><PwaRegister />{children}</LanguageProvider></body></html>; }
+export default async function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  await connection();
+  return (
+    <html lang="en-US">
+      <head>
+        <link rel="shortcut icon" href="/favicon.ico" />
+      </head>
+      <body className={`${geist.variable} ${mono.variable}`}>
+        <LanguageProvider>
+          <PwaRegister />
+          {children}
+        </LanguageProvider>
+      </body>
+    </html>
+  );
+}

@@ -79,6 +79,12 @@ const migrations = [
       `REVOKE ALL ON csp_violation_daily FROM PUBLIC`,
     ],
   },
+  {
+    id: "2026-11-02-remove-expired-and-pre-v2-invitations",
+    statements: [
+      `DELETE FROM games WHERE expires_at::timestamptz <= CURRENT_TIMESTAMP OR encrypted_invitation = '' OR encrypted_invitation::jsonb->>'v' IS DISTINCT FROM '2' OR encrypted_invitation::jsonb->>'alg' IS DISTINCT FROM 'HKDF-SHA256+A256GCM+A256GCM' OR encrypted_invitation::jsonb->>'salt' IS NULL OR encrypted_invitation::jsonb->>'keyIv' IS NULL OR encrypted_invitation::jsonb->>'wrappedKey' IS NULL OR encrypted_invitation::jsonb->>'iv' IS NULL OR encrypted_invitation::jsonb->>'ciphertext' IS NULL`,
+    ],
+  },
 ];
 
 export async function runMigrations(databaseUrl) {

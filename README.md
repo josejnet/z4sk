@@ -17,7 +17,7 @@
 - A complete link can decrypt a link-only invitation. When the optional shared key is enabled, link and key are both required and must be sent through different channels. The displayed key ID only identifies the key; it cannot recover or unlock it.
 - The creator's private decryption key remains in the secret URL fragment or private QR; it is never sent to the API.
 - A recipient receives a separate deletion link for their own response.
-- The optional 30-second challenge uses absolute deadlines, automatic advance and no backtracking.
+- The optional 15-second challenge makes the limit explicit twice before starting, then uses absolute deadlines, automatic advance and no backtracking.
 - Thirteen language and machine-readable question libraries are included.
 
 ## Product tour
@@ -36,10 +36,10 @@ Creator browser
   -> encrypts names, questions, settings and public key locally
   -> sends ciphertext + token hash + minimal lifecycle policy
   -> shares /g/:id#invite=<link-secret> through channel A
-  -> when protected, shares the branded QR/12 words through channel B
+  -> when protected, shares the branded QR/12-word recovery phrase through channel B
 
 Recipient browser
-  -> opens a link-only invitation directly; protected invitations read the QR from camera/Photos or accept 12 words
+  -> opens a link-only invitation directly; protected invitations read the key QR from camera/Photos or accept the 12-word recovery phrase
   -> decrypts the invitation locally
   -> encrypts the complete private response locally
   -> stores ciphertext through POST /api/games/:id/responses
@@ -94,7 +94,7 @@ Put its restricted connection string in `Z4SK_STAGING_DATABASE_URL`, or use a de
 
 Z4SK keeps invitation and response plaintext out of its creation/response APIs and active database for new invitations. It is still not anonymous: random identifiers, question count, lifecycle state, expiry and timestamps remain visible, and infrastructure necessarily processes request paths and network metadata.
 
-**Treat every complete link like a password.** It can open a link-only invitation. If the creator enables the optional shared key, send its branded QR or 12 words separately; then both secrets are required. The key ID is non-secret and cannot recover the key. A creator link grants dashboard and response access, with the optional shared key additionally required for protected invitations. A compromised browser, device, extension, deployment, clipboard, camera pipeline or screenshot can still reveal plaintext.
+**Treat every complete link like a password.** It can open a link-only invitation. If the creator enables the optional shared key, send its branded QR or 12-word recovery phrase separately; then both secrets are required. The key ID is non-secret and cannot recover the key. A creator link grants dashboard and response access, with the optional shared key additionally required for protected invitations. A compromised browser, device, extension, deployment, clipboard, camera pipeline or screenshot can still reveal plaintext.
 
 - [Public audit page](https://z4sk.vercel.app/audit): human-readable protocol, limits, source and live evidence.
 - [External automated audit](docs/EXTERNAL_AUDIT.md): CodeQL, OWASP ZAP and OpenSSF findings, remediation and residual risk.

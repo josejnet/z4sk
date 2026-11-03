@@ -27,7 +27,7 @@ Vercel Function <--> Neon Postgres
          |
 Recipient browser
   receives the complete link through channel A
-  if protected, reads a branded QR from camera/Photos or enters 12 words from channel B
+  if protected, reads a branded key QR from camera/Photos or enters the 12-word recovery phrase from channel B
   decrypts invitation locally
   encrypts response using ephemeral ECDH + HKDF + AES-GCM
 ```

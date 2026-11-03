@@ -324,57 +324,72 @@ const responseModeCopy = localized<{
 });
 const timedModeCopy = localized<{ title: string; copy: string }>({
   en: {
-    title: "30-second challenge",
-    copy: "The recipient gets 30 seconds per question and must confirm it twice before starting. At zero, what they typed is locked and the next question opens. They cannot go back.",
+    title: "Express challenge · only 15 seconds",
+    copy: "The recipient has only 15 seconds to answer each question and must acknowledge this twice before starting. At zero, what they typed is locked and the next question opens. They cannot go back.",
   },
   es: {
-    title: "Reto de 30 segundos",
-    copy: "La persona tendrá 30 segundos por pregunta y deberá confirmarlo dos veces antes de empezar. Al llegar a cero, se guarda lo escrito y se abre la siguiente pregunta. No podrá volver atrás.",
+    title: "Reto exprés · solo 15 segundos",
+    copy: "La persona tendrá solo 15 segundos para responder cada pregunta y deberá confirmarlo dos veces antes de empezar. Al llegar a cero, se guarda lo escrito y se abre la siguiente pregunta. No podrá volver atrás.",
   },
   it: {
-    title: "Sfida da 30 secondi",
-    copy: "Chi risponde ha 30 secondi per domanda e deve confermarlo due volte prima di iniziare. A zero, il testo viene bloccato e si apre la domanda successiva. Non può tornare indietro.",
+    title: "Sfida express · solo 15 secondi",
+    copy: "Chi risponde ha solo 15 secondi per domanda e deve confermarlo due volte prima di iniziare. A zero, il testo viene bloccato e si apre la domanda successiva. Non può tornare indietro.",
   },
   fr: {
-    title: "Défi de 30 secondes",
-    copy: "La personne dispose de 30 secondes par question et doit le confirmer deux fois avant de commencer. À zéro, son texte est verrouillé et la question suivante s’ouvre. Impossible de revenir en arrière.",
+    title: "Défi express · 15 secondes seulement",
+    copy: "La personne ne dispose que de 15 secondes par question et doit le confirmer deux fois avant de commencer. À zéro, son texte est verrouillé et la question suivante s’ouvre. Impossible de revenir en arrière.",
   },
   de: {
-    title: "30-Sekunden-Challenge",
-    copy: "Die antwortende Person hat 30 Sekunden pro Frage und muss dies vor dem Start zweimal bestätigen. Bei null wird der Text gesperrt und die nächste Frage geöffnet. Zurückgehen ist nicht möglich.",
+    title: "Express-Challenge · nur 15 Sekunden",
+    copy: "Die antwortende Person hat nur 15 Sekunden pro Frage und muss dies vor dem Start zweimal bestätigen. Bei null wird der Text gesperrt und die nächste Frage geöffnet. Zurückgehen ist nicht möglich.",
   },
   nl: {
-    title: "30-secondenchallenge",
-    copy: "De ontvanger krijgt 30 seconden per vraag en moet dit vóór de start twee keer bevestigen. Bij nul wordt de tekst vastgezet en opent de volgende vraag. Teruggaan kan niet.",
+    title: "Express-uitdaging · slechts 15 seconden",
+    copy: "De ontvanger krijgt slechts 15 seconden per vraag en moet dit vóór de start twee keer bevestigen. Bij nul wordt de tekst vastgezet en opent de volgende vraag. Teruggaan kan niet.",
   },
   eo: {
-    title: "30-sekunda defio",
-    copy: "La respondanto ricevas 30 sekundojn por ĉiu demando kaj devas tion konfirmi dufoje antaŭ la komenco. Je nulo la tajpita teksto fiksiĝas kaj la sekva demando malfermiĝas. Reiri ne eblas.",
+    title: "Rapida defio · nur 15 sekundoj",
+    copy: "La respondanto ricevas nur 15 sekundojn por ĉiu demando kaj devas tion konfirmi dufoje antaŭ la komenco. Je nulo la tajpita teksto fiksiĝas kaj la sekva demando malfermiĝas. Reiri ne eblas.",
   },
   pt: {
-    title: "Desafio de 30 segundos",
-    copy: "A pessoa terá 30 segundos por pergunta e terá de o confirmar duas vezes antes de começar. Ao chegar a zero, o texto fica bloqueado e abre-se a pergunta seguinte. Não é possível voltar atrás.",
+    title: "Desafio expresso · apenas 15 segundos",
+    copy: "A pessoa terá apenas 15 segundos por pergunta e terá de o confirmar duas vezes antes de começar. Ao chegar a zero, o texto fica bloqueado e abre-se a pergunta seguinte. Não é possível voltar atrás.",
   },
   zh: {
-    title: "30 秒挑战",
-    copy: "回答者每题只有 30 秒，开始前必须确认两次。倒计时归零时，已输入内容会被锁定并自动进入下一题，无法返回。",
+    title: "极速挑战 · 每题仅 15 秒",
+    copy: "回答者每题只有 15 秒，开始前必须确认两次。倒计时归零时，已输入内容会被锁定并自动进入下一题，无法返回。",
   },
   hi: {
-    title: "30 सेकंड चुनौती",
-    copy: "जवाब देने वाले को हर सवाल के लिए 30 सेकंड मिलेंगे और शुरू करने से पहले उसे दो बार इसकी पुष्टि करनी होगी। समय समाप्त होने पर लिखा हुआ जवाब लॉक होगा और अगला सवाल खुलेगा। वापस नहीं जा सकेंगे।",
+    title: "एक्सप्रेस चुनौती · केवल 15 सेकंड",
+    copy: "जवाब देने वाले को हर सवाल के लिए केवल 15 सेकंड मिलेंगे और शुरू करने से पहले उसे दो बार इसकी पुष्टि करनी होगी। समय समाप्त होने पर लिखा हुआ जवाब लॉक होगा और अगला सवाल खुलेगा। वापस नहीं जा सकेंगे।",
   },
   ja: {
-    title: "30秒チャレンジ",
-    copy: "回答者は1問につき30秒で、開始前に2回確認する必要があります。0秒になると入力内容が確定し、次の質問へ自動で進みます。前には戻れません。",
+    title: "エクスプレスチャレンジ・1問15秒のみ",
+    copy: "回答者は1問につき15秒しかなく、開始前に2回確認する必要があります。0秒になると入力内容が確定し、次の質問へ自動で進みます。前には戻れません。",
   },
   tr: {
-    title: "30 saniye meydan okuması",
-    copy: "Yanıtlayan kişinin her soru için 30 saniyesi vardır ve başlamadan önce bunu iki kez onaylaması gerekir. Süre sıfırlanınca yazılanlar kilitlenir ve sonraki soru açılır. Geri dönülemez.",
+    title: "Ekspres meydan okuma · yalnızca 15 saniye",
+    copy: "Yanıtlayan kişinin her soru için yalnızca 15 saniyesi vardır ve başlamadan önce bunu iki kez onaylaması gerekir. Süre sıfırlanınca yazılanlar kilitlenir ve sonraki soru açılır. Geri dönülemez.",
   },
   machine: {
-    title: "MODE::30S_PER_QUESTION",
-    copy: "REQUIRE acknowledgements=2 BEFORE start; deadline=30s EACH; ON timeout LOCK current_input; ADVANCE; navigation.back=false",
+    title: "MODE::15S_PER_QUESTION",
+    copy: "REQUIRE acknowledgements=2 BEFORE start; deadline=15s EACH; ON timeout LOCK current_input; ADVANCE; navigation.back=false",
   },
+});
+const successFlowCopy = localized<string>({
+  en: "Send {name} either the answer link or the invitation QR. If you enabled the optional key, send it separately. Encrypted answers will only appear in your private dashboard.",
+  es: "Envía a {name} el enlace o el QR de invitación: basta con uno. Si activaste la llave opcional, envíala por separado. Las respuestas cifradas aparecerán únicamente en tu panel privado.",
+  it: "Invia a {name} il link o il QR dell'invito: ne basta uno. Se hai attivato la chiave opzionale, inviala separatamente. Le risposte cifrate appariranno solo nel tuo pannello privato.",
+  fr: "Envoyez à {name} le lien ou le QR d'invitation : un seul suffit. Si la clé facultative est activée, envoyez-la séparément. Les réponses chiffrées apparaîtront uniquement dans votre espace privé.",
+  de: "Sende {name} entweder den Einladungslink oder den QR; einer genügt. Sende den optionalen Schlüssel getrennt. Verschlüsselte Antworten erscheinen nur in deinem privaten Bereich.",
+  nl: "Stuur {name} de uitnodigingslink of -QR; één is genoeg. Stuur de optionele sleutel apart. Versleutelde antwoorden verschijnen alleen in je privédashboard.",
+  eo: "Sendu al {name} la invitan ligilon aŭ QR; unu sufiĉas. Sendu la nedevigan ŝlosilon aparte. Ĉifritaj respondoj aperos nur en via privata panelo.",
+  pt: "Envia a {name} o link ou QR do convite; basta um. Envia a chave opcional separadamente. As respostas cifradas aparecerão apenas no teu painel privado.",
+  zh: "向 {name} 发送邀请链接或邀请二维码，任选其一即可。若启用了可选密钥，请分开发送。加密回答只会出现在你的私人面板中。",
+  hi: "{name} को निमंत्रण लिंक या QR में से एक भेजें। वैकल्पिक कुंजी चालू हो तो उसे अलग भेजें। एन्क्रिप्टेड जवाब केवल आपके निजी डैशबोर्ड में दिखेंगे।",
+  ja: "{name}さんには招待リンクか招待QRのどちらか一方を送ります。任意の鍵を有効にした場合は別に送ってください。暗号化された回答は非公開パネルだけに表示されます。",
+  tr: "{name} kişisine davet bağlantısını veya QR'ını gönder; biri yeterlidir. İsteğe bağlı anahtarı ayrı gönder. Şifreli yanıtlar yalnızca özel panelinde görünür.",
+  machine: "SEND invitation_url XOR invitation_qr TO {name}; IF shared_key THEN separate_channel; ciphertext.visible_at=creator_dashboard_only",
 });
 const paymentCopy = localized<{ title: string; copy: string; soon: string }>({
   en: {
@@ -1150,7 +1165,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
           <div className="success-icon">✓</div>
           <span className="success-kicker">{t("created")}</span>
           <h3 id="builder-title" tabIndex={-1}>{t("interesting")}</h3>
-          <p>{interpolate(t("successCopy"), { name: recipientName })}</p>
+          <p>{interpolate(successFlowCopy[locale], { name: recipientName })}</p>
           <ShareInvitation
             locale={locale}
             recipientName={recipientName}
@@ -1583,7 +1598,7 @@ function FeatureConfig({
         onClick={() => setTimedMode(!timedMode)}
         aria-pressed={timedMode}
       >
-        <span>30</span>
+        <span>15</span>
         <div>
           <b>{timedModeCopy[locale].title}</b>
           <small>{timedModeCopy[locale].copy}</small>

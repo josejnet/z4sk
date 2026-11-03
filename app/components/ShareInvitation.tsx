@@ -7,6 +7,8 @@ import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
 type Copy = {
   title: string;
   hint: string;
+  keyStep: string;
+  answerStep: string;
   native: string;
   whatsapp: string;
   whatsappWeb: string;
@@ -18,8 +20,10 @@ type Copy = {
 };
 const copy: Record<Locale, Copy> = {
   en: {
-    title: "Send the invitation",
-    hint: "Only the answer link is shared. Your private dashboard stays secret.",
+    title: "1 · Send the answer link or invitation QR",
+    hint: "The link and the invitation QR are the same access: send either one. Never share your private dashboard link.",
+    keyStep: "2 · Because you enabled the optional key, send its QR or recovery phrase separately—not together with the invitation.",
+    answerStep: "The recipient answers and the encrypted responses appear only in your private dashboard.",
     native: "Share with another app",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -30,8 +34,10 @@ const copy: Record<Locale, Copy> = {
     subject: "I left you some private questions on Z4SK",
   },
   es: {
-    title: "Envía la invitación",
-    hint: "Solo se comparte el enlace para responder. Tu panel privado sigue siendo secreto.",
+    title: "1 · Envía el enlace o el QR de invitación",
+    hint: "El enlace y el QR de invitación dan el mismo acceso para responder: basta con enviar uno. Nunca compartas el enlace de tu panel privado.",
+    keyStep: "2 · Como activaste la llave opcional, envía su QR o frase de recuperación por separado; nunca junto a la invitación.",
+    answerStep: "La persona responde y las respuestas cifradas aparecen únicamente en tu panel privado.",
     native: "Compartir con otra aplicación",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -42,8 +48,10 @@ const copy: Record<Locale, Copy> = {
     subject: "Te he dejado unas preguntas privadas en Z4SK",
   },
   it: {
-    title: "Invia l'invito",
-    hint: "Viene condiviso solo il link per rispondere. Il pannello privato resta segreto.",
+    title: "1 · Invia il link o il QR dell'invito",
+    hint: "Link e QR dell'invito danno lo stesso accesso: inviane uno solo. Non condividere mai il link del pannello privato.",
+    keyStep: "2 · Poiché hai attivato la chiave opzionale, invia il suo QR o la frase di recupero separatamente dall'invito.",
+    answerStep: "La persona risponde e le risposte cifrate compaiono solo nel tuo pannello privato.",
     native: "Condividi con un'altra app",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -54,8 +62,10 @@ const copy: Record<Locale, Copy> = {
     subject: "Ti ho lasciato alcune domande private su Z4SK",
   },
   fr: {
-    title: "Envoyez l'invitation",
-    hint: "Seul le lien de réponse est partagé. Votre espace privé reste secret.",
+    title: "1 · Envoyez le lien ou le QR d'invitation",
+    hint: "Le lien et le QR d'invitation donnent le même accès : envoyez l'un des deux. Ne partagez jamais le lien de votre espace privé.",
+    keyStep: "2 · La clé facultative étant activée, envoyez son QR ou sa phrase de récupération séparément de l'invitation.",
+    answerStep: "La personne répond et les réponses chiffrées apparaissent uniquement dans votre espace privé.",
     native: "Partager avec une autre application",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -66,8 +76,10 @@ const copy: Record<Locale, Copy> = {
     subject: "Je vous ai laissé quelques questions privées sur Z4SK",
   },
   de: {
-    title: "Einladung senden",
-    hint: "Nur der Antwort-Link wird geteilt. Dein privates Dashboard bleibt geheim.",
+    title: "1 · Einladungslink oder -QR senden",
+    hint: "Link und Einladungs-QR gewähren denselben Zugang: Sende nur einen davon. Teile nie den Link deines privaten Bereichs.",
+    keyStep: "2 · Da der optionale Schlüssel aktiv ist, sende seinen QR oder die Wiederherstellungsphrase getrennt von der Einladung.",
+    answerStep: "Die Person antwortet; verschlüsselte Antworten erscheinen nur in deinem privaten Bereich.",
     native: "Mit einer anderen App teilen",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -78,8 +90,10 @@ const copy: Record<Locale, Copy> = {
     subject: "Ich habe dir private Fragen auf Z4SK hinterlassen",
   },
   nl: {
-    title: "Stuur de uitnodiging",
-    hint: "Alleen de antwoordlink wordt gedeeld. Je privédashboard blijft geheim.",
+    title: "1 · Stuur de link of uitnodigings-QR",
+    hint: "De link en uitnodigings-QR geven dezelfde toegang: stuur er één. Deel nooit de link van je privédashboard.",
+    keyStep: "2 · Omdat de optionele sleutel actief is, stuur je de QR of herstelzin apart van de uitnodiging.",
+    answerStep: "De ontvanger antwoordt; versleutelde antwoorden verschijnen alleen in je privédashboard.",
     native: "Delen met een andere app",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -90,8 +104,10 @@ const copy: Record<Locale, Copy> = {
     subject: "Ik heb privévragen voor je achtergelaten op Z4SK",
   },
   eo: {
-    title: "Sendu la inviton",
-    hint: "Nur la responda ligilo estas kundividata. Via privata panelo restas sekreta.",
+    title: "1 · Sendu la ligilon aŭ invitan QR",
+    hint: "La ligilo kaj invita QR donas la saman aliron: sendu nur unu. Neniam kundividu la ligilon de via privata panelo.",
+    keyStep: "2 · Ĉar la nedeviga ŝlosilo estas aktiva, sendu ĝian QR aŭ reakiran frazon aparte de la invito.",
+    answerStep: "La ricevanto respondas kaj ĉifritaj respondoj aperas nur en via privata panelo.",
     native: "Kunhavigi per alia aplikaĵo",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -102,8 +118,10 @@ const copy: Record<Locale, Copy> = {
     subject: "Mi lasis al vi privatajn demandojn en Z4SK",
   },
   pt: {
-    title: "Envie o convite",
-    hint: "Só o link para responder é partilhado. O seu painel privado continua secreto.",
+    title: "1 · Envia o link ou o QR do convite",
+    hint: "O link e o QR do convite dão o mesmo acesso: envia apenas um. Nunca partilhes o link do painel privado.",
+    keyStep: "2 · Como ativaste a chave opcional, envia o seu QR ou frase de recuperação separadamente do convite.",
+    answerStep: "A pessoa responde e as respostas cifradas aparecem apenas no teu painel privado.",
     native: "Partilhar com outra aplicação",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -114,8 +132,10 @@ const copy: Record<Locale, Copy> = {
     subject: "Deixei algumas perguntas privadas para si no Z4SK",
   },
   zh: {
-    title: "发送邀请",
-    hint: "只会分享回答链接，你的私人面板仍然保密。",
+    title: "1 · 发送回答链接或邀请二维码",
+    hint: "链接和邀请二维码提供相同的回答入口，任选其一发送。切勿分享私人面板链接。",
+    keyStep: "2 · 你启用了可选密钥，请将密钥二维码或恢复短语与邀请分开发送。",
+    answerStep: "对方回答后，加密回答只会出现在你的私人面板中。",
     native: "用其他应用分享",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp 网页版",
@@ -126,8 +146,10 @@ const copy: Record<Locale, Copy> = {
     subject: "我在 Z4SK 给你留了几个私密问题",
   },
   hi: {
-    title: "निमंत्रण भेजें",
-    hint: "सिर्फ जवाब देने वाला लिंक साझा होगा। आपका निजी डैशबोर्ड गुप्त रहेगा।",
+    title: "1 · जवाब लिंक या निमंत्रण QR भेजें",
+    hint: "लिंक और निमंत्रण QR एक ही पहुँच देते हैं: इनमें से एक भेजें। निजी डैशबोर्ड लिंक कभी साझा न करें।",
+    keyStep: "2 · वैकल्पिक कुंजी चालू है, इसलिए उसका QR या रिकवरी वाक्य निमंत्रण से अलग भेजें।",
+    answerStep: "प्राप्तकर्ता जवाब देता है और एन्क्रिप्टेड जवाब केवल आपके निजी डैशबोर्ड में दिखते हैं।",
     native: "किसी दूसरे ऐप से साझा करें",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -138,8 +160,10 @@ const copy: Record<Locale, Copy> = {
     subject: "मैंने Z4SK पर आपके लिए कुछ निजी सवाल छोड़े हैं",
   },
   ja: {
-    title: "招待を送る",
-    hint: "回答用リンクだけを共有します。非公開ダッシュボードは秘密のままです。",
+    title: "1 · 回答リンクまたは招待QRを送る",
+    hint: "リンクと招待QRは同じ回答画面を開きます。どちらか一方を送り、非公開パネルのリンクは共有しないでください。",
+    keyStep: "2 · 任意の鍵を有効にしたため、鍵QRまたは復元フレーズを招待とは別に送ってください。",
+    answerStep: "相手が回答すると、暗号化された回答はあなたの非公開パネルだけに表示されます。",
     native: "別のアプリで共有",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -150,8 +174,10 @@ const copy: Record<Locale, Copy> = {
     subject: "Z4SKにあなたへのプライベートな質問を残しました",
   },
   tr: {
-    title: "Daveti gönder",
-    hint: "Yalnızca yanıt bağlantısı paylaşılır. Özel panelin gizli kalır.",
+    title: "1 · Yanıt bağlantısını veya davet QR'ını gönder",
+    hint: "Bağlantı ve davet QR'ı aynı erişimi sağlar: birini gönder. Özel panel bağlantını asla paylaşma.",
+    keyStep: "2 · İsteğe bağlı anahtarı etkinleştirdiğin için QR'ını veya kurtarma ifadesini davetten ayrı gönder.",
+    answerStep: "Alıcı yanıtlar; şifreli yanıtlar yalnızca özel panelinde görünür.",
     native: "Başka bir uygulamayla paylaş",
     whatsapp: "WhatsApp",
     whatsappWeb: "WhatsApp Web",
@@ -162,8 +188,10 @@ const copy: Record<Locale, Copy> = {
     subject: "Z4SK'te sana birkaç özel soru bıraktım",
   },
   machine: {
-    title: "SHARE invitation_url",
-    hint: "payload=playUrl; adminUrl=REDACTED",
+    title: "1::SHARE invitation_url OR invitation_qr",
+    hint: "invitation_url==invitation_qr.payload; choose_one; adminUrl=NEVER_SHARE",
+    keyStep: "2::IF shared_key THEN SEND key_qr|recovery_phrase VIA separate_channel",
+    answerStep: "respondent.submit(); ciphertext.visible_at=creator_dashboard_only",
     native: "navigator.share()",
     whatsapp: "whatsapp://",
     whatsappWeb: "web.whatsapp",
@@ -245,6 +273,13 @@ export function ShareInvitation({
           {SHARED_KEY_COPY[locale].differentChannel}
         </p>
       )}
+      <ol className="share-flow">
+        {protectedBySharedKey && <li>{c.keyStep}</li>}
+        <li>
+          {protectedBySharedKey ? "3 · " : "2 · "}
+          {c.answerStep}
+        </li>
+      </ol>
       <div className="share-primary">
         {nativeShare && (
           <button type="button" className="share-native" onClick={shareNative}>

@@ -160,8 +160,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(founderDashboard, /<DailyChart rows=\{data\.daily\}/);
   assert.match(builder, /<a[\s\S]{0,180}href=\{created\.adminUrl\}[\s\S]{0,180}\{t\("openPanel"\)\}[\s\S]{0,40}<\/a>/);
   assert.doesNotMatch(builder, /Secret match|YOUR SECRET MATCH QUESTION|id="match-question"/);
-  assert.match(builder, /30-second challenge/);
-  assert.match(builder, /must confirm it twice before starting/);
+  assert.match(builder, /Express challenge · only 15 seconds/);
+  assert.match(builder, /must acknowledge this twice before starting/);
   assert.match(builder, /timedMode/);
   assert.match(builder, /Several people can answer with the same link/);
   assert.match(builder, /Varias personas pueden responder con el mismo enlace/);
@@ -227,7 +227,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(gameClient, /matchQuestion|matchInterest|doubleBlind|SECRET MATCH|MATCH SECRETO/);
   assert.match(gameClient, /timed-confirm-one/);
   assert.match(gameClient, /timed-confirm-two/);
-  assert.match(gameClient, /deadline\s*=\s*Date\.now\(\)\s*\+\s*30_000/);
+  assert.match(gameClient, /QUESTION_TIME_LIMIT_SECONDS = 15/);
+  assert.match(gameClient, /deadline\s*=\s*Date\.now\(\)\s*\+\s*QUESTION_TIME_LIMIT_SECONDS \* 1000/);
+  assert.match(gameClient, /max=\{QUESTION_TIME_LIMIT_SECONDS\}/);
   assert.match(gameClient, /useEffectEvent/);
   assert.match(gameClient, /handleQuestionTimeout\(\)/);
   assert.match(gameClient, /navigation\.back\s*=\s*false/);
@@ -255,7 +257,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(shareInvitation, /https:\/\/outlook\.office\.com\/mail\/deeplink\/compose\?/);
   assert.match(shareInvitation, /https:\/\/compose\.mail\.yahoo\.com\/\?subject=/);
   assert.match(shareInvitation, /navigator\.share/);
-  assert.match(shareInvitation, /adminUrl=REDACTED/);
+  assert.match(shareInvitation, /adminUrl=NEVER_SHARE/);
+  assert.match(shareInvitation, /The link and the invitation QR are the same access/);
   assert.match(shareInvitation, /SHARED_KEY_COPY\[locale\]\.differentChannel/);
   assert.doesNotMatch(shareInvitation, /password-equivalent|como compartir una contraseña/i);
   assert.match(gameClient, /<SharedKeyUnlock/);
@@ -274,6 +277,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(sharedKeyCard, /encodeSharedKeyQr/);
   assert.match(sharedKeyCard, /sharedKeyToMnemonic/);
   assert.match(sharedKeyCard, /Z4SK · E2EE · 128 BIT/);
+  assert.match(sharedKeyCard, /className="shared-key-phrase"/);
+  assert.doesNotMatch(sharedKeyCard, /<ol>/);
+  assert.match(sharedKeyCopy, /FRASE DE RECUPERACIÓN/);
   assert.match(packageJson, /"@scure\/bip39"/);
   assert.match(packageJson, /"jsqr"/);
   for (const locale of ["en", "es", "it", "fr", "de", "nl", "eo", "pt", "zh", "hi", "ja", "tr", "machine"]) assert.match(sharedKeyCopy, new RegExp(`\\b${locale}:`));

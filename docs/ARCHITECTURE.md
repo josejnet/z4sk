@@ -11,13 +11,13 @@ For the exact protocol and threat boundaries, read [Cryptographic design](CRYPTO
 - PWA: installable manifest and restricted service-worker cache
 - integration: framework-neutral TypeScript client in `packages/z4sk-sdk`
 
-## Two-channel invitation flow
+## Invitation flow with optional second channel
 
 ```text
 Creator browser
   generates link secret + content key + creator token + ECDH response pair
-  creates or scans a reusable 256-bit shared key
-  HKDF(link secret || shared key) -> AES wrapping key
+  optionally creates or scans a reusable 128-bit shared key
+  HKDF(link secret [|| shared key]) -> AES wrapping key
   wraps content key and encrypts invitation locally
          |
          | v2 ciphertext + token hash + minimal lifecycle metadata
@@ -26,13 +26,13 @@ Vercel Function <--> Neon Postgres
          ^              invitation ciphertext + response ciphertext
          |
 Recipient browser
-  receives the link through channel A
-  scans shared-key QR / enters 24 words received through channel B
+  receives the complete link through channel A
+  if protected, reads a branded QR from camera/Photos or enters 12 words from channel B
   decrypts invitation locally
   encrypts response using ephemeral ECDH + HKDF + AES-GCM
 ```
 
-The URL fragment contains only the link secret. The reusable shared key never enters a URL, API request, database row, application log, service-worker cache or localStorage. Camera frames and uploaded QR images are decoded locally and are not uploaded. The creator dashboard also needs that shared key to decrypt the invitation context.
+The URL fragment contains the 256-bit link secret. In link-only mode it is sufficient to derive the wrapping key. In protected mode the optional shared key is also required and never enters a URL, API request, database row, application log, service-worker cache or localStorage. Camera frames and QR images selected from Photos are decoded locally and are not uploaded. New shared keys use 128 bits and 12 Spanish BIP39 words; legacy 256-bit/24-word keys remain accepted. The visible key ID is an identifier only.
 
 The creator bearer token is sent transiently in an `Authorization` header; Postgres stores only its SHA-256 hash. The response private key remains in the creator URL fragment. Private and mutable responses use `Cache-Control: no-store`.
 
@@ -66,7 +66,7 @@ The creator bearer token is sent transiently in an `Authorization` header; Postg
 
 ## Source map
 
-- `app/lib/shared-key.ts`: random shared keys, QR payloads, fingerprints and 24-word conversion
+- `app/lib/shared-key.ts`: random optional shared keys, branded-QR payloads, IDs and 12-word conversion with legacy 24-word support
 - `app/components/SharedKeySetup.tsx`: generate or select a previous key
 - `app/components/SharedKeyUnlock.tsx`: local camera/image/word reader
 - `app/lib/invitation-crypto.ts`: v2 derivation, key wrapping, encryption and decryption
@@ -79,8 +79,8 @@ The creator bearer token is sent transiently in an `Authorization` header; Postg
 
 ## Decisions
 
-- No accounts: random bearer capabilities plus a separately shared key.
-- Mandatory two-channel decryption for every new invitation; v1 envelopes are rejected.
+- No accounts: random bearer capabilities with an optional separately shared key.
+- Link-only and shared-key modes are explicitly domain-separated in the v2 envelope; v1 envelopes are rejected.
 - Reusable key convenience without server-side storage or recovery.
 - No implicit persistence: shared keys live in browser memory only unless users save the QR/words themselves.
 - Minimal server-readable lifecycle state permits expiry, view-once and deletion without plaintext.

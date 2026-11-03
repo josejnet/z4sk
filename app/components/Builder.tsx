@@ -322,131 +322,6 @@ const responseModeCopy = localized<{
     selected: "SELECTED",
   },
 });
-const matchQuestionCopy = localized<{
-  label: string;
-  help: string;
-  placeholder: string;
-}>({
-  en: {
-    label: "YOUR SECRET MATCH QUESTION",
-    help: "This is exactly what the other person will see. The answer remains hidden unless you both say Yes.",
-    placeholder: "Would you go on a date with {name}?",
-  },
-  es: {
-    label: "TU PREGUNTA PARA EL MATCH SECRETO",
-    help: "Esto es exactamente lo que verá la otra persona. La respuesta seguirá oculta salvo que ambos digáis «Sí».",
-    placeholder: "¿Tendrías una cita con {name}?",
-  },
-  it: {
-    label: "LA TUA DOMANDA PER IL MATCH SEGRETO",
-    help: "È esattamente ciò che vedrà l’altra persona. La risposta resta nascosta a meno che entrambi diciate Sì.",
-    placeholder: "Usciresti con {name}?",
-  },
-  fr: {
-    label: "VOTRE QUESTION DE MATCH SECRET",
-    help: "C’est exactement ce que verra l’autre personne. La réponse reste cachée sauf si vous dites Oui tous les deux.",
-    placeholder: "Accepterais-tu un rendez-vous avec {name} ?",
-  },
-  de: {
-    label: "DEINE FRAGE FÜR DAS GEHEIME MATCH",
-    help: "Genau diesen Text sieht die andere Person. Die Antwort bleibt verborgen, außer ihr sagt beide Ja.",
-    placeholder: "Würdest du mit {name} ausgehen?",
-  },
-  nl: {
-    label: "JOUW VRAAG VOOR DE GEHEIME MATCH",
-    help: "Dit is precies wat de ander ziet. Het antwoord blijft verborgen, tenzij jullie allebei Ja zeggen.",
-    placeholder: "Zou je met {name} op date gaan?",
-  },
-  eo: {
-    label: "VIA DEMANDO POR LA SEKRETA KONGRUO",
-    help: "Ĝuste ĉi tion vidos la alia persono. La respondo restas kaŝita krom se ambaŭ diras Jes.",
-    placeholder: "Ĉu vi rendevuus kun {name}?",
-  },
-  pt: {
-    label: "A TUA PERGUNTA PARA O MATCH SECRETO",
-    help: "É exatamente isto que a outra pessoa verá. A resposta fica oculta, a menos que ambos digam Sim.",
-    placeholder: "Terias um encontro com {name}?",
-  },
-  zh: {
-    label: "你的秘密匹配问题",
-    help: "对方将看到这段原文。除非双方都回答“愿意”，否则答案始终隐藏。",
-    placeholder: "你愿意和 {name} 约会吗？",
-  },
-  hi: {
-    label: "गुप्त मैच के लिए आपका सवाल",
-    help: "दूसरे व्यक्ति को यही सवाल दिखाई देगा। जब तक दोनों हाँ नहीं कहते, जवाब छिपा रहेगा।",
-    placeholder: "क्या आप {name} के साथ डेट पर जाना चाहेंगे?",
-  },
-  ja: {
-    label: "シークレットマッチの質問",
-    help: "相手にはこの文章がそのまま表示されます。二人とも「はい」と答えない限り、回答は公開されません。",
-    placeholder: "{name}さんとデートしたいですか？",
-  },
-  tr: {
-    label: "GİZLİ EŞLEŞME SORUN",
-    help: "Diğer kişi tam olarak bu metni görecek. İkiniz de Evet demedikçe yanıt gizli kalır.",
-    placeholder: "{name} ile buluşur muydun?",
-  },
-  machine: {
-    label: "SECRET_MATCH.question",
-    help: "DISPLAY exact_value; REVEAL answer IFF creator_interest==true AND respondent_interest==true",
-    placeholder: "DATE_INTEREST target={name}?",
-  },
-});
-const creatorMatchAnswerCopy = localized<{ label: string; help: string }>({
-  en: {
-    label: "YOUR PRIVATE ANSWER TO THIS QUESTION",
-    help: "Your choice stays secret unless the other person also says Yes.",
-  },
-  es: {
-    label: "TU RESPUESTA PRIVADA A ESTA PREGUNTA",
-    help: "Tu elección será secreta salvo que la otra persona también diga «Sí».",
-  },
-  it: {
-    label: "LA TUA RISPOSTA PRIVATA A QUESTA DOMANDA",
-    help: "La tua scelta resta segreta, a meno che anche l’altra persona dica Sì.",
-  },
-  fr: {
-    label: "VOTRE RÉPONSE PRIVÉE À CETTE QUESTION",
-    help: "Votre choix reste secret, sauf si l’autre personne répond aussi Oui.",
-  },
-  de: {
-    label: "DEINE PRIVATE ANTWORT AUF DIESE FRAGE",
-    help: "Deine Wahl bleibt geheim, außer die andere Person sagt ebenfalls Ja.",
-  },
-  nl: {
-    label: "JOUW PRIVÉANTWOORD OP DEZE VRAAG",
-    help: "Je keuze blijft geheim, tenzij de ander ook Ja zegt.",
-  },
-  eo: {
-    label: "VIA PRIVATA RESPONDO AL ĈI TIU DEMANDO",
-    help: "Via elekto restas sekreta krom se la alia persono ankaŭ diras Jes.",
-  },
-  pt: {
-    label: "A TUA RESPOSTA PRIVADA A ESTA PERGUNTA",
-    help: "A tua escolha fica secreta, a menos que a outra pessoa também diga Sim.",
-  },
-  zh: {
-    label: "你对这个问题的私密回答",
-    help: "除非对方也回答“愿意”，否则你的选择始终保密。",
-  },
-  hi: {
-    label: "इस सवाल का आपका निजी जवाब",
-    help: "जब तक दूसरा व्यक्ति भी हाँ नहीं कहता, आपकी पसंद गुप्त रहेगी।",
-  },
-  ja: {
-    label: "この質問へのあなたの非公開回答",
-    help: "相手も「はい」と答えない限り、あなたの選択は秘密です。",
-  },
-  tr: {
-    label: "BU SORUYA ÖZEL YANITIN",
-    help: "Diğer kişi de Evet demedikçe seçimin gizli kalır.",
-  },
-  machine: {
-    label: "CREATOR_PRIVATE_ANSWER",
-    help: "REVEAL IFF respondent_answer==TRUE",
-  },
-});
 const timedModeCopy = localized<{ title: string; copy: string }>({
   en: {
     title: "30-second challenge",
@@ -711,55 +586,55 @@ const accessCopy = localized<{
 const encryptionCopy = localized<Record<"notice", string>>({
   en: {
     notice:
-      "End-to-end encrypted: audited servers receive ciphertext, not private content. Opening an invitation requires its link and the reusable key shared separately. Z4SK cannot recover either secret.",
+      "End-to-end encrypted: audited servers receive ciphertext, not private content. The complete link opens the invitation; an optional shared key can add a separately delivered second secret. Z4SK cannot recover either one.",
   },
   es: {
     notice:
-      "Cifrado de extremo a extremo: los servidores auditados reciben texto cifrado, no contenido privado. Para abrir una invitación hacen falta su enlace y la llave reutilizable compartida por separado. Z4SK no puede recuperar ninguno de los dos secretos.",
+      "Cifrado de extremo a extremo: los servidores auditados reciben texto cifrado. El enlace completo abre la invitación; una llave opcional puede añadir un segundo secreto enviado aparte. Z4SK no puede recuperar ninguno.",
   },
   it: {
     notice:
-      "Crittografia end-to-end: la chiave privata è stata creata su questo dispositivo ed esiste solo nel link e nel QR segreti. Z4SK non può leggere le risposte né recuperare una chiave persa.",
+      "Crittografia end-to-end: il link completo apre l'invito; una chiave facoltativa può aggiungere un secondo segreto separato. Z4SK non può recuperare né link né chiave.",
   },
   fr: {
     notice:
-      "Chiffrement de bout en bout : la clé privée a été créée sur cet appareil et n’existe que dans votre lien et QR secrets. Z4SK ne peut ni lire les réponses ni récupérer une clé perdue.",
+      "Chiffrement de bout en bout : le lien complet ouvre l'invitation ; une clé facultative peut ajouter un second secret transmis séparément. Z4SK ne peut récupérer ni l'un ni l'autre.",
   },
   de: {
     notice:
-      "Ende-zu-Ende-verschlüsselt: Der private Schlüssel wurde auf diesem Gerät erstellt und existiert nur im geheimen Link und QR. Z4SK kann Antworten weder lesen noch einen verlorenen Schlüssel wiederherstellen.",
+      "Ende-zu-Ende-verschlüsselt: Der vollständige Link öffnet die Einladung; ein optionaler Schlüssel kann ein getrennt übermitteltes zweites Geheimnis hinzufügen. Z4SK kann beides nicht wiederherstellen.",
   },
   nl: {
     notice:
-      "End-to-end versleuteld: de privésleutel is op dit apparaat gemaakt en bestaat alleen in je geheime link en QR. Z4SK kan antwoorden niet lezen en een verloren sleutel niet herstellen.",
+      "End-to-end versleuteld: de volledige link opent de uitnodiging; een optionele sleutel kan een apart gedeeld tweede geheim toevoegen. Z4SK kan geen van beide herstellen.",
   },
   eo: {
     notice:
-      "Fine-al-fina ĉifrado: la privata ŝlosilo estis kreita en ĉi tiu aparato kaj ekzistas nur en via sekreta ligilo kaj QR. Z4SK ne povas legi respondojn aŭ reakiri perditan ŝlosilon.",
+      "Fine-al-fina ĉifrado: la plena ligilo malfermas la inviton; nedeviga ŝlosilo povas aldoni aparte senditan duan sekreton. Z4SK ne povas reakiri ilin.",
   },
   pt: {
     notice:
-      "Cifrado de ponta a ponta: a chave privada foi criada neste dispositivo e só existe no link e QR secretos. O Z4SK não consegue ler as respostas nem recuperar uma chave perdida.",
+      "Cifrado de ponta a ponta: o link completo abre o convite; uma chave opcional pode adicionar um segundo segredo enviado separadamente. O Z4SK não recupera nenhum deles.",
   },
   zh: {
     notice:
-      "端到端加密：私钥在此设备上生成，只存在于你的秘密链接和二维码中。Z4SK 无法读取回答，也无法找回丢失的密钥。",
+      "端到端加密：完整链接可打开邀请；可选共享密钥可增加一个另行传递的秘密。Z4SK 无法恢复链接或密钥。",
   },
   hi: {
     notice:
-      "एंड-टू-एंड एन्क्रिप्शन: निजी कुंजी इसी डिवाइस पर बनी है और केवल आपके गुप्त लिंक व QR में है। Z4SK जवाब नहीं पढ़ सकता और खोई कुंजी वापस नहीं ला सकता।",
+      "एंड-टू-एंड एन्क्रिप्शन: पूरा लिंक निमंत्रण खोलता है; वैकल्पिक साझा कुंजी अलग से दिया गया दूसरा रहस्य जोड़ सकती है। Z4SK दोनों में से किसी को वापस नहीं ला सकता।",
   },
   ja: {
     notice:
-      "エンドツーエンド暗号化：秘密鍵はこの端末で生成され、秘密リンクとQRの中だけに存在します。Z4SKは回答を読めず、紛失した鍵も復元できません。",
+      "エンドツーエンド暗号化：完全なリンクで招待を開けます。任意の共有鍵を使うと、別経路の第二の秘密を追加できます。Z4SKはどちらも復元できません。",
   },
   tr: {
     notice:
-      "Uçtan uca şifreleme: özel anahtar bu cihazda üretildi ve yalnızca gizli bağlantı ile QR içinde bulunur. Z4SK yanıtları okuyamaz veya kayıp anahtarı kurtaramaz.",
+      "Uçtan uca şifreleme: tam bağlantı daveti açar; isteğe bağlı paylaşılan anahtar ayrı iletilen ikinci bir sır ekleyebilir. Z4SK ikisini de kurtaramaz.",
   },
   machine: {
     notice:
-      "E2EE=true; decrypt.requires=[link_secret,shared_key]; shared_key.transport=separate_channel; server.shared_key=false; recovery=false",
+      "E2EE=true; decrypt.requires=link_secret; shared_key.optional=true; IF shared_key THEN transport=separate_channel; server.shared_key=false; recovery=false",
   },
 });
 const builderUi = localized<{
@@ -793,10 +668,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [level, setLevel] = useState<Level>("coqueto");
   const [adultConfirmed, setAdultConfirmed] = useState(false);
   const [viewOnce, setViewOnce] = useState(false);
-  const [doubleBlind, setDoubleBlind] = useState(false);
-  const [matchQuestion, setMatchQuestion] = useState("");
   const [timedMode, setTimedMode] = useState(false);
-  const [creatorInterest, setCreatorInterest] = useState(true);
   const [expiresInHours, setExpiresInHours] = useState(12);
   const [packSlug, setPackSlug] = useState("original");
   const [selected, setSelected] = useState<string[]>(() =>
@@ -866,12 +738,8 @@ export function Builder({ onClose }: { onClose?: () => void }) {
     setLoading(true);
     setError("");
     try {
-      if (!sharedKey || !sharedKeyConfirmed)
-        throw new Error(
-          locale === "es"
-            ? "Prepara y guarda la llave compartida antes de crear la invitación."
-            : "Prepare and save the shared key before creating the invitation.",
-        );
+      if (sharedKey && !sharedKeyConfirmed)
+        throw new Error(SHARED_KEY_COPY[locale].confirm);
       const normalizedCreatorName = creatorName.trim().replace(/\s+/g, " ");
       const normalizedRecipientName = recipientName.trim().replace(/\s+/g, " ");
       const [encryptionKeys, access] = await Promise.all([
@@ -888,10 +756,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
           questions: selected,
           locale,
           libraryVersion: "2026.11",
-          doubleBlind,
-          matchQuestion: doubleBlind
-            ? matchQuestion.trim().replace(/\s+/g, " ").slice(0, 180)
-            : "",
           timedMode,
           packSlug,
           encryptionPublicKey: encryptionKeys.publicKey,
@@ -928,7 +792,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
         adminUrl: attachPrivateDecryptionKey(
           privateUrl,
           encryptionKeys.privateSecret,
-          doubleBlind && creatorInterest,
         ),
       });
       setStep(5);
@@ -1147,15 +1010,8 @@ export function Builder({ onClose }: { onClose?: () => void }) {
         <>
           <FeatureConfig
             locale={locale}
-            doubleBlind={doubleBlind}
-            setDoubleBlind={setDoubleBlind}
-            creatorName={creatorName}
-            matchQuestion={matchQuestion}
-            setMatchQuestion={setMatchQuestion}
             timedMode={timedMode}
             setTimedMode={setTimedMode}
-            creatorInterest={creatorInterest}
-            setCreatorInterest={setCreatorInterest}
             expiresInHours={expiresInHours}
             setExpiresInHours={setExpiresInHours}
             packSlug={packSlug}
@@ -1230,10 +1086,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
               </button>
               <button
                 className="primary"
-                disabled={
-                  selected.length < 3 ||
-                  (doubleBlind && matchQuestion.trim().length < 5)
-                }
+                disabled={selected.length < 3}
                 onClick={() => setStep(4)}
               >
                 {builderUi[locale].security}
@@ -1256,15 +1109,13 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             }}
             onConfirm={setSharedKeyConfirmed}
           />
-          {(!sharedKey || sharedKeyConfirmed) && (
+          {sharedKeyConfirmed && (
             <p
               id="security-requirement"
-              className={`security-requirement ${sharedKeyConfirmed ? "ready" : ""}`}
+              className="security-requirement ready"
               aria-live="polite"
             >
-              {sharedKeyConfirmed
-                ? SHARED_KEY_COPY[locale].ready
-                : SHARED_KEY_COPY[locale].protectBody}
+              {SHARED_KEY_COPY[locale].ready}
             </p>
           )}
           {error && (
@@ -1278,11 +1129,13 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             </button>
             <button
               className="primary"
-              disabled={loading || !sharedKey || !sharedKeyConfirmed}
+              disabled={loading || Boolean(sharedKey && !sharedKeyConfirmed)}
               aria-describedby={
                 sharedKey && !sharedKeyConfirmed
                   ? "shared-key-confirmation"
-                  : "security-requirement"
+                  : sharedKeyConfirmed
+                    ? "security-requirement"
+                    : undefined
               }
               onClick={createGame}
             >
@@ -1303,18 +1156,22 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             recipientName={recipientName}
             playUrl={created.playUrl}
             shareText={t("shareText")}
+            protectedBySharedKey={Boolean(sharedKey)}
           />
           <QrCard
             kind="invitation"
             locale={locale}
             name={recipientName}
             url={created.playUrl}
+            protectedBySharedKey={Boolean(sharedKey)}
           />
-          <SharedKeyCard
-            locale={locale}
-            sharedKey={sharedKey}
-            showRecovery={sharedKeyGenerated}
-          />
+          {sharedKey && (
+            <SharedKeyCard
+              locale={locale}
+              sharedKey={sharedKey}
+              showRecovery={sharedKeyGenerated}
+            />
+          )}
           <div className="link-box">
             <span>{t("answerLink")}</span>
             <div>
@@ -1352,6 +1209,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             locale={locale}
             name={creatorName}
             url={created.adminUrl}
+            protectedBySharedKey={Boolean(sharedKey)}
           />
           {creatorEmail.trim() && emailValid && (
             <button className="html-download" onClick={emailAccessLink}>
@@ -1366,7 +1224,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
                 recipientName,
                 playUrl: created.playUrl,
                 locale,
-                protectedBySharedKey: true,
+                protectedBySharedKey: Boolean(sharedKey),
               })
             }
           >
@@ -1473,12 +1331,6 @@ function ResponseMode({
 type FeatureText = {
   heading: string;
   intro: string;
-  blind: string;
-  blindCopy: string;
-  interested: string;
-  interestedCopy: string;
-  yes: string;
-  no: string;
   enable: string;
   enabled: string;
   expires: string;
@@ -1495,13 +1347,6 @@ const featureText = localized<FeatureText>({
     heading: "Optional settings",
     intro:
       "Choose how private, temporary and visual this invitation should be.",
-    blind: "Secret match",
-    blindCopy:
-      "You answer first. A match is shown only if the other person also says Yes. Otherwise, neither answer is revealed.",
-    interested: "Before you send it: would you date this person?",
-    interestedCopy: "Your answer stays secret unless both of you say Yes.",
-    yes: "Yes",
-    no: "No",
     enable: "TURN ON",
     enabled: "ON",
     expires: "WHEN SHOULD IT DISAPPEAR?",
@@ -1518,13 +1363,6 @@ const featureText = localized<FeatureText>({
   es: {
     heading: "Ajustes opcionales",
     intro: "Elige cómo de privada, temporal y visual será esta invitación.",
-    blind: "Match secreto",
-    blindCopy:
-      "Tú respondes primero. Solo habrá match si la otra persona también dice «Sí». Si no, nadie verá la respuesta del otro.",
-    interested: "Antes de enviarlo: ¿tú tendrías una cita con esta persona?",
-    interestedCopy: "Tu respuesta será secreta salvo que ambos digáis «Sí».",
-    yes: "Sí",
-    no: "No",
     enable: "ACTIVAR",
     enabled: "ACTIVO",
     expires: "¿CUÁNDO DESAPARECE?",
@@ -1542,14 +1380,6 @@ const featureText = localized<FeatureText>({
     heading: "Impostazioni facoltative",
     intro:
       "Scegli quanto privata, temporanea e visiva sarà questa invitazione.",
-    blind: "Match segreto",
-    blindCopy:
-      "Rispondi prima tu. Il match appare solo se anche l'altra persona dice Sì. Altrimenti nessuno vedrà la risposta dell'altro.",
-    interested: "Prima di inviarlo: usciresti con questa persona?",
-    interestedCopy:
-      "La tua risposta resta segreta, a meno che entrambi diciate Sì.",
-    yes: "Sì",
-    no: "No",
     enable: "ATTIVA",
     enabled: "ATTIVO",
     expires: "QUANDO DEVE SPARIRE?",
@@ -1567,15 +1397,6 @@ const featureText = localized<FeatureText>({
     heading: "Réglages facultatifs",
     intro:
       "Choisissez le niveau de confidentialité, la durée et le style de cette invitation.",
-    blind: "Match secret",
-    blindCopy:
-      "Vous répondez d'abord. Le match apparaît uniquement si l'autre personne répond aussi Oui. Sinon, aucune réponse n'est révélée.",
-    interested:
-      "Avant l'envoi : accepteriez-vous un rendez-vous avec cette personne ?",
-    interestedCopy:
-      "Votre réponse reste secrète, sauf si vous répondez Oui tous les deux.",
-    yes: "Oui",
-    no: "Non",
     enable: "ACTIVER",
     enabled: "ACTIF",
     expires: "QUAND DOIT-ELLE DISPARAÎTRE ?",
@@ -1592,13 +1413,6 @@ const featureText = localized<FeatureText>({
   de: {
     heading: "Optionale Einstellungen",
     intro: "Lege Privatsphäre, Dauer und Aussehen dieser Einladung fest.",
-    blind: "Geheimes Match",
-    blindCopy:
-      "Du antwortest zuerst. Ein Match erscheint nur, wenn die andere Person ebenfalls Ja sagt. Sonst sieht niemand die Antwort des anderen.",
-    interested: "Vor dem Senden: Würdest du diese Person daten?",
-    interestedCopy: "Deine Antwort bleibt geheim, außer ihr sagt beide Ja.",
-    yes: "Ja",
-    no: "Nein",
     enable: "AKTIVIEREN",
     enabled: "AKTIV",
     expires: "WANN SOLL ES VERSCHWINDEN?",
@@ -1615,14 +1429,6 @@ const featureText = localized<FeatureText>({
   nl: {
     heading: "Optionele instellingen",
     intro: "Kies hoe privé, tijdelijk en visueel deze uitnodiging is.",
-    blind: "Geheime match",
-    blindCopy:
-      "Jij antwoordt eerst. Er verschijnt alleen een match als de ander ook Ja zegt. Anders ziet niemand elkaars antwoord.",
-    interested: "Voor je verstuurt: zou je met deze persoon daten?",
-    interestedCopy:
-      "Je antwoord blijft geheim, tenzij jullie allebei Ja zeggen.",
-    yes: "Ja",
-    no: "Nee",
     enable: "AANZETTEN",
     enabled: "AAN",
     expires: "WANNEER MOET DIT VERDWIJNEN?",
@@ -1638,13 +1444,6 @@ const featureText = localized<FeatureText>({
   eo: {
     heading: "Nedevigaj agordoj",
     intro: "Elektu la privatecon, daŭron kaj aspekton de ĉi tiu invito.",
-    blind: "Sekreta kongruo",
-    blindCopy:
-      "Vi respondas unue. Kongruo aperas nur se la alia persono ankaŭ diras Jes. Alie neniu vidas la respondon de la alia.",
-    interested: "Antaŭ sendo: ĉu vi rendevuus kun ĉi tiu persono?",
-    interestedCopy: "Via respondo restas sekreta krom se ambaŭ diras Jes.",
-    yes: "Jes",
-    no: "Ne",
     enable: "ŜALTI",
     enabled: "AKTIVA",
     expires: "KIAM ĜI MALAPERU?",
@@ -1661,13 +1460,6 @@ const featureText = localized<FeatureText>({
   pt: {
     heading: "Definições opcionais",
     intro: "Escolhe quão privado, temporário e visual será este convite.",
-    blind: "Match secreto",
-    blindCopy:
-      "Tu respondes primeiro. O match só aparece se a outra pessoa também disser Sim. Caso contrário, ninguém vê a resposta do outro.",
-    interested: "Antes de enviar: terias um encontro com esta pessoa?",
-    interestedCopy: "A tua resposta fica secreta, a menos que ambos digam Sim.",
-    yes: "Sim",
-    no: "Não",
     enable: "ATIVAR",
     enabled: "ATIVO",
     expires: "QUANDO DEVE DESAPARECER?",
@@ -1684,13 +1476,6 @@ const featureText = localized<FeatureText>({
   zh: {
     heading: "可选设置",
     intro: "选择这份邀请的隐私程度、有效时间和视觉风格。",
-    blind: "秘密匹配",
-    blindCopy:
-      "你先回答。只有对方也回答“愿意”时才会显示匹配；否则双方都看不到对方的答案。",
-    interested: "发送前：你愿意和这个人约会吗？",
-    interestedCopy: "除非双方都回答“愿意”，否则你的答案始终保密。",
-    yes: "愿意",
-    no: "不愿意",
     enable: "开启",
     enabled: "已开启",
     expires: "何时失效？",
@@ -1705,13 +1490,6 @@ const featureText = localized<FeatureText>({
   hi: {
     heading: "वैकल्पिक सेटिंग्स",
     intro: "इस आमंत्रण की गोपनीयता, अवधि और रूप चुनें।",
-    blind: "गुप्त मैच",
-    blindCopy:
-      "पहले आप जवाब देते हैं। मैच तभी दिखेगा जब दूसरा व्यक्ति भी हाँ कहे। अन्यथा किसी को दूसरे का जवाब नहीं दिखेगा।",
-    interested: "भेजने से पहले: क्या आप इस व्यक्ति को डेट करेंगे?",
-    interestedCopy: "आपका जवाब गुप्त रहेगा, जब तक दोनों हाँ न कहें।",
-    yes: "हाँ",
-    no: "नहीं",
     enable: "चालू करें",
     enabled: "चालू",
     expires: "यह कब गायब हो?",
@@ -1727,13 +1505,6 @@ const featureText = localized<FeatureText>({
   ja: {
     heading: "オプション設定",
     intro: "招待のプライバシー、期限、見た目を選べます。",
-    blind: "シークレットマッチ",
-    blindCopy:
-      "まずあなたが回答します。相手も「はい」と答えた場合だけマッチを表示し、それ以外はお互いの回答を公開しません。",
-    interested: "送信前に：この人とデートしたいですか？",
-    interestedCopy: "二人とも「はい」と答えない限り、回答は秘密です。",
-    yes: "はい",
-    no: "いいえ",
     enable: "有効にする",
     enabled: "有効",
     expires: "いつ消えますか？",
@@ -1749,13 +1520,6 @@ const featureText = localized<FeatureText>({
   tr: {
     heading: "İsteğe bağlı ayarlar",
     intro: "Bu davetin gizliliğini, süresini ve görünümünü seç.",
-    blind: "Gizli eşleşme",
-    blindCopy:
-      "Önce sen cevap verirsin. Eşleşme yalnızca diğer kişi de Evet derse görünür. Aksi halde kimse diğerinin cevabını görmez.",
-    interested: "Göndermeden önce: bu kişiyle buluşur muydun?",
-    interestedCopy: "İkiniz de Evet demedikçe cevabın gizli kalır.",
-    yes: "Evet",
-    no: "Hayır",
     enable: "AÇ",
     enabled: "AÇIK",
     expires: "NE ZAMAN KAYBOLSUN?",
@@ -1772,13 +1536,6 @@ const featureText = localized<FeatureText>({
   machine: {
     heading: "OPTIONAL_CONFIG",
     intro: "SET privacy_duration_visual_mode.",
-    blind: "SECRET_MATCH",
-    blindCopy:
-      "CREATOR_INPUT first. REVEAL match IFF recipient_input == YES. ELSE reveal NONE.",
-    interested: "CREATOR_INTEREST?",
-    interestedCopy: "VALUE remains PRIVATE unless BOTH == YES.",
-    yes: "TRUE",
-    no: "FALSE",
     enable: "ENABLE",
     enabled: "ENABLED",
     expires: "TTL",
@@ -1793,46 +1550,22 @@ const featureText = localized<FeatureText>({
 });
 function FeatureConfig({
   locale,
-  doubleBlind,
-  setDoubleBlind,
-  creatorName,
-  matchQuestion,
-  setMatchQuestion,
   timedMode,
   setTimedMode,
-  creatorInterest,
-  setCreatorInterest,
   expiresInHours,
   setExpiresInHours,
   packSlug,
   setPackSlug,
 }: {
   locale: Locale;
-  doubleBlind: boolean;
-  setDoubleBlind: (value: boolean) => void;
-  creatorName: string;
-  matchQuestion: string;
-  setMatchQuestion: (value: string) => void;
   timedMode: boolean;
   setTimedMode: (value: boolean) => void;
-  creatorInterest: boolean;
-  setCreatorInterest: (value: boolean) => void;
   expiresInHours: number;
   setExpiresInHours: (value: number) => void;
   packSlug: string;
   setPackSlug: (value: string) => void;
 }) {
   const c = featureText[locale];
-  const questionCopy = matchQuestionCopy[locale];
-  const answerCopy = creatorMatchAnswerCopy[locale];
-  const toggleDoubleBlind = () => {
-    const next = !doubleBlind;
-    if (next && !matchQuestion.trim())
-      setMatchQuestion(
-        interpolate(questionCopy.placeholder, { name: creatorName }),
-      );
-    setDoubleBlind(next);
-  };
   return (
     <details className="feature-config">
       <summary className="feature-intro">
@@ -1844,65 +1577,6 @@ function FeatureConfig({
         <i aria-hidden="true">+</i>
       </summary>
       <div className="feature-body">
-      <button
-        type="button"
-        className={`blind-toggle ${doubleBlind ? "active" : ""}`}
-        onClick={toggleDoubleBlind}
-        aria-pressed={doubleBlind}
-      >
-        <span>◐</span>
-        <div>
-          <b>{c.blind}</b>
-          <small>{c.blindCopy}</small>
-        </div>
-        <i>{doubleBlind ? c.enabled : c.enable}</i>
-      </button>
-      {doubleBlind && (
-        <div className="match-question-editor">
-          <label htmlFor="match-question">{questionCopy.label}</label>
-          <textarea
-            id="match-question"
-            value={matchQuestion}
-            onChange={(event) =>
-              setMatchQuestion(event.target.value.slice(0, 180))
-            }
-            maxLength={180}
-            rows={2}
-            placeholder={interpolate(questionCopy.placeholder, {
-              name: creatorName,
-            })}
-            aria-describedby="match-question-help"
-          />
-          <div>
-            <small id="match-question-help">{questionCopy.help}</small>
-            <span>{matchQuestion.length}/180</span>
-          </div>
-        </div>
-      )}
-      {doubleBlind && (
-        <div className="interest-row">
-          <div>
-            <b>{answerCopy.label}</b>
-            <small>{answerCopy.help}</small>
-          </div>
-          <span>
-            <button
-              type="button"
-              className={creatorInterest ? "active" : ""}
-              onClick={() => setCreatorInterest(true)}
-            >
-              {c.yes}
-            </button>
-            <button
-              type="button"
-              className={!creatorInterest ? "active" : ""}
-              onClick={() => setCreatorInterest(false)}
-            >
-              {c.no}
-            </button>
-          </span>
-        </div>
-      )}
       <button
         type="button"
         className={`blind-toggle timed-toggle ${timedMode ? "active" : ""}`}

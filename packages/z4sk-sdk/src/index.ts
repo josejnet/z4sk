@@ -19,12 +19,9 @@ export type CreateQuizInput = {
   locale?: Z4skLocale;
   level: Z4skLevel;
   questions: string[];
-  sharedKey: string;
+  sharedKey?: string;
   viewOnce?: boolean;
-  doubleBlind?: boolean;
-  matchQuestion?: string;
   timedMode?: boolean;
-  creatorInterest?: boolean;
   expiresInHours?: 12 | 24 | 48 | 72;
   packSlug?: "original" | "nightlife" | "creator";
 };
@@ -51,12 +48,10 @@ async function responseKeys() {
 function attachSecret(
   adminUrl: string,
   privateSecret: string,
-  creatorInterest: boolean,
 ) {
   const url = new URL(adminUrl);
   const fragment = new URLSearchParams(url.hash.slice(1));
   fragment.set("decrypt", privateSecret);
-  fragment.set("interest", creatorInterest ? "1" : "0");
   url.hash = fragment.toString();
   return url.toString();
 }
@@ -107,7 +102,7 @@ function invitationSecret() {
   }
 }
 export function generateSharedKey() {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
   try {
     return base64Url(bytes);
   } finally {
@@ -125,21 +120,29 @@ async function encryptInvitation(
   linkSecret: string,
   sharedKey: string,
 ) {
-  if (!/^[A-Za-z0-9_-]{43}$/.test(sharedKey))
-    throw new Error("A 256-bit Z4SK shared key is required");
+  const keyMode = sharedKey ? "shared" : "link";
+  if (keyMode === "shared" && !/^(?:[A-Za-z0-9_-]{22}|[A-Za-z0-9_-]{43})$/.test(sharedKey))
+    throw new Error("The optional Z4SK shared key is invalid");
   const linkBytes = decodeBase64Url(linkSecret);
-  const sharedBytes = decodeBase64Url(sharedKey);
-  if (linkBytes.length !== 32 || sharedBytes.length !== 32)
+  const sharedBytes = sharedKey ? decodeBase64Url(sharedKey) : new Uint8Array();
+  if (
+    linkBytes.length !== 32 ||
+    (keyMode === "shared" && sharedBytes.length !== 16 && sharedBytes.length !== 32)
+  )
     throw new Error("Invalid Z4SK key length");
-  const input = new Uint8Array(64);
+  const input = new Uint8Array(linkBytes.length + sharedBytes.length);
   input.set(linkBytes);
-  input.set(sharedBytes, 32);
+  input.set(sharedBytes, linkBytes.length);
   const salt = crypto.getRandomValues(new Uint8Array(32));
   const keyIv = crypto.getRandomValues(new Uint8Array(12));
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const contentKeyBytes = crypto.getRandomValues(new Uint8Array(32));
   const clear = new TextEncoder().encode(JSON.stringify(payload));
-  const keyContext = new TextEncoder().encode("z4sk-invitation-key-v2");
+  const keyContext = new TextEncoder().encode(
+    keyMode === "shared"
+      ? "z4sk-invitation-key-v2"
+      : "z4sk-invitation-key-v2-link-only",
+  );
   const contentContext = new TextEncoder().encode("z4sk-invitation-content-v2");
   try {
     const material = await crypto.subtle.importKey(
@@ -181,6 +184,7 @@ async function encryptInvitation(
     return {
       v: 2,
       alg: "HKDF-SHA256+A256GCM+A256GCM",
+      keyMode,
       salt: base64Url(salt),
       keyIv: base64Url(keyIv),
       wrappedKey: base64Url(new Uint8Array(wrappedKey)),
@@ -213,8 +217,6 @@ export class Z4skClient {
         level: input.level,
         questions: input.questions,
         viewOnce: undefined,
-        doubleBlind: Boolean(input.doubleBlind),
-        matchQuestion: input.doubleBlind ? input.matchQuestion || "" : "",
         timedMode: Boolean(input.timedMode),
         packSlug: input.packSlug || "original",
         encryptionPublicKey: keys.publicKey,
@@ -222,7 +224,7 @@ export class Z4skClient {
         createdAt: new Date().toISOString(),
       },
       secret,
-      input.sharedKey,
+      input.sharedKey || "",
     );
     const response = await fetch(`${this.baseUrl}/api/games`, {
       method: "POST",
@@ -246,11 +248,7 @@ export class Z4skClient {
     return {
       ...created,
       playUrl,
-      adminUrl: attachSecret(
-        privateUrl,
-        keys.privateSecret,
-        Boolean(input.doubleBlind && input.creatorInterest),
-      ),
+      adminUrl: attachSecret(privateUrl, keys.privateSecret),
     };
   }
   mount(

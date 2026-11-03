@@ -82,6 +82,7 @@ export function SharedKeyUnlock({
   const [mnemonic, setMnemonic] = useState("");
   const [error, setError] = useState("");
   const [working, setWorking] = useState(false);
+  const wordCount = mnemonic.trim().split(/\s+/).filter(Boolean).length;
 
   function releaseCamera() {
     if (animationRef.current !== null)
@@ -277,7 +278,7 @@ export function SharedKeyUnlock({
         />
         <button
           type="button"
-          disabled={working || mnemonic.trim().split(/\s+/).length !== 24}
+          disabled={working || (wordCount !== 12 && wordCount !== 24)}
           onClick={() => void unlockWords()}
         >
           {working ? copy.working : copy.unlock}

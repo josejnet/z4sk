@@ -17,6 +17,7 @@ export type EncryptedResponseEnvelope = {
 export type EncryptedInvitationEnvelope = {
   v: 2;
   alg: "HKDF-SHA256+A256GCM+A256GCM";
+  keyMode?: "link" | "shared";
   salt: string;
   keyIv: string;
   wrappedKey: string;
@@ -28,7 +29,6 @@ export type PrivateResponsePayload = {
   respondentName: string;
   answers: string[];
   reactions: string[];
-  matchInterest: boolean | null;
 };
 
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
@@ -80,6 +80,9 @@ export function isEncryptedInvitationEnvelope(
   return (
     envelope.v === 2 &&
     envelope.alg === "HKDF-SHA256+A256GCM+A256GCM" &&
+    (envelope.keyMode === undefined ||
+      envelope.keyMode === "link" ||
+      envelope.keyMode === "shared") &&
     typeof envelope.salt === "string" &&
     envelope.salt.length === 43 &&
     BASE64URL.test(envelope.salt) &&

@@ -82,11 +82,10 @@ export function attachPublicKeyFingerprint(urlValue: string, fingerprint: string
   return url.toString();
 }
 
-export function attachPrivateDecryptionKey(adminUrl: string, privateSecret: string, creatorInterest: boolean) {
+export function attachPrivateDecryptionKey(adminUrl: string, privateSecret: string) {
   const url = new URL(adminUrl);
   const fragment = new URLSearchParams(url.hash.slice(1));
   fragment.set("decrypt", privateSecret);
-  fragment.set("interest", creatorInterest ? "1" : "0");
   url.hash = fragment.toString();
   return url.toString();
 }
@@ -149,7 +148,7 @@ export async function decryptPrivateResponse(envelope: EncryptedResponseEnvelope
   try {
     clear = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: asBufferSource(iv), additionalData: asBufferSource(CONTEXT), tagLength: 128 }, contentKey, asBufferSource(ciphertext)));
     const payload = JSON.parse(new TextDecoder().decode(clear)) as Partial<PrivateResponsePayload>;
-    if (typeof payload.respondentName !== "string" || payload.respondentName.trim().length < 1 || payload.respondentName.length > 40 || !Array.isArray(payload.answers) || payload.answers.some((answer) => typeof answer !== "string" || !answer || answer.length > 800) || !Array.isArray(payload.reactions) || payload.reactions.some((reaction) => typeof reaction !== "string") || !(payload.matchInterest === null || typeof payload.matchInterest === "boolean")) throw new Error("Invalid decrypted response.");
+    if (typeof payload.respondentName !== "string" || payload.respondentName.trim().length < 1 || payload.respondentName.length > 40 || !Array.isArray(payload.answers) || payload.answers.some((answer) => typeof answer !== "string" || !answer || answer.length > 800) || !Array.isArray(payload.reactions) || payload.reactions.some((reaction) => typeof reaction !== "string")) throw new Error("Invalid decrypted response.");
     return payload as PrivateResponsePayload;
   } finally {
     clear.fill(0);

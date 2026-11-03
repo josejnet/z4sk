@@ -10,6 +10,9 @@ import type { EncryptedGameWire, Game, GameWire, Level } from "./types";
 import type { Locale } from "./i18n";
 
 const KEY_CONTEXT = new TextEncoder().encode("z4sk-invitation-key-v2");
+const LINK_ONLY_KEY_CONTEXT = new TextEncoder().encode(
+  "z4sk-invitation-key-v2-link-only",
+);
 const CONTENT_CONTEXT = new TextEncoder().encode("z4sk-invitation-content-v2");
 const LEVELS = new Set<Level>(["curioso", "coqueto", "picante", "sinfiltro"]);
 const LOCALES = new Set<Locale>([
@@ -39,8 +42,6 @@ export type PrivateInvitationPayload = Pick<
   | "level"
   | "locale"
   | "libraryVersion"
-  | "doubleBlind"
-  | "matchQuestion"
   | "timedMode"
   | "packSlug"
   | "questions"
@@ -68,9 +69,6 @@ function validPayload(value: unknown): value is PrivateInvitationPayload {
     typeof payload.libraryVersion === "string" &&
     payload.libraryVersion.length >= 1 &&
     payload.libraryVersion.length <= 20 &&
-    typeof payload.doubleBlind === "boolean" &&
-    typeof payload.matchQuestion === "string" &&
-    payload.matchQuestion.length <= 180 &&
     typeof payload.timedMode === "boolean" &&
     typeof payload.packSlug === "string" &&
     PACKS.has(payload.packSlug) &&
@@ -106,14 +104,25 @@ async function deriveWrappingKey(
   sharedKey: string,
   salt: Uint8Array,
   usage: KeyUsage,
+  keyMode: "link" | "shared",
 ) {
-  if (!isSharedKey(sharedKey))
+  if (keyMode === "shared" && !isSharedKey(sharedKey))
     throw new Error("A valid shared key is required.");
   const linkBytes = decodeSecret(invitationSecret, "link secret");
-  const sharedBytes = decodeSecret(sharedKey, "shared key");
-  const input = new Uint8Array(64);
+  const sharedBytes =
+    keyMode === "shared" ? fromBase64Url(sharedKey) : new Uint8Array();
+  if (
+    keyMode === "shared" &&
+    sharedBytes.length !== 16 &&
+    sharedBytes.length !== 32
+  ) {
+    linkBytes.fill(0);
+    sharedBytes.fill(0);
+    throw new Error("The shared key has an invalid length.");
+  }
+  const input = new Uint8Array(linkBytes.length + sharedBytes.length);
   input.set(linkBytes);
-  input.set(sharedBytes, 32);
+  input.set(sharedBytes, linkBytes.length);
   try {
     const material = await crypto.subtle.importKey(
       "raw",
@@ -127,7 +136,9 @@ async function deriveWrappingKey(
         name: "HKDF",
         hash: "SHA-256",
         salt: asBufferSource(salt),
-        info: asBufferSource(KEY_CONTEXT),
+        info: asBufferSource(
+          keyMode === "link" ? LINK_ONLY_KEY_CONTEXT : KEY_CONTEXT,
+        ),
       },
       material,
       { name: "AES-GCM", length: 256 },
@@ -170,6 +181,7 @@ export async function encryptPrivateInvitation(
 ): Promise<EncryptedInvitationEnvelope> {
   if (!validPayload(payload))
     throw new Error("Invalid private invitation payload.");
+  const keyMode = sharedKey ? "shared" : "link";
   const salt = crypto.getRandomValues(new Uint8Array(32));
   const keyIv = crypto.getRandomValues(new Uint8Array(12));
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -177,7 +189,13 @@ export async function encryptPrivateInvitation(
   const plaintext = new TextEncoder().encode(JSON.stringify(payload));
   try {
     const [wrappingKey, contentKey] = await Promise.all([
-      deriveWrappingKey(invitationSecret, sharedKey, salt, "encrypt"),
+      deriveWrappingKey(
+        invitationSecret,
+        sharedKey,
+        salt,
+        "encrypt",
+        keyMode,
+      ),
       crypto.subtle.importKey(
         "raw",
         asBufferSource(contentKeyBytes),
@@ -191,7 +209,9 @@ export async function encryptPrivateInvitation(
         {
           name: "AES-GCM",
           iv: asBufferSource(keyIv),
-          additionalData: asBufferSource(KEY_CONTEXT),
+          additionalData: asBufferSource(
+            keyMode === "link" ? LINK_ONLY_KEY_CONTEXT : KEY_CONTEXT,
+          ),
           tagLength: 128,
         },
         wrappingKey,
@@ -211,6 +231,7 @@ export async function encryptPrivateInvitation(
     return {
       v: 2,
       alg: "HKDF-SHA256+A256GCM+A256GCM",
+      keyMode,
       salt: toBase64Url(salt),
       keyIv: toBase64Url(keyIv),
       wrappedKey: toBase64Url(new Uint8Array(wrappedKey)),
@@ -241,18 +262,22 @@ export async function decryptPrivateInvitation(
   let contentKeyBytes = new Uint8Array();
   let plaintext = new Uint8Array();
   try {
+    const keyMode = envelope.keyMode || "shared";
     const wrappingKey = await deriveWrappingKey(
       invitationSecret,
       sharedKey,
       salt,
       "decrypt",
+      keyMode,
     );
     contentKeyBytes = new Uint8Array(
       await crypto.subtle.decrypt(
         {
           name: "AES-GCM",
           iv: asBufferSource(keyIv),
-          additionalData: asBufferSource(KEY_CONTEXT),
+          additionalData: asBufferSource(
+            keyMode === "link" ? LINK_ONLY_KEY_CONTEXT : KEY_CONTEXT,
+          ),
           tagLength: 128,
         },
         wrappingKey,

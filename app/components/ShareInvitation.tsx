@@ -180,11 +180,13 @@ export function ShareInvitation({
   recipientName,
   playUrl,
   shareText,
+  protectedBySharedKey,
 }: {
   locale: Locale;
   recipientName: string;
   playUrl: string;
   shareText: string;
+  protectedBySharedKey: boolean;
 }) {
   const [nativeShare, setNativeShare] = useState(false);
   const c = copy[locale];
@@ -237,10 +239,12 @@ export function ShareInvitation({
           <p>{c.hint}</p>
         </div>
       </div>
-      <p className="share-password-warning">
-        <b>!</b>
-        {SHARED_KEY_COPY[locale].differentChannel}
-      </p>
+      {protectedBySharedKey && (
+        <p className="share-password-warning">
+          <b>!</b>
+          {SHARED_KEY_COPY[locale].differentChannel}
+        </p>
+      )}
       <div className="share-primary">
         {nativeShare && (
           <button type="button" className="share-native" onClick={shareNative}>

@@ -13,11 +13,10 @@
 - El modo de lectura única elimina el grafo activo de la invitación antes de devolver la única copia del texto cifrado.
 - Los nombres, preguntas, ajustes y la clave pública de respuestas se cifran en el navegador del creador con una llave de contenido aleatoria y AES-256-GCM.
 - Las respuestas se cifran en el navegador del destinatario con ECDH P-256, HKDF-SHA-256 y AES-256-GCM.
-- Cada invitación exige el secreto aleatorio del enlace y una llave compartida reutilizable de 256 bits. La llave se entrega como QR fijo o como 24 palabras españolas equivalentes.
-- El enlace solo no puede descifrar. Enlace y llave deben viajar por canales diferentes; quien obtenga ambos podrá descifrar, y el enlace del creador añade acceso al panel.
+- Cada invitación usa un secreto aleatorio de enlace de 256 bits. Opcionalmente puede añadirse una llave compartida reutilizable de 128 bits como QR con marca Z4SK o 12 palabras BIP39 en español; las llaves antiguas de 256 bits/24 palabras siguen siendo compatibles.
+- El enlace completo abre una invitación sin llave. Si se activa la llave opcional, enlace y llave son necesarios y deben viajar por canales diferentes. El ID visible solo identifica la llave: no permite recuperarla ni abrirla.
 - La clave privada de descifrado permanece en el fragmento del enlace secreto o en el QR privado; nunca se envía a la API.
 - Cada destinatario recibe un enlace independiente para borrar su propia respuesta.
-- El interés a doble ciego solo revela una coincidencia cuando ambas personas aceptan.
 - El reto opcional de 30 segundos utiliza plazos absolutos, avance automático y no permite volver atrás.
 - Incluye trece bibliotecas de idiomas y un modo legible por máquinas.
 
@@ -32,22 +31,22 @@ El flujo principal es:
 ```text
 Navegador del creador
   -> genera secreto de enlace, llave de contenido, token y par ECDH
-  -> crea o escanea un QR de llave compartida reutilizable
-  -> deriva una llave de envoltura con secreto de enlace + llave compartida
+  -> opcionalmente crea o escanea un QR de llave compartida reutilizable
+  -> deriva una llave de envoltura del enlace y, si se activó, de la llave compartida
   -> cifra localmente nombres, preguntas, ajustes y clave pública
   -> envía texto cifrado, hash del token y política mínima
   -> comparte /g/:id#invite=<secreto-enlace> por el canal A
-  -> comparte QR/24 palabras por el canal B
+  -> si está protegida, comparte QR/12 palabras por el canal B
 
 Navegador del destinatario
-  -> lee el QR con cámara/imagen o introduce las 24 palabras
-  -> combina ambos secretos y descifra localmente la invitación
+  -> abre directamente una invitación sin llave; en modo protegido lee el QR con cámara/Fotos o introduce 12 palabras
+  -> descifra localmente la invitación
   -> cifra localmente toda la respuesta privada
   -> guarda el texto cifrado mediante POST /api/games/:id/responses
 
 Navegador del creador
   -> abre /p/:id#key=<bearer>&invite=<secreto-enlace>&decrypt=<clave-privada>
-  -> escanea la misma llave compartida
+  -> presenta la misma llave solo cuando se activó la protección adicional
   -> descarga invitación y respuestas cifradas usando el token bearer
   -> descifra ambas localmente
 ```
@@ -95,7 +94,7 @@ Guarda su conexión restringida en `Z4SK_STAGING_DATABASE_URL`, o utiliza un `DA
 
 Para las nuevas invitaciones, Z4SK evita que el contenido legible de invitaciones y respuestas llegue a las APIs de creación/respuesta o a la base activa. No es anónimo: siguen visibles los identificadores aleatorios, número de preguntas, estado, caducidad, fechas, rutas y metadatos operativos de infraestructura.
 
-**Trata cada canal como una mitad del acceso.** Un enlace no basta sin la llave compartida, pero sigue siendo sensible. Envía el QR/24 palabras por separado; quien obtenga ambos podrá descifrar nombres, preguntas y ajustes. Quien tenga el enlace del creador y la llave también podrá abrir el panel y descifrar respuestas. Un navegador, dispositivo, extensión, despliegue, portapapeles, cámara o captura comprometidos aún pueden revelar el contenido.
+**Trata cada enlace completo como una contraseña.** Puede abrir una invitación sin llave. Si el creador activa la llave opcional, envía su QR con marca o las 12 palabras por separado; entonces harán falta ambos secretos. El ID no es la llave y no permite recuperarla. El enlace del creador da acceso al panel y a las respuestas; en invitaciones protegidas también exige la llave opcional. Un navegador, dispositivo, extensión, despliegue, portapapeles, cámara o captura comprometidos aún pueden revelar el contenido.
 
 - [Auditoría pública](https://z4sk.vercel.app/audit): protocolo, límites, código y evidencia en vivo.
 - [Auditoría externa automatizada](docs/EXTERNAL_AUDIT.es.md): hallazgos de CodeQL, OWASP ZAP y OpenSSF, correcciones y riesgo residual.
@@ -116,7 +115,7 @@ El repositorio y la autoauditoría permiten inspeccionar el diseño; no son una 
 | `app/cancel/[id]` | Borrado de la respuesta por su destinatario |
 | `app/api` | APIs de invitaciones, respuestas, retención, métricas y patrocinio |
 | `app/lib/response-crypto.ts` | Cifrado y descifrado en el navegador |
-| `app/lib/shared-key.ts` | Generación, checksum QR, huellas y conversión a 24 palabras |
+| `app/lib/shared-key.ts` | Generación de llave opcional, checksum QR, ID y conversión a 12 palabras, con compatibilidad de 24 |
 | `app/components/SharedKeyUnlock.tsx` | Lector local de cámara, imagen o palabras |
 | `app/lib/invitation-crypto.ts` | HKDF v2, envoltura de llave, AES-256-GCM e hidratación |
 | `db/runtime.ts` | Consultas de ejecución y purgado de Neon |
@@ -150,6 +149,6 @@ Consulta [docs/DEPLOYMENT.es.md](docs/DEPLOYMENT.es.md) para configurar variable
 
 ## Estado del proyecto
 
-Z4SK se encuentra en beta con código fuente público para su revisión por terceros. Los pagos, notificaciones push y la integración con WhatsApp Business continúan desactivados. El acceso del creador depende de conservar el enlace secreto y la llave compartida entregada por separado; deliberadamente no existe recuperación desde el servidor.
+Z4SK se encuentra en beta con código fuente público para su revisión por terceros. Los pagos, notificaciones push y la integración con WhatsApp Business continúan desactivados. El acceso del creador depende de conservar el enlace secreto y, si se activó, la llave opcional entregada por separado; deliberadamente no existe recuperación desde el servidor.
 
 Actualmente no se concede ninguna licencia de código abierto. El repositorio y sus activos comerciales siguen siendo propietarios salvo que el titular publique una licencia independiente.

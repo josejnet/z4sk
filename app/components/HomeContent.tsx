@@ -33,19 +33,19 @@ const footerCopy: Record<
 };
 
 const twoChannelCopy: Record<Locale, string> = {
-  en: "Link + separate key",
-  es: "Enlace + llave separada",
-  it: "Link + chiave separata",
-  fr: "Lien + clé séparée",
-  de: "Link + separater Schlüssel",
-  nl: "Link + aparte sleutel",
-  eo: "Ligilo + aparta ŝlosilo",
-  pt: "Link + chave separada",
-  zh: "链接 + 独立密钥",
-  hi: "लिंक + अलग कुंजी",
-  ja: "リンク＋別経路の鍵",
-  tr: "Bağlantı + ayrı anahtar",
-  machine: "access.channels=2",
+  en: "Temporary · optional extra key",
+  es: "Temporal · llave extra opcional",
+  it: "Temporaneo · chiave extra facoltativa",
+  fr: "Temporaire · clé supplémentaire facultative",
+  de: "Temporär · optionaler Zusatzschlüssel",
+  nl: "Tijdelijk · optionele extra sleutel",
+  eo: "Provizora · nedeviga plia ŝlosilo",
+  pt: "Temporário · chave extra opcional",
+  zh: "临时有效 · 可选额外密钥",
+  hi: "अस्थायी · वैकल्पिक अतिरिक्त कुंजी",
+  ja: "期限付き · 任意の追加鍵",
+  tr: "Geçici · isteğe bağlı ek anahtar",
+  machine: "ttl=user_selected; shared_key=optional",
 };
 
 const focusableSelector = [

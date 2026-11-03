@@ -3,7 +3,7 @@ import { bearerToken, checkRateLimit, deleteGameData, ensureSchema, getDatabase,
 import { isEncryptedResponseEnvelope } from "../../../../lib/encryption-types";
 
 type Context = { params: Promise<{ id: string }> };
-type GameRow = { id: string; creator_token_hash: string; creator_name: string; recipient_name: string; title: string; questions_json: string; encryption_public_key: string; encrypted_invitation: string; question_count: number; locale: string; level: string; library_version: string; premium: number; view_once: number; double_blind: number; match_question: string; timed_mode: number; pack_slug: string; opened_at: string | null; created_at: string; closed: number; expires_at: string };
+type GameRow = { id: string; creator_token_hash: string; creator_name: string; recipient_name: string; title: string; questions_json: string; encryption_public_key: string; encrypted_invitation: string; question_count: number; locale: string; level: string; library_version: string; premium: number; view_once: number; timed_mode: number; pack_slug: string; opened_at: string | null; created_at: string; closed: number; expires_at: string };
 
 export async function POST(request: Request, context: Context) {
   try {
@@ -33,7 +33,7 @@ export async function POST(request: Request, context: Context) {
     const deletionToken = randomToken(24);
     const deletionTokenHash = await hashToken(deletionToken);
     const createdAt = new Date().toISOString();
-    const insert = await db.prepare(`INSERT INTO responses (id, game_id, respondent_name, answers_json, reactions_json, encrypted_payload, matched, single_use, delete_token_hash, created_at) SELECT ?, game.id, '', '[]', '[]', ?, 0, game.view_once, ?, ? FROM games AS game WHERE game.id = ? AND game.closed = 0 AND game.expires_at > ? ON CONFLICT DO NOTHING`).bind(responseId, encryptedPayload, deletionTokenHash, createdAt, id, createdAt).run();
+    const insert = await db.prepare(`INSERT INTO responses (id, game_id, respondent_name, answers_json, reactions_json, encrypted_payload, single_use, delete_token_hash, created_at) SELECT ?, game.id, '', '[]', '[]', ?, game.view_once, ?, ? FROM games AS game WHERE game.id = ? AND game.closed = 0 AND game.expires_at > ? ON CONFLICT DO NOTHING`).bind(responseId, encryptedPayload, deletionTokenHash, createdAt, id, createdAt).run();
     if (!insert.meta.changes) return NextResponse.json({ error: game.view_once ? "Alguien ya respondió a esta invitación de una sola vez." : "Este cuestionario ya no está disponible." }, { status: game.view_once ? 409 : 410 });
     try {
       const metricStatements = await Promise.all(questions.map(async (question) => db.prepare(`INSERT INTO question_metrics (question_hash, locale, level, library_version, selected_count, completed_count, total_answer_chars, last_completed_at) VALUES (?, ?, ?, ?, 1, 1, 0, ?) ON CONFLICT(question_hash, locale, level, library_version) DO UPDATE SET completed_count = question_metrics.completed_count + 1, last_completed_at = excluded.last_completed_at`).bind(await hashQuestion(question), game.locale, game.level, game.library_version, createdAt)));
@@ -66,7 +66,7 @@ export async function GET(request: Request, context: Context) {
     const rows = await db.prepare(`SELECT id, encrypted_payload, created_at FROM responses WHERE game_id = ? ORDER BY created_at DESC`).bind(id).all<{ id: string; encrypted_payload: string; created_at: string }>();
     const wireGame = game.encrypted_invitation
       ? { id, encryptedInvitation: JSON.parse(game.encrypted_invitation), questionCount: game.question_count, premium: Boolean(game.premium), viewOnce: Boolean(game.view_once), openedAt: game.opened_at, createdAt: game.created_at, expiresAt: game.expires_at, responseCount: rows.results.length }
-      : { id, creatorName: game.creator_name, recipientName: game.recipient_name, title: game.title, level: game.level, locale: game.locale, libraryVersion: game.library_version, questions: JSON.parse(game.questions_json), encryptionPublicKey: JSON.parse(game.encryption_public_key), premium: Boolean(game.premium), viewOnce: Boolean(game.view_once), doubleBlind: Boolean(game.double_blind), matchQuestion: game.match_question, timedMode: Boolean(game.timed_mode), packSlug: game.pack_slug, openedAt: game.opened_at, createdAt: game.created_at, expiresAt: game.expires_at, responseCount: rows.results.length };
+      : { id, creatorName: game.creator_name, recipientName: game.recipient_name, title: game.title, level: game.level, locale: game.locale, libraryVersion: game.library_version, questions: JSON.parse(game.questions_json), encryptionPublicKey: JSON.parse(game.encryption_public_key), premium: Boolean(game.premium), viewOnce: Boolean(game.view_once), timedMode: Boolean(game.timed_mode), packSlug: game.pack_slug, openedAt: game.opened_at, createdAt: game.created_at, expiresAt: game.expires_at, responseCount: rows.results.length };
     const base = { game: wireGame };
     if (game.view_once) return NextResponse.json({ ...base, sealed: rows.results.length > 0, responses: [] }, { headers: { "cache-control": "no-store" } });
     return NextResponse.json({ ...base, sealed: false, responses: rows.results.map((row) => ({ id: row.id, encryptedPayload: JSON.parse(row.encrypted_payload), createdAt: row.created_at })) }, { headers: { "cache-control": "no-store" } });

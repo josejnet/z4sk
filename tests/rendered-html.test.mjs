@@ -159,12 +159,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameClient, /<progress[\s\S]{0,80}className="question-progress"/);
   assert.match(founderDashboard, /<DailyChart rows=\{data\.daily\}/);
   assert.match(builder, /<a[\s\S]{0,180}href=\{created\.adminUrl\}[\s\S]{0,180}\{t\("openPanel"\)\}[\s\S]{0,40}<\/a>/);
-  assert.match(builder, /Secret match/);
-  assert.match(builder, /YOUR SECRET MATCH QUESTION/);
-  assert.match(builder, /matchQuestion/);
-  assert.match(builder, /id="match-question"/);
-  assert.match(builder, /maxLength=\{180\}/);
-  assert.match(builder, /You answer first/);
+  assert.doesNotMatch(builder, /Secret match|YOUR SECRET MATCH QUESTION|id="match-question"/);
   assert.match(builder, /30-second challenge/);
   assert.match(builder, /must confirm it twice before starting/);
   assert.match(builder, /timedMode/);
@@ -211,7 +206,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameRoute, /question_count/);
   assert.match(gameRoute, /creatorTokenHash/);
   assert.doesNotMatch(gameRoute, /creatorToken\s*=|adminUrl:/);
-  assert.match(gameRoute, /match_question/);
+  assert.doesNotMatch(gameRoute, /match_question|double_blind|creator_interest/);
   assert.match(qrCard, /import\("qrcode"\)/);
   assert.match(qrCard, /QRCode\.toCanvas/);
   assert.match(qrCard, /ctx\.textAlign = "center"[\s\S]{0,500}drawWrapped\([\s\S]{0,150}ctx,[\s\S]{0,150}title,[\s\S]{0,250}278,[\s\S]{0,250}ctx\.textAlign = "left"/);
@@ -229,7 +224,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameClient, /selectionStart/);
   assert.match(gameClient, /setSelectionRange\(cursor,\s*cursor\)/);
   assert.match(gameClient, /INSERT_EMOJI_AT_CURSOR/);
-  assert.match(gameClient, /game\.matchQuestion\.trim\(\)/);
+  assert.doesNotMatch(gameClient, /matchQuestion|matchInterest|doubleBlind|SECRET MATCH|MATCH SECRETO/);
   assert.match(gameClient, /timed-confirm-one/);
   assert.match(gameClient, /timed-confirm-two/);
   assert.match(gameClient, /deadline\s*=\s*Date\.now\(\)\s*\+\s*30_000/);
@@ -248,7 +243,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(dashboardClient, /<a[\s\S]{0,180}className=\{styles\.backHomeLink\}[\s\S]{0,180}href="\/"[\s\S]{0,180}target="_top"/);
   assert.match(dashboardClient, /decryptPrivateResponse/);
   assert.match(dashboardClient, /verifyPrivateDecryptionKey/);
-  assert.match(dashboardClient, /matchQuestion=\{data\.game\.matchQuestion\}/);
+  assert.doesNotMatch(dashboardClient, /matchQuestion|matchInterest|doubleBlind|creatorInterest|dashboard-match/);
   assert.match(dashboardClient, /history\.replaceState\(\{\}, "", `\/p\/\$\{id\}`\)/);
   assert.match(dashboardClient, /setPrivateKey\(""\)/);
   assert.match(brand, /<a className="brand" href="\/" target="_top" aria-label=\{navCopy\[locale\]\.home\}>/);
@@ -265,7 +260,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(shareInvitation, /password-equivalent|como compartir una contraseña/i);
   assert.match(gameClient, /<SharedKeyUnlock/);
   assert.match(dashboardClient, /<SharedKeyUnlock/);
-  assert.match(sharedKey, /crypto\.getRandomValues\(new Uint8Array\(32\)\)/);
+  assert.match(sharedKey, /crypto\.getRandomValues\(new Uint8Array\(16\)\)/);
   assert.match(sharedKey, /Z4SK-KEY-V1/);
   assert.match(sharedKey, /entropyToMnemonic/);
   assert.match(sharedKey, /wordlists\/spanish/);
@@ -274,9 +269,11 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(sharedKeyUnlock, /facingMode: \{ ideal: "environment" \}/);
   assert.match(sharedKeyUnlock, /createImageBitmap/);
   assert.match(sharedKeyUnlock, /mnemonicToSharedKey/);
+  assert.match(sharedKeyUnlock, /wordCount !== 12 && wordCount !== 24/);
   assert.doesNotMatch(sharedKeyUnlock, /fetch\(/);
   assert.match(sharedKeyCard, /encodeSharedKeyQr/);
   assert.match(sharedKeyCard, /sharedKeyToMnemonic/);
+  assert.match(sharedKeyCard, /Z4SK · E2EE · 128 BIT/);
   assert.match(packageJson, /"@scure\/bip39"/);
   assert.match(packageJson, /"jsqr"/);
   for (const locale of ["en", "es", "it", "fr", "de", "nl", "eo", "pt", "zh", "hi", "ja", "tr", "machine"]) assert.match(sharedKeyCopy, new RegExp(`\\b${locale}:`));
@@ -313,7 +310,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
     assert.match(sdk, new RegExp(`"${locale}"`));
   }
   assert.match(sdk, /timedMode\?:\s*boolean/);
-  assert.match(sdk, /matchQuestion\?:\s*string/);
+  assert.doesNotMatch(sdk, /matchQuestion|matchInterest|doubleBlind|creatorInterest/);
   assert.match(builder, /expiresInHours/);
   assert.match(consume, /eligible_game AS MATERIALIZED/);
   assert.match(consume, /FOR UPDATE OF response/);
@@ -405,19 +402,19 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(invitationCrypto, /z4sk-invitation-content-v2/);
   assert.match(invitationCrypto, /HKDF/);
   assert.match(invitationCrypto, /wrappedKey/);
-  assert.match(invitationCrypto, /deriveWrappingKey\(invitationSecret, sharedKey/);
+  assert.match(invitationCrypto, /deriveWrappingKey\([\s\S]*invitationSecret,[\s\S]*sharedKey/);
   assert.doesNotMatch(invitationCrypto, /z4sk-invitation-v1/);
   assert.match(invitationCrypto, /generateInvitationSecret/);
   assert.match(invitationCrypto, /AES-GCM/);
   assert.match(invitationCrypto, /plaintext\.fill\(0\)/);
-  assert.match(auditPage, /TWO SEPARATE SECRETS ARE REQUIRED/);
+  assert.match(auditPage, /THE COMPLETE LINK IS THE FIRST SECRET; THE EXTRA KEY IS OPTIONAL/);
   assert.ok(auditPage.includes("github.com/josejnet/z4sk"));
   assert.match(auditPage, /docs\/EXTERNAL_AUDIT\.md/);
   assert.match(auditPage, /docs\/EXTERNAL_AUDIT\.es\.md/);
   assert.match(auditPage, /docs\/HUMAN_SECURITY_REVIEW\.md/);
   assert.match(auditPage, /PrivacyProof/);
-  assert.match(cryptographyDoc, /The link alone cannot decrypt the invitation/);
-  assert.match(cryptographyDoc, /24 Spanish BIP39 words/);
+  assert.match(cryptographyDoc, /A complete link decrypts a link-only invitation/);
+  assert.match(cryptographyDoc, /12 Spanish BIP39 words/);
   assert.match(cryptographyDoc, /Server-visible data/);
   assert.match(securityDoc, /GitHub private vulnerability reporting/);
   assert.match(migrations, /encrypted_invitation TEXT NOT NULL DEFAULT ''/);
@@ -460,9 +457,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
 test("publishes plain-language privacy, audit and safety pages", async () => {
   const [privacy, audit, safety, terms] = await Promise.all([render("/privacy"), render("/audit"), render("/safety"), render("/terms")]);
   const legalPage = await readFile(new URL("../app/components/LegalPage.tsx", import.meta.url), "utf8");
-  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /end-to-end encrypted/); assert.match(privacyHtml, /Neon Postgres/); assert.match(privacyHtml, /What the founder can see/); assert.match(privacyHtml, /audited access matrix/); assert.match(privacyHtml, /Two separate secrets/); assert.match(privacyHtml, /processed transiently/); assert.match(privacyHtml, /private cancellation link/); assert.match(privacyHtml, /us-east-1/);
-  assert.equal(audit.status, 200); const auditHtml = await audit.text(); assert.match(auditHtml, /Don&#x27;t just trust us/); assert.match(auditHtml, /TWO SEPARATE SECRETS ARE REQUIRED/); assert.match(auditHtml, /Se necesitan dos secretos separados/); assert.match(auditHtml, /Inspect source code/); assert.match(auditHtml, /Open JSON evidence/);
-  assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect both access channels/);
+  assert.equal(privacy.status, 200); const privacyHtml = await privacy.text(); assert.match(privacyHtml, /Private by design/); assert.match(privacyHtml, /end-to-end encrypted/); assert.match(privacyHtml, /Neon Postgres/); assert.match(privacyHtml, /What the founder can see/); assert.match(privacyHtml, /audited access matrix/); assert.match(privacyHtml, /complete invitation link can decrypt/i); assert.match(privacyHtml, /processed transiently/); assert.match(privacyHtml, /private cancellation link/); assert.match(privacyHtml, /us-east-1/);
+  assert.equal(audit.status, 200); const auditHtml = await audit.text(); assert.match(auditHtml, /Don&#x27;t just trust us/); assert.match(auditHtml, /THE COMPLETE LINK IS THE FIRST SECRET/); assert.match(auditHtml, /El enlace completo es el primer secreto/); assert.match(auditHtml, /Inspect source code/); assert.match(auditHtml, /Open JSON evidence/);
+  assert.equal(safety.status, 200); assert.match(await safety.text(), /Protect access/);
   assert.equal(terms.status, 200); assert.match(await terms.text(), /Payments are disabled/);
   assert.doesNotMatch(legalPage, /next\/link|<Link/);
   assert.match(legalPage, /privacy\?lang=\$\{locale\}/);

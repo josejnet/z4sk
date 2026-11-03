@@ -24,148 +24,21 @@ import { TOO_LATE_COPY } from "../../lib/too-late-copy";
 import "./emoji-picker.css";
 
 const localized = <T,>(base: Record<Locale, T>) => base;
-type MatchCopy = {
-  question: string;
-  private: string;
-  yes: string;
-  no: string;
-  title: string;
-  copy: string;
-  time: string;
-  blind: string;
+const expiryCopy: Record<Locale, string> = {
+  en: "DESTROYS IN",
+  es: "SE DESTRUYE EN",
+  it: "SI DISTRUGGE TRA",
+  fr: "DISPARAÎT DANS",
+  de: "ZERSTÖRT SICH IN",
+  nl: "WORDT VERNIETIGD OVER",
+  eo: "DETRUIĜOS POST",
+  pt: "DESTRÓI-SE EM",
+  zh: "将在以下时间后销毁",
+  hi: "इतने समय में मिटेगा",
+  ja: "削除まで",
+  tr: "YOK OLMASINA",
+  machine: "TTL",
 };
-const matchCopy = localized<MatchCopy>({
-  en: {
-    question: "Would you go on a date with {name}?",
-    private: "Your answer stays hidden unless you both say yes.",
-    yes: "Yes, I would",
-    no: "Not right now",
-    title: "It’s a match!",
-    copy: "You both said yes. No more guessing.",
-    time: "DESTROYS IN",
-    blind: "SECRET MATCH",
-  },
-  es: {
-    question: "¿Tendrías una cita con {name}?",
-    private: "Tu respuesta queda oculta salvo que ambos digáis que sí.",
-    yes: "Sí, tendría",
-    no: "Ahora mismo no",
-    title: "¡Es un match!",
-    copy: "Los dos habéis dicho que sí. Se acabaron las dudas.",
-    time: "SE DESTRUYE EN",
-    blind: "MATCH SECRETO",
-  },
-  it: {
-    question: "Usciresti con {name}?",
-    private: "La risposta resta nascosta a meno che entrambi diciate sì.",
-    yes: "Sì",
-    no: "Non adesso",
-    title: "È un match!",
-    copy: "Avete detto sì entrambi. Niente più dubbi.",
-    time: "SI DISTRUGGE TRA",
-    blind: "MATCH SEGRETO",
-  },
-  fr: {
-    question: "Accepterais-tu un rendez-vous avec {name} ?",
-    private: "La réponse reste cachée sauf si vous dites oui tous les deux.",
-    yes: "Oui",
-    no: "Pas maintenant",
-    title: "C’est un match !",
-    copy: "Vous avez tous les deux dit oui. Plus de doute.",
-    time: "DISPARAÎT DANS",
-    blind: "MATCH SECRET",
-  },
-  de: {
-    question: "Würdest du mit {name} ausgehen?",
-    private: "Die Antwort bleibt verborgen, außer ihr sagt beide Ja.",
-    yes: "Ja",
-    no: "Jetzt nicht",
-    title: "Ihr habt ein Match!",
-    copy: "Ihr habt beide Ja gesagt. Schluss mit dem Rätselraten.",
-    time: "ZERSTÖRT SICH IN",
-    blind: "GEHEIMES MATCH",
-  },
-  nl: {
-    question: "Zou je met {name} op date gaan?",
-    private: "Je antwoord blijft verborgen, tenzij jullie allebei ja zeggen.",
-    yes: "Ja, dat zou ik",
-    no: "Nu niet",
-    title: "Het is een match!",
-    copy: "Jullie zeiden allebei ja. Geen twijfel meer.",
-    time: "WORDT VERNIETIGD OVER",
-    blind: "GEHEIME MATCH",
-  },
-  eo: {
-    question: "Ĉu vi rendevuus kun {name}?",
-    private: "Via respondo restas kaŝita krom se ambaŭ diras jes.",
-    yes: "Jes",
-    no: "Ne nun",
-    title: "Estas kongruo!",
-    copy: "Vi ambaŭ diris jes. Ne plu necesas diveni.",
-    time: "DETRUIĜOS POST",
-    blind: "SEKRETA KONGRUO",
-  },
-  pt: {
-    question: "Terias um encontro com {name}?",
-    private: "A tua resposta fica oculta, a menos que ambos digam sim.",
-    yes: "Sim, teria",
-    no: "Agora não",
-    title: "É um match!",
-    copy: "Ambos disseram sim. Acabaram-se as dúvidas.",
-    time: "DESTRÓI-SE EM",
-    blind: "MATCH SECRETO",
-  },
-  zh: {
-    question: "你愿意和 {name} 约会吗？",
-    private: "除非双方都回答愿意，否则你的答案始终隐藏。",
-    yes: "愿意",
-    no: "现在不愿意",
-    title: "匹配成功！",
-    copy: "你们都回答了愿意，不用再猜了。",
-    time: "将在以下时间后销毁",
-    blind: "秘密匹配",
-  },
-  hi: {
-    question: "क्या आप {name} के साथ डेट पर जाना चाहेंगे?",
-    private: "जब तक दोनों हाँ न कहें, आपका जवाब छिपा रहेगा।",
-    yes: "हाँ",
-    no: "अभी नहीं",
-    title: "मैच हो गया!",
-    copy: "आप दोनों ने हाँ कहा। अब अंदाज़ा लगाने की जरूरत नहीं।",
-    time: "इतने समय में मिटेगा",
-    blind: "गुप्त मैच",
-  },
-  ja: {
-    question: "{name}さんとデートしたいですか？",
-    private: "二人とも「はい」と答えない限り、回答は公開されません。",
-    yes: "はい",
-    no: "今はいいえ",
-    title: "マッチしました！",
-    copy: "二人とも「はい」と答えました。もう迷う必要はありません。",
-    time: "削除まで",
-    blind: "シークレットマッチ",
-  },
-  tr: {
-    question: "{name} ile buluşur muydun?",
-    private: "İkiniz de evet demedikçe yanıtın gizli kalır.",
-    yes: "Evet",
-    no: "Şimdilik hayır",
-    title: "Eşleştiniz!",
-    copy: "İkiniz de evet dediniz. Artık tahmine gerek yok.",
-    time: "YOK OLMASINA",
-    blind: "GİZLİ EŞLEŞME",
-  },
-  machine: {
-    question: "DATE_INTEREST target={name}?",
-    private: "reveal IFF creator_interest==true AND respondent_interest==true",
-    yes: "TRUE",
-    no: "FALSE",
-    title: "MATCH=true",
-    copy: "creator_interest=true; respondent_interest=true",
-    time: "TTL",
-    blind: "SECRET_MATCH",
-  },
-});
 const reportCopy = localized<{ button: string; confirm: string; sent: string }>(
   {
     en: {
@@ -479,7 +352,6 @@ export function GameClient({ id }: { id: string }) {
     | "loading"
     | "shared-key"
     | "intro"
-    | "match"
     | "questions"
     | "sending"
     | "done"
@@ -491,7 +363,6 @@ export function GameClient({ id }: { id: string }) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [reactions, setReactions] = useState<string[]>([]);
-  const [matchInterest, setMatchInterest] = useState<boolean | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [reportSent, setReportSent] = useState(false);
   const [timedConsentOne, setTimedConsentOne] = useState(false);
@@ -521,7 +392,6 @@ export function GameClient({ id }: { id: string }) {
       setTimedConsentOne(false);
       setTimedConsentTwo(false);
       setQuestionSeconds(30);
-      setMatchInterest(null);
       setPendingGame(null);
       setPhase("intro");
     },
@@ -552,15 +422,25 @@ export function GameClient({ id }: { id: string }) {
           setPhase("error");
           return;
         }
-        setInvitationSecret(fragment.get("invite") || "");
-        setPendingGame(data);
-        setPhase("shared-key");
+        const secret = fragment.get("invite") || "";
+        setInvitationSecret(secret);
+        if (data.encryptedInvitation.keyMode === "link") {
+          try {
+            acceptGame(await hydrateGameWire(data, secret, ""));
+          } catch {
+            setMessage(keyIntegrityError[preferredLocale]);
+            setPhase("error");
+          }
+        } else {
+          setPendingGame(data);
+          setPhase("shared-key");
+        }
       })
       .catch(() => {
         setMessage(gameUi[preferredLocale].openError);
         setPhase("error");
       });
-  }, [id, preferredLocale]);
+  }, [acceptGame, id, preferredLocale]);
 
   async function unlockInvitation(sharedKey: string) {
     if (!pendingGame) throw new Error("No pending invitation.");
@@ -583,7 +463,6 @@ export function GameClient({ id }: { id: string }) {
           respondentName: respondentName.trim().replace(/\s+/g, " "),
           answers: finalAnswers,
           reactions: finalReactions,
-          matchInterest,
         },
         game.encryptionPublicKey,
       );
@@ -622,7 +501,6 @@ export function GameClient({ id }: { id: string }) {
       setRespondentName("");
       setAnswers([]);
       setReactions([]);
-      setMatchInterest(null);
       setPhase("done");
     } catch {
       setMessage(gameUi[locale].sendError);
@@ -809,40 +687,6 @@ export function GameClient({ id }: { id: string }) {
       </main>
     );
   }
-  if (phase === "match" && game)
-    return (
-      <main className="experience-page">
-        <TopNav minimal />
-        <div className="center-state blind-question">
-          <span className="large-symbol">◐</span>
-          <div className="eyebrow">{matchCopy[locale].blind}</div>
-          <h1>
-            {game.matchQuestion.trim() ||
-              matchCopy[locale].question.replace("{name}", game.creatorName)}
-          </h1>
-          <p>{matchCopy[locale].private}</p>
-          <div className="blind-actions">
-            <button
-              onClick={() => {
-                setMatchInterest(false);
-                setPhase("questions");
-              }}
-            >
-              {matchCopy[locale].no}
-            </button>
-            <button
-              className="yes"
-              onClick={() => {
-                setMatchInterest(true);
-                setPhase("questions");
-              }}
-            >
-              {matchCopy[locale].yes} 🔥
-            </button>
-          </div>
-        </div>
-      </main>
-    );
   if (!game) return null;
 
   if (phase === "intro")
@@ -852,7 +696,7 @@ export function GameClient({ id }: { id: string }) {
         <section className="invitation-intro">
           <div className="invitation-card">
             <div className="countdown">
-              <span>{matchCopy[locale].time}</span>
+              <span>{expiryCopy[locale]}</span>
               <b>{countdown(game.expiresAt, now)}</b>
             </div>
             <span className="eyebrow">
@@ -948,7 +792,7 @@ export function GameClient({ id }: { id: string }) {
               }
               onClick={() => {
                 setQuestionSeconds(30);
-                setPhase(game.doubleBlind ? "match" : "questions");
+                setPhase("questions");
               }}
             >
               {flow(locale, "start")} <span>→</span>
@@ -975,7 +819,7 @@ export function GameClient({ id }: { id: string }) {
         <span className={`countdown-mini ${game.timedMode ? "timed" : ""}`}>
           {game.timedMode
             ? `${timedCopy[locale].badge} · ${questionSeconds}s`
-            : `${matchCopy[locale].time} ${countdown(game.expiresAt, now)}`}
+            : `${expiryCopy[locale]} ${countdown(game.expiresAt, now)}`}
         </span>
         <span>{respondentName}</span>
       </div>

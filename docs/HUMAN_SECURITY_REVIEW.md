@@ -22,11 +22,11 @@ The reviewer must not have authored Z4SK and must disclose commercial or persona
 
 1. Can the server, database, logs or founder endpoint recover invitation or answer plaintext from stored state alone?
 2. Can an unauthorized party list, guess, read, modify, replay or delete invitations or responses?
-3. Are AES-GCM nonces, ECDH keys, HKDF contexts, concatenated link/shared-key input, entropy and authenticated envelopes used safely?
+3. Are AES-GCM nonces, ECDH keys, domain-separated HKDF contexts, link-only/shared-key input, 128-bit optional-key entropy and authenticated envelopes used safely?
 4. Do concurrent submissions bypass view-once or single-response constraints?
-5. Can URL fragments, shared-key QR/words, camera frames, uploaded images, bearer headers, service-worker caches, browser history, referrers, CSP reports or errors leak either secret?
+5. Can URL fragments, shared-key QR/12 words, camera frames, images selected from Photos, bearer headers, service-worker caches, browser history, referrers, CSP reports or errors leak a required secret?
 6. Can a compromised dependency, CI job, maintainer account or deployment substitute client code without visible evidence?
-7. Does QR/24-word reuse create acceptable cross-invitation risk, and are checksum, fingerprint, rotation and channel-separation guidance sound?
+7. Does QR/12-word reuse create acceptable cross-invitation risk, are legacy 24-word keys handled safely, and are checksum, key-ID, rotation and channel-separation guidance sound?
 
 ## Safety and reporting
 

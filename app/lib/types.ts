@@ -9,8 +9,6 @@ export type Game = {
   level: Level;
   locale: Locale;
   libraryVersion: string;
-  doubleBlind: boolean;
-  matchQuestion: string;
   timedMode: boolean;
   expiresAt: string;
   openedAt?: string | null;
@@ -42,7 +40,6 @@ export type GameResponse = {
   respondentName: string;
   answers: string[];
   reactions: string[];
-  matched: boolean;
   createdAt: string;
 };
 

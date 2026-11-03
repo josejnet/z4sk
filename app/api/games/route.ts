@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     const viewOnce = body.viewOnce === true ? 1 : 0;
     await db
       .prepare(
-        `INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, encrypted_invitation, question_count, premium, view_once, double_blind, match_question, timed_mode, creator_interest, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', '', '', '', 'encrypted', 'encrypted', 'e2ee.2', '[]', '', ?, ?, 0, ?, 0, '', 0, 0, 'encrypted', 0, ?, ?)`,
+        `INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, encrypted_invitation, question_count, premium, view_once, timed_mode, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', '', '', '', 'encrypted', 'encrypted', 'e2ee.2', '[]', '', ?, ?, 0, ?, 0, 'encrypted', 0, ?, ?)`,
       )
       .bind(
         id,

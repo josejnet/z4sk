@@ -22,11 +22,11 @@ La persona revisora no debe haber desarrollado Z4SK y debe declarar conflictos p
 
 1. ¿Puede el servidor, base de datos, logs o panel fundador recuperar texto claro usando solo el estado almacenado?
 2. ¿Puede alguien sin autorización listar, adivinar, leer, modificar, repetir o borrar invitaciones o respuestas?
-3. ¿Son seguros los nonces AES-GCM, claves ECDH, contextos HKDF, combinación de secreto de enlace y llave compartida, entropía y sobres autenticados?
+3. ¿Son seguros los nonces AES-GCM, claves ECDH, contextos HKDF separados por modo, entradas de enlace/llave, entropía opcional de 128 bits y sobres autenticados?
 4. ¿Permiten las condiciones de carrera eludir lectura única o respuesta única?
-5. ¿Pueden fragmentos, QR/24 palabras, frames de cámara, imágenes, cabeceras bearer, caché del service worker, historial, referrer, informes CSP o errores filtrar alguno de los secretos?
+5. ¿Pueden fragmentos, QR/12 palabras, frames de cámara, imágenes elegidas desde Fotos, cabeceras bearer, caché del service worker, historial, referrer, informes CSP o errores filtrar un secreto necesario?
 6. ¿Puede una dependencia, CI, cuenta mantenedora o despliegue comprometido sustituir el código cliente sin evidencia visible?
-7. ¿Es aceptable el riesgo de reutilizar el QR/24 palabras y son sólidos el checksum, huella, rotación y separación de canales?
+7. ¿Es aceptable el riesgo de reutilizar el QR/12 palabras, se admiten con seguridad las llaves antiguas de 24 y son sólidos el checksum, ID de llave, rotación y separación de canales?
 
 ## Seguridad y comunicación
 

@@ -10,7 +10,7 @@ Report vulnerabilities privately through [GitHub private vulnerability reporting
 
 ### Security model
 
-- The creator browser uses Web Crypto to generate a random 256-bit link secret, a random 256-bit content key, a random 192-bit API token and an ECDH P-256 response key pair.
+- The creator browser uses Web Crypto to generate a random 256-bit link secret, a random 256-bit content key, independent random 192-bit creator and response-submission tokens, and an ECDH P-256 response key pair. The API stores only token hashes.
 - An optional reusable 128-bit shared key can be generated locally or imported from its branded QR. It can also be reconstructed from its 12-word Spanish BIP39 recovery phrase; legacy 256-bit/24-word keys remain accepted. The QR and phrase are the same key, not separate factors, and the visible key ID is only an identifier.
 - HKDF-SHA-256 uses the link secret alone in link-only mode, or link secret plus shared key in protected mode, with domain-separated contexts. AES-256-GCM wraps the random content key and encrypts names, questions, settings and the response public key before creation. The server stores only the authenticated v2 envelope and minimal metadata.
 - Only the link secret is stored in `#invite=`. The shared key is never sent in a URL, API request, API response or database row. URL fragments are not sent as part of ordinary HTTP requests.
@@ -59,7 +59,7 @@ Comunica vulnerabilidades mediante los [avisos privados de seguridad de GitHub](
 
 ### Resumen verificable
 
-- El navegador genera un secreto de enlace de 256 bits, una llave de contenido de 256 bits, un token y el par ECDH mediante Web Crypto.
+- El navegador genera mediante Web Crypto un secreto de enlace de 256 bits, una llave de contenido de 256 bits, tokens independientes de 192 bits para creador y envío de respuestas, y el par ECDH. La API solo guarda sus hashes.
 - El creador puede generar o escanear una llave compartida opcional de 128 bits. El QR con marca y su frase de recuperación de 12 palabras BIP39 españolas son dos representaciones de esa misma llave, no dos factores; se conservan las llaves antiguas de 256 bits/24 palabras. El ID visible solo identifica la llave.
 - HKDF-SHA-256 usa el secreto de enlace en modo simple o lo combina con la llave compartida en modo protegido, con contextos separados. AES-256-GCM envuelve la llave de contenido y cifra nombres, preguntas, ajustes y clave pública antes de enviar nada.
 - Solo el secreto del enlace vive en `#invite=`. La llave compartida nunca se incluye en URL, petición, respuesta de API o base de datos.

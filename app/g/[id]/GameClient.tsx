@@ -382,6 +382,7 @@ export function GameClient({ id }: { id: string }) {
     null,
   );
   const [invitationSecret, setInvitationSecret] = useState("");
+  const [submissionToken, setSubmissionToken] = useState("");
   const answerRef = useRef<HTMLTextAreaElement>(null);
 
   const acceptGame = useCallback(
@@ -426,6 +427,7 @@ export function GameClient({ id }: { id: string }) {
           return;
         }
         const secret = fragment.get("invite") || "";
+        setSubmissionToken(fragment.get("submit") || "");
         setInvitationSecret(secret);
         if (data.encryptedInvitation.keyMode === "link") {
           try {
@@ -471,7 +473,12 @@ export function GameClient({ id }: { id: string }) {
       );
       const response = await fetch(`/api/games/${id}/responses`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          ...(submissionToken
+            ? { authorization: `Bearer ${submissionToken}` }
+            : {}),
+        },
         body: JSON.stringify({
           encryptedResponse,
           answerCount: finalAnswers.length,

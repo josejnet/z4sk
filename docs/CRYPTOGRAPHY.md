@@ -63,6 +63,7 @@ The context checksum detects scanning/transcription mistakes; it is not an authe
 - Encryption: AES-256-GCM with a fresh 12-byte IV.
 - Content: respondent display name, answers and reactions.
 - The creator's ECDH private key stays in the creator URL fragment.
+- New invitations also carry an independent 192-bit response-submission bearer token in the invitation fragment. The server stores only its SHA-256 hash and requires proof of possession before accepting ciphertext, so a leaked or guessed route ID alone cannot fill or block a one-response invitation. Legacy invitations created before this control remain compatible.
 
 ### Authorization, deletion and retention
 
@@ -128,6 +129,8 @@ El enlace completo descifra una invitación sin llave. En modo protegido hacen f
 ### Aleatoriedad y formato recuperable
 
 Las llaves nuevas de 16 bytes se generan con `crypto.getRandomValues` de Web Crypto. Las 12 palabras españolas codifican exactamente los 128 bits de la llave y la suma de comprobación BIP39. Se admiten llaves antiguas de 32 bytes/24 palabras. No son una contraseña elegida por una persona ni una semilla de monedero, y no deben importarse jamás en una cartera de criptomonedas.
+
+Las invitaciones nuevas incluyen además un token independiente de 192 bits para autorizar el envío de respuestas. Solo su hash SHA-256 llega a la base de datos. Conocer el identificador de la ruta no basta para introducir texto cifrado falso ni bloquear una invitación de respuesta única; las invitaciones anteriores conservan compatibilidad.
 
 El QR fijo incluye un prefijo de versión y una suma de comprobación contextual. Se descarga dentro de una tarjeta con marca Z4SK y puede leerse desde la cámara o Fotos en el mismo móvil. El ID visible permite comparar copias, pero no recupera ni abre la llave. Reutilizar una llave con la misma persona es posible, pero aumenta el impacto de una filtración: conviene usar una por persona y sustituirla si hay cualquier duda.
 

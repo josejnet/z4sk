@@ -97,7 +97,7 @@ test("collects only privacy-preserving CSP aggregates", async () => {
 });
 
 test("ships privacy, defensibility and PWA assets", async () => {
-  const [builder, qrCard, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, runtime, responseCrypto, encryptionTypes, vercel, assetRegister, manifest, sw, og, favicon, icon192, icon512, nameCopy] = await Promise.all([
+  const [builder, qrCard, gameClient, dashboardClient, shareInvitation, shareCss, home, privacyProofUi, pwa, questions, gameRoute, sdk, consume, responseRoute, reportRoute, metricsRoute, proofRoute, privacyEngine, runtime, responseCrypto, encryptionTypes, vercel, assetRegister, manifest, sw, og, favicon, icon192, icon512, nameCopy, organicQr, htmlInvite] = await Promise.all([
     readFile(new URL("../app/components/Builder.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/components/QrCard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/g/[id]/GameClient.tsx", import.meta.url), "utf8"),
@@ -128,6 +128,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
     stat(new URL("../public/icon-192.png", import.meta.url)),
     stat(new URL("../public/icon-512.png", import.meta.url)),
     readFile(new URL("../app/lib/name-copy.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/organic-qr.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/lib/html-invite.ts", import.meta.url), "utf8"),
   ]);
   const [brand, faviconIco, founderAuth, founderAds, publicAds, founderDashboard, cancellationCopy, cancellationClient, migrations, workflow, invitationCrypto, auditPage, cryptographyDoc, securityDoc] = await Promise.all([
     readFile(new URL("../app/components/Brand.tsx", import.meta.url), "utf8"),
@@ -177,12 +179,19 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /generateResponseKeyPair/);
   assert.match(builder, /generateCreatorAccessCredential/);
   assert.match(builder, /creatorTokenHash: access\.tokenHash/);
+  assert.match(builder, /submissionTokenHash: submissionAccess\.tokenHash/);
+  assert.match(builder, /attachSubmissionToken/);
   assert.match(builder, /window\.location\.origin.*#key=/);
   assert.match(builder, /attachPrivateDecryptionKey/);
   assert.match(builder, /generateInvitationSecret/);
   assert.match(builder, /encryptPrivateInvitation/);
+  assert.match(builder, /encryptedInvitation\.keyMode !== expectedKeyMode/);
+  assert.match(gameRoute, /encryptedInvitation\.keyMode !== requestedKeyMode/);
   assert.match(builder, /<SharedKeySetup/);
   assert.match(builder, /sharedKeyConfirmed/);
+  assert.match(builder, /linkOnlyConfirmed/);
+  assert.match(builder, /chooseRequired/);
+  assert.match(builder, /className="success-delivery-grid"/);
   assert.match(builder, /encryptPrivateInvitation\([\s\S]*invitationSecret,[\s\S]*sharedKey/);
   assert.match(builder, /attachInvitationSecret/);
   assert.match(builder, /encryptedInvitation/);
@@ -207,8 +216,13 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(gameRoute, /creatorTokenHash/);
   assert.doesNotMatch(gameRoute, /creatorToken\s*=|adminUrl:/);
   assert.doesNotMatch(gameRoute, /match_question|double_blind|creator_interest/);
-  assert.match(qrCard, /import\("qrcode"\)/);
-  assert.match(qrCard, /QRCode\.toCanvas/);
+  assert.match(qrCard, /drawOrganicQr/);
+  assert.match(organicQr, /QRCode\.create/);
+  assert.match(organicQr, /errorCorrectionLevel: "H"/);
+  assert.match(organicQr, /matrix\.isReserved/);
+  assert.match(organicQr, /context\.arc/);
+  assert.match(qrCard, /files: \[file\]/);
+  assert.match(qrCard, /text: invitation/);
   assert.match(qrCard, /ctx\.textAlign = "center"[\s\S]{0,500}drawWrapped\([\s\S]{0,150}ctx,[\s\S]{0,150}title,[\s\S]{0,250}278,[\s\S]{0,250}ctx\.textAlign = "left"/);
   assert.match(qrCard, /"image\/png"\s*\|\s*"image\/jpeg"/);
   assert.match(qrCard, /SECRET · DO NOT SHARE/);
@@ -268,6 +282,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(sharedKey, /entropyToMnemonic/);
   assert.match(sharedKey, /wordlists\/spanish/);
   assert.match(sharedKeySetup, /Use an existing QR|copy\.existing/);
+  assert.match(sharedKeySetup, /copy\.linkOnly/);
+  assert.match(sharedKeySetup, /onLinkOnly/);
   assert.match(sharedKeyUnlock, /navigator\.mediaDevices\.getUserMedia/);
   assert.match(sharedKeyUnlock, /facingMode: \{ ideal: "environment" \}/);
   assert.match(sharedKeyUnlock, /createImageBitmap/);
@@ -278,10 +294,15 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(sharedKeyCard, /sharedKeyToMnemonic/);
   assert.match(sharedKeyCard, /Z4SK · E2EE · 128 BIT/);
   assert.match(sharedKeyCard, /className="shared-key-phrase"/);
+  assert.match(sharedKeyCard, /drawOrganicQr/);
   assert.doesNotMatch(sharedKeyCard, /<ol>/);
   assert.match(sharedKeyCopy, /FRASE DE RECUPERACIÓN/);
   assert.match(packageJson, /"@scure\/bip39"/);
   assert.match(packageJson, /"jsqr"/);
+  assert.match(htmlInvite, /createOrganicQrDataUrl/);
+  assert.match(htmlInvite, /document\.body\.appendChild\(link\)/);
+  assert.match(htmlInvite, /window\.setTimeout\(\(\) => URL\.revokeObjectURL/);
+  assert.doesNotMatch(htmlInvite, /<script>/);
   for (const locale of ["en", "es", "it", "fr", "de", "nl", "eo", "pt", "zh", "hi", "ja", "tr", "machine"]) assert.match(sharedKeyCopy, new RegExp(`\\b${locale}:`));
   assert.match(shareCss, /@media\(max-width:620px\)/);
   assert.match(shareCss, /\.share-webmail\{display:none\}/);
@@ -330,6 +351,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.doesNotMatch(responseRoute, /eventType:\s*"matched"/);
   assert.match(responseRoute, /checkRateLimit/);
   assert.match(responseRoute, /delete_token_hash/);
+  assert.match(responseRoute, /submission_token_hash/);
+  assert.match(responseRoute, /hashToken\(bearerToken\(request\)\)/);
+  assert.match(gameClient, /authorization: `Bearer \$\{submissionToken\}`/);
   assert.match(responseRoute, /export async function DELETE/);
   assert.match(migrations, /ux_responses_single_use_game/);
   assert.match(migrations, /ux_abuse_reports_game_reporter/);
@@ -424,6 +448,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(cryptographyDoc, /Server-visible data/);
   assert.match(securityDoc, /GitHub private vulnerability reporting/);
   assert.match(migrations, /encrypted_invitation TEXT NOT NULL DEFAULT ''/);
+  assert.match(migrations, /2026-11-04-response-submission-credentials/);
   assert.match(migrations, /question_count INTEGER NOT NULL DEFAULT 0/);
   assert.match(
     migrations,

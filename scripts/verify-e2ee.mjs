@@ -358,6 +358,7 @@ async function createEncryptedGame(
     useSharedKey = true,
   } = {},
 ) {
+  const submissionAccess = await creatorCredential();
   const encrypted = await encryptInvitation(
     privateInvitation(invitationOverrides),
     undefined,
@@ -370,8 +371,10 @@ async function createEncryptedGame(
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       encryptedInvitation: encrypted.envelope,
+      keyMode: encrypted.envelope.keyMode,
       questionCount: questions.length,
       creatorTokenHash: access.tokenHash,
+      submissionTokenHash: submissionAccess.tokenHash,
       viewOnce,
       expiresInHours,
       source: "e2ee-verifier",
@@ -382,18 +385,22 @@ async function createEncryptedGame(
     invitationSecret: encrypted.secret,
     sharedKey: encrypted.sharedKey,
     invitationEnvelope: encrypted.envelope,
+    submissionToken: submissionAccess.token,
   };
 }
 
 const missingCredentialEnvelope = await encryptInvitation(
   privateInvitation({ creatorName: "No credential verifier" }),
 );
+const missingCredentialSubmission = await creatorCredential();
 const missingClientSecret = await json("/api/games", {
   method: "POST",
   headers: { "content-type": "application/json" },
   body: JSON.stringify({
     encryptedInvitation: missingCredentialEnvelope.envelope,
+    keyMode: missingCredentialEnvelope.envelope.keyMode,
     questionCount: questions.length,
+    submissionTokenHash: missingCredentialSubmission.tokenHash,
   }),
 });
 assert.equal(
@@ -510,11 +517,27 @@ const envelope = await encrypt(privatePayload, {
   y: publicJwk.y,
   ext: true,
 });
+const idOnlySubmission = await json(`/api/games/${gameId}/responses`, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({
+    encryptedResponse: envelope,
+    answerCount: questions.length,
+  }),
+});
+assert.equal(
+  idOnlySubmission.response.status,
+  403,
+  "Knowing only the public game id allowed a forged response submission.",
+);
 const concurrentSubmissions = await Promise.all(
   [1, 2].map(() =>
     json(`/api/games/${gameId}/responses`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${created.submissionToken}`,
+      },
       body: JSON.stringify({
         encryptedResponse: envelope,
         answerCount: questions.length,
@@ -584,7 +607,10 @@ const recipientSubmission = await json(
   `/api/games/${recipientGameId}/responses`,
   {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${recipientDeleteGame.submissionToken}`,
+    },
     body: JSON.stringify({
       encryptedResponse: envelope,
       answerCount: questions.length,
@@ -746,7 +772,10 @@ if (process.env.DATABASE_URL) {
   assert.ok(expiryGameId && expiryBearer);
   const expirySubmission = await json(`/api/games/${expiryGameId}/responses`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${expiryGame.submissionToken}`,
+    },
     body: JSON.stringify({
       encryptedResponse: envelope,
       answerCount: questions.length,
@@ -801,6 +830,7 @@ console.log(
     sharedKeyModeRejectsWrongKey: true,
     newSharedKeyBits: 128,
     sharedKeyAbsentFromServerPayload: true,
+    idOnlySubmissionRejected: idOnlySubmission.response.status === 403,
     concurrentSingleUseAccepted: 1,
     recipientSelfDeletion: true,
     duplicateAbuseReportsIgnored: true,

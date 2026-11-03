@@ -20,10 +20,15 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Record<string, unknown>;
     const encryptedInvitation = body.encryptedInvitation;
     const encryptedPayload = JSON.stringify(encryptedInvitation);
+    const requestedKeyMode = body.keyMode;
     const questionCount = Number(body.questionCount);
     const creatorTokenHash =
       typeof body.creatorTokenHash === "string"
         ? body.creatorTokenHash.trim().toLowerCase()
+        : "";
+    const submissionTokenHash =
+      typeof body.submissionTokenHash === "string"
+        ? body.submissionTokenHash.trim().toLowerCase()
         : "";
     const requestedHours = Number(body.expiresInHours);
     const expiresInHours = [12, 24, 48, 72].includes(requestedHours)
@@ -31,11 +36,14 @@ export async function POST(request: Request) {
       : 12;
     if (
       !isEncryptedInvitationEnvelope(encryptedInvitation) ||
+      (requestedKeyMode !== "link" && requestedKeyMode !== "shared") ||
+      encryptedInvitation.keyMode !== requestedKeyMode ||
       encryptedPayload.length > 12_500 ||
       !Number.isInteger(questionCount) ||
       questionCount < 3 ||
       questionCount > 12 ||
-      !/^[0-9a-f]{64}$/.test(creatorTokenHash)
+      !/^[0-9a-f]{64}$/.test(creatorTokenHash) ||
+      !/^[0-9a-f]{64}$/.test(submissionTokenHash)
     )
       return NextResponse.json(
         {
@@ -64,11 +72,12 @@ export async function POST(request: Request) {
     const viewOnce = body.viewOnce === true ? 1 : 0;
     await db
       .prepare(
-        `INSERT INTO games (id, creator_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, encrypted_invitation, question_count, premium, view_once, timed_mode, pack_slug, closed, created_at, expires_at) VALUES (?, ?, '', '', '', '', 'encrypted', 'encrypted', 'e2ee.2', '[]', '', ?, ?, 0, ?, 0, 'encrypted', 0, ?, ?)`,
+        `INSERT INTO games (id, creator_token_hash, submission_token_hash, creator_email, creator_name, recipient_name, title, level, locale, library_version, questions_json, encryption_public_key, encrypted_invitation, question_count, premium, view_once, timed_mode, pack_slug, closed, created_at, expires_at) VALUES (?, ?, ?, '', '', '', '', 'encrypted', 'encrypted', 'e2ee.2', '[]', '', ?, ?, 0, ?, 0, 'encrypted', 0, ?, ?)`,
       )
       .bind(
         id,
         creatorTokenHash,
+        submissionTokenHash,
         encryptedPayload,
         questionCount,
         viewOnce,

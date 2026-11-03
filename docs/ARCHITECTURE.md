@@ -32,7 +32,7 @@ Recipient browser
   encrypts response using ephemeral ECDH + HKDF + AES-GCM
 ```
 
-The URL fragment contains the 256-bit link secret. In link-only mode it is sufficient to derive the wrapping key. In protected mode the optional shared key is also required and never enters a URL, API request, database row, application log, service-worker cache or localStorage. Camera frames and QR images selected from Photos are decoded locally and are not uploaded. New shared keys use 128 bits and 12 Spanish BIP39 words; legacy 256-bit/24-word keys remain accepted. The visible key ID is an identifier only.
+The URL fragment contains the 256-bit link secret. In link-only mode it is sufficient to derive the wrapping key. In protected mode the optional shared key is also required and never enters a URL, API request, database row, application log, service-worker cache or localStorage. A separate 192-bit submission bearer also lives in the invitation fragment; the API stores only its SHA-256 hash and checks it before accepting response ciphertext. This prevents a route ID alone from being used to fill a one-response invitation. Camera frames and QR images selected from Photos are decoded locally and are not uploaded. New shared keys use 128 bits and 12 Spanish BIP39 words; legacy 256-bit/24-word keys remain accepted. The visible key ID is an identifier only.
 
 The creator bearer token is sent transiently in an `Authorization` header; Postgres stores only its SHA-256 hash. The response private key remains in the creator URL fragment. Private and mutable responses use `Cache-Control: no-store`.
 

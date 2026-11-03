@@ -12,17 +12,14 @@ const quiz = await z4sk.createQuiz({
   locale: "en",
   level: "coqueto",
   questions: ["Would you go on a date with me?", "What caught your eye?", "What should we do together?"],
-  doubleBlind: true,
-  matchQuestion: "Would you kiss me on our next date?",
   timedMode: true, // 30 seconds per question, with two required acknowledgements
-  creatorInterest: true,
   expiresInHours: 12,
 });
 
 z4sk.mount(document.querySelector("#z4sk-widget")!);
 ```
 
-The SDK locally generates a random 256-bit invitation key, a random creator-access token and an ECDH P-256 response key pair. It encrypts display names, questions, settings and the ECDH public key with AES-256-GCM before calling Z4SK. The API receives only the invitation envelope, question count, operational policy and the token's SHA-256 hash.
+The SDK locally generates a random 256-bit invitation key, a random creator-access token and an ECDH P-256 response key pair. It encrypts display names, questions, settings and the ECDH public key with AES-256-GCM before calling Z4SK. The API receives only the invitation envelope, question count, operational policy and the token's SHA-256 hash. An optional `sharedKey` adds a second, separately shared secret; `generateSharedKey()` creates the current 128-bit format, while legacy 256-bit keys remain accepted.
 
 The returned `playUrl` contains the invitation key in its URL fragment. The `adminUrl` contains that same key plus the bearer token and ECDH private key. URL fragments do not reach the creation API through normal navigation, and neither complete URL is written to Neon Postgres.
 

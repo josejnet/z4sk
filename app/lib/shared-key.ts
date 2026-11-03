@@ -3,7 +3,7 @@
 import { entropyToMnemonic, mnemonicToEntropy } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/spanish.js";
 
-const KEY_PATTERN = /^[A-Za-z0-9_-]{43}$/;
+const KEY_PATTERN = /^(?:[A-Za-z0-9_-]{22}|[A-Za-z0-9_-]{43})$/;
 const QR_PREFIX = "Z4SK-KEY-V1";
 const CONTEXT = new TextEncoder().encode("z4sk-shared-key-v1");
 const asBufferSource = (bytes: Uint8Array) => bytes as unknown as BufferSource;
@@ -31,7 +31,7 @@ export function isSharedKey(value: string) {
 }
 
 export function generateSharedKey() {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
   try {
     return toBase64Url(bytes);
   } finally {
@@ -43,7 +43,8 @@ export function sharedKeyToMnemonic(sharedKey: string) {
   if (!isSharedKey(sharedKey)) throw new Error("Invalid shared key.");
   const bytes = fromBase64Url(sharedKey);
   try {
-    if (bytes.length !== 32) throw new Error("Invalid shared key length.");
+    if (bytes.length !== 16 && bytes.length !== 32)
+      throw new Error("Invalid shared key length.");
     return entropyToMnemonic(bytes, wordlist);
   } finally {
     bytes.fill(0);
@@ -58,8 +59,8 @@ export function mnemonicToSharedKey(value: string) {
     .normalize("NFKD");
   const entropy = mnemonicToEntropy(normalized, wordlist);
   try {
-    if (entropy.length !== 32)
-      throw new Error("The recovery phrase must contain 24 valid words.");
+    if (entropy.length !== 16 && entropy.length !== 32)
+      throw new Error("The recovery phrase must contain 12 or 24 valid words.");
     return toBase64Url(entropy);
   } finally {
     entropy.fill(0);

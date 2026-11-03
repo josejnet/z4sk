@@ -29,8 +29,7 @@ const COPY: Record<Locale, Copy> = {
   en: {
     inviteKicker: "A PRIVATE INVITATION",
     inviteTitle: "{name}, someone dared to ask you.",
-    inviteBody:
-      "Scan the invitation link, then use the shared key delivered through the other channel.",
+    inviteBody: "Open the link or scan this QR. The invitation expires automatically.",
     inviteCta: "SCAN · ANSWER · DARE",
     secretKicker: "SECRET CREATOR ACCESS",
     secretTitle: "Your private dashboard, saved as a QR.",
@@ -52,8 +51,7 @@ const COPY: Record<Locale, Copy> = {
   es: {
     inviteKicker: "UNA INVITACIÓN PRIVADA",
     inviteTitle: "{name}, alguien se ha atrevido a preguntarte.",
-    inviteBody:
-      "Escanea el enlace de invitación y usa después la llave entregada por el otro canal.",
+    inviteBody: "Abre el enlace o escanea este QR. La invitación caduca automáticamente.",
     inviteCta: "ESCANEA · RESPONDE · ATRÉVETE",
     secretKicker: "ACCESO SECRETO DEL CREADOR",
     secretTitle: "Tu panel privado, guardado en un QR.",
@@ -75,8 +73,7 @@ const COPY: Record<Locale, Copy> = {
   it: {
     inviteKicker: "UN INVITO PRIVATO",
     inviteTitle: "{name}, qualcuno ha osato farti una domanda.",
-    inviteBody:
-      "Scansiona il codice. Rispondi sinceramente. Solo chi lo invia potrà leggere le risposte.",
+    inviteBody: "Apri il link o scansiona questo QR. L'invito scade automaticamente.",
     inviteCta: "SCANSIONA · RISPONDI · OSA",
     secretKicker: "ACCESSO SEGRETO DEL CREATORE",
     secretTitle: "Il tuo pannello privato, salvato in un QR.",
@@ -98,8 +95,7 @@ const COPY: Record<Locale, Copy> = {
   fr: {
     inviteKicker: "UNE INVITATION PRIVÉE",
     inviteTitle: "{name}, quelqu'un a osé vous poser la question.",
-    inviteBody:
-      "Scannez le code. Répondez sincèrement. Seule la personne qui l'envoie pourra lire vos réponses.",
+    inviteBody: "Ouvrez le lien ou scannez ce QR. L'invitation expire automatiquement.",
     inviteCta: "SCANNEZ · RÉPONDEZ · OSEZ",
     secretKicker: "ACCÈS SECRET DU CRÉATEUR",
     secretTitle: "Votre espace privé, conservé dans un QR.",
@@ -121,8 +117,7 @@ const COPY: Record<Locale, Copy> = {
   de: {
     inviteKicker: "EINE PRIVATE EINLADUNG",
     inviteTitle: "{name}, jemand hat sich getraut, dich zu fragen.",
-    inviteBody:
-      "Code scannen. Ehrlich antworten. Nur die sendende Person kann deine Antworten lesen.",
+    inviteBody: "Öffne den Link oder scanne diesen QR. Die Einladung läuft automatisch ab.",
     inviteCta: "SCANNEN · ANTWORTEN · TRAUEN",
     secretKicker: "GEHEIMER ERSTELLER-ZUGANG",
     secretTitle: "Dein privater Bereich, als QR gespeichert.",
@@ -144,8 +139,7 @@ const COPY: Record<Locale, Copy> = {
   nl: {
     inviteKicker: "EEN PRIVÉ-UITNODIGING",
     inviteTitle: "{name}, iemand durfde het je te vragen.",
-    inviteBody:
-      "Scan de code. Antwoord eerlijk. Alleen de afzender kan je antwoorden lezen.",
+    inviteBody: "Open de link of scan deze QR. De uitnodiging verloopt automatisch.",
     inviteCta: "SCAN · ANTWOORD · DURF",
     secretKicker: "GEHEIME TOEGANG VOOR DE MAKER",
     secretTitle: "Je privédashboard, bewaard als QR.",
@@ -167,8 +161,7 @@ const COPY: Record<Locale, Copy> = {
   eo: {
     inviteKicker: "PRIVATA INVITO",
     inviteTitle: "{name}, iu kuraĝis demandi vin.",
-    inviteBody:
-      "Skanu la kodon. Respondu sincere. Nur la sendinto povos legi viajn respondojn.",
+    inviteBody: "Malfermu la ligilon aŭ skanu ĉi tiun QR. La invito aŭtomate eksvalidiĝas.",
     inviteCta: "SKANU · RESPONDU · KURAĜU",
     secretKicker: "SEKRETA ALIRO DE LA KREINTO",
     secretTitle: "Via privata panelo, konservita kiel QR.",
@@ -190,8 +183,7 @@ const COPY: Record<Locale, Copy> = {
   pt: {
     inviteKicker: "UM CONVITE PRIVADO",
     inviteTitle: "{name}, alguém teve coragem de perguntar.",
-    inviteBody:
-      "Lê o código. Responde com sinceridade. Só quem envia poderá ler as tuas respostas.",
+    inviteBody: "Abre o link ou lê este QR. O convite expira automaticamente.",
     inviteCta: "LÊ · RESPONDE · ARRISCA",
     secretKicker: "ACESSO SECRETO DO CRIADOR",
     secretTitle: "O teu painel privado, guardado num QR.",
@@ -213,7 +205,7 @@ const COPY: Record<Locale, Copy> = {
   zh: {
     inviteKicker: "一份私人邀请",
     inviteTitle: "{name}，有人鼓起勇气想问你。",
-    inviteBody: "扫描二维码，坦诚回答。只有发送者能看到你的回答。",
+    inviteBody: "打开链接或扫描此二维码。邀请会自动到期。",
     inviteCta: "扫码 · 回答 · 勇敢一点",
     secretKicker: "创建者秘密访问",
     secretTitle: "用二维码保存你的私人面板。",
@@ -232,8 +224,7 @@ const COPY: Record<Locale, Copy> = {
   hi: {
     inviteKicker: "एक निजी निमंत्रण",
     inviteTitle: "{name}, किसी ने आपसे पूछने की हिम्मत की है।",
-    inviteBody:
-      "कोड स्कैन करें। ईमानदारी से जवाब दें। जवाब सिर्फ भेजने वाला पढ़ सकेगा।",
+    inviteBody: "लिंक खोलें या यह QR स्कैन करें। निमंत्रण अपने आप समाप्त हो जाएगा।",
     inviteCta: "स्कैन · जवाब · हिम्मत",
     secretKicker: "निर्माता की गुप्त पहुँच",
     secretTitle: "आपका निजी डैशबोर्ड, QR में सुरक्षित।",
@@ -255,8 +246,7 @@ const COPY: Record<Locale, Copy> = {
   ja: {
     inviteKicker: "非公開の招待",
     inviteTitle: "{name}さん、誰かが勇気を出して聞きました。",
-    inviteBody:
-      "QRを読み取り、正直に答えてください。回答を読めるのは送信者だけです。",
+    inviteBody: "リンクを開くか、このQRを読み取ってください。招待は自動的に期限切れになります。",
     inviteCta: "読み取る · 答える · 踏み出す",
     secretKicker: "作成者の秘密アクセス",
     secretTitle: "非公開パネルをQRで保存。",
@@ -278,8 +268,7 @@ const COPY: Record<Locale, Copy> = {
   tr: {
     inviteKicker: "ÖZEL BİR DAVET",
     inviteTitle: "{name}, biri sana sormaya cesaret etti.",
-    inviteBody:
-      "Kodu tara. Dürüstçe yanıtla. Yanıtlarını yalnızca gönderen kişi okuyabilir.",
+    inviteBody: "Bağlantıyı aç veya bu QR'ı tara. Davetin süresi otomatik olarak dolar.",
     inviteCta: "TARA · YANITLA · CESARET ET",
     secretKicker: "OLUŞTURUCU GİZLİ ERİŞİMİ",
     secretTitle: "Özel panelin QR olarak kaydedildi.",
@@ -301,7 +290,7 @@ const COPY: Record<Locale, Copy> = {
   machine: {
     inviteKicker: "PRIVATE_INVITATION",
     inviteTitle: "recipient={name}; query.pending=true",
-    inviteBody: "SCAN qr; SUBMIT honest_answers; ACL=creator_only",
+    inviteBody: "OPEN link OR SCAN qr; TTL=user_selected",
     inviteCta: "SCAN::ANSWER::DARE",
     secretKicker: "SECRET_CREATOR_ACCESS",
     secretTitle: "dashboard.access_token => QR",
@@ -334,6 +323,22 @@ const PRIVATE_WARNING: Record<Locale, string> = {
   tr: "Uyarı: bu QR gizli oluşturucu bağlantısını içerir, ayrı paylaşılan anahtarı içermez. İkisini alan kişi paneli açıp yanıtları çözebilir.",
   machine:
     "WARNING: qr.contains=creator_secret_url; qr.shared_key=false; holder(qr,shared_key)=>dashboard.decrypt(ciphertext)",
+};
+
+const PRIVATE_LINK_WARNING: Record<Locale, string> = {
+  en: "Warning: this QR is the complete secret creator link. Anyone who scans it can open the dashboard and decrypt answers.",
+  es: "Aviso: este QR es el enlace secreto completo del creador. Quien lo escanee podrá abrir el panel y descifrar respuestas.",
+  it: "Attenzione: questo QR è il link segreto completo del creatore. Chi lo scansiona può aprire il pannello e decifrare le risposte.",
+  fr: "Attention : ce QR est le lien créateur secret complet. Toute personne qui le scanne peut ouvrir le tableau de bord et déchiffrer les réponses.",
+  de: "Warnung: Dieser QR ist der vollständige geheime Ersteller-Link. Wer ihn scannt, kann das Dashboard öffnen und Antworten entschlüsseln.",
+  nl: "Waarschuwing: deze QR is de volledige geheime makerslink. Wie hem scant kan het dashboard openen en antwoorden ontsleutelen.",
+  eo: "Averto: ĉi tiu QR estas la kompleta sekreta ligilo de la kreinto. Kiu skanas ĝin povas malfermi la panelon kaj malĉifri respondojn.",
+  pt: "Aviso: este QR é o link secreto completo do criador. Quem o ler pode abrir o painel e decifrar respostas.",
+  zh: "警告：此二维码是完整的创建者秘密链接。任何扫描者都能打开面板并解密回答。",
+  hi: "चेतावनी: यह QR पूरा गुप्त निर्माता लिंक है। इसे स्कैन करने वाला पैनल खोलकर जवाब डिक्रिप्ट कर सकता है।",
+  ja: "警告：このQRは作成者用の完全な秘密リンクです。読み取った人はパネルを開き、回答を復号できます。",
+  tr: "Uyarı: bu QR tam gizli oluşturucu bağlantısıdır. Tarayan kişi paneli açıp yanıtları çözebilir.",
+  machine: "WARNING: qr.contains=complete_creator_secret_url; scanner=>dashboard.decrypt(ciphertext)",
 };
 
 function fillTemplate(value: string, name: string) {
@@ -373,6 +378,7 @@ async function renderCard(
   locale: Locale,
   name: string,
   url: string,
+  protectedBySharedKey: boolean,
 ) {
   const { default: QRCode } = await import("qrcode");
   const c = COPY[locale];
@@ -395,6 +401,8 @@ async function renderCard(
   ctx.strokeStyle = "#37312d";
   ctx.lineWidth = 2;
   ctx.strokeRect(44, 44, 992, 1262);
+  ctx.fillStyle = accent;
+  ctx.fillRect(44, 44, 12, 1262);
   ctx.fillStyle = "#f4efe8";
   ctx.font = "800 34px Arial, sans-serif";
   ctx.letterSpacing = "8px";
@@ -417,25 +425,42 @@ async function renderCard(
     color: { dark: "#080808", light: "#ffffff" },
   });
   ctx.fillStyle = "#fff";
-  ctx.fillRect(290, 530, 500, 500);
-  ctx.drawImage(qr, 320, 560, 440, 440);
+  ctx.fillRect(310, 500, 460, 460);
+  ctx.drawImage(qr, 320, 510, 440, 440);
   ctx.strokeStyle = accent;
   ctx.lineWidth = 4;
-  ctx.strokeRect(290, 530, 500, 500);
+  ctx.strokeRect(310, 500, 460, 460);
+  ctx.fillStyle = accent;
+  ctx.fillRect(275, 465, 90, 8);
+  ctx.fillRect(275, 465, 8, 90);
+  ctx.fillRect(715, 987, 90, 8);
+  ctx.fillRect(797, 905, 8, 90);
+  ctx.fillStyle = "#77706a";
+  ctx.font = "700 18px Arial, 'Noto Sans', sans-serif";
+  ctx.fillText("LINK", 80, 1035);
+  ctx.fillStyle = "#f4efe8";
+  ctx.font = "400 20px Arial, 'Noto Sans', sans-serif";
+  drawWrapped(ctx, url, 80, 1075, 920, 30, 2);
   ctx.fillStyle = "#aaa19a";
-  ctx.font = "400 28px Arial, 'Noto Sans', sans-serif";
+  ctx.font = "400 24px Arial, 'Noto Sans', sans-serif";
   drawWrapped(
     ctx,
-    invitation ? SHARED_KEY_COPY[locale].unlockBody : PRIVATE_WARNING[locale],
+    invitation
+      ? protectedBySharedKey
+        ? SHARED_KEY_COPY[locale].unlockBody
+        : c.inviteBody
+      : protectedBySharedKey
+        ? PRIVATE_WARNING[locale]
+        : PRIVATE_LINK_WARNING[locale],
     80,
-    1110,
+    1165,
     920,
-    40,
-    3,
+    34,
+    2,
   );
   ctx.fillStyle = accent;
   ctx.font = "800 24px Arial, 'Noto Sans', sans-serif";
-  ctx.fillText(invitation ? c.inviteCta : c.secretCta, 80, 1250);
+  ctx.fillText(invitation ? c.inviteCta : c.secretCta, 80, 1270);
 }
 
 function canvasBlob(
@@ -456,11 +481,13 @@ export function QrCard({
   locale,
   name,
   url,
+  protectedBySharedKey = false,
 }: {
   kind: QrKind;
   locale: Locale;
   name: string;
   url: string;
+  protectedBySharedKey?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
@@ -476,7 +503,7 @@ export function QrCard({
       setError(false);
       const canvas = canvasRef.current;
       if (!canvas) return;
-      void renderCard(canvas, kind, locale, name, url)
+      void renderCard(canvas, kind, locale, name, url, protectedBySharedKey)
         .then(() => {
           if (active) setReady(true);
         })
@@ -487,7 +514,7 @@ export function QrCard({
     return () => {
       active = false;
     };
-  }, [kind, locale, name, url]);
+  }, [kind, locale, name, protectedBySharedKey, url]);
   useEffect(() => {
     queueMicrotask(() => {
       try {
@@ -537,21 +564,32 @@ export function QrCard({
           <h4>{invitation ? c.publicHeading : c.privateHeading}</h4>
           <p>
             {invitation
-              ? SHARED_KEY_COPY[locale].differentChannel
-              : PRIVATE_WARNING[locale]}
+              ? protectedBySharedKey
+                ? SHARED_KEY_COPY[locale].differentChannel
+                : c.publicHint
+              : protectedBySharedKey
+                ? PRIVATE_WARNING[locale]
+                : PRIVATE_LINK_WARNING[locale]}
           </p>
         </div>
       </div>
       {!invitation && (
         <p className="qr-warning" role="note">
           <b>!</b>
-          {PRIVATE_WARNING[locale]}
+          {protectedBySharedKey
+            ? PRIVATE_WARNING[locale]
+            : PRIVATE_LINK_WARNING[locale]}
         </p>
       )}
       <canvas
         ref={canvasRef}
         aria-label={invitation ? c.publicHeading : c.privateHeading}
       />
+      {invitation && (
+        <a className="qr-link" href={url} target="_blank" rel="noreferrer">
+          {url}
+        </a>
+      )}
       {!ready && !error && <p className="qr-status">{c.generating}</p>}
       {error && (
         <p className="qr-status error" role="alert">

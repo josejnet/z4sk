@@ -6,6 +6,9 @@ const baseUrl = (
 ).replace(/\/$/, "");
 const context = new TextEncoder().encode("z4sk-response-v1");
 const invitationKeyContext = new TextEncoder().encode("z4sk-invitation-key-v2");
+const invitationLinkOnlyKeyContext = new TextEncoder().encode(
+  "z4sk-invitation-key-v2-link-only",
+);
 const invitationContentContext = new TextEncoder().encode(
   "z4sk-invitation-content-v2",
 );
@@ -150,13 +153,16 @@ async function decrypt(envelope, recipientPrivateJwk) {
 async function encryptInvitation(
   payload,
   secret = b64(crypto.getRandomValues(new Uint8Array(32))),
-  sharedKey = b64(crypto.getRandomValues(new Uint8Array(32))),
+  sharedKey = b64(crypto.getRandomValues(new Uint8Array(16))),
 ) {
+  const keyMode = sharedKey ? "shared" : "link";
+  const keyContext =
+    keyMode === "shared" ? invitationKeyContext : invitationLinkOnlyKeyContext;
   const secretBytes = unb64(secret);
-  const sharedBytes = unb64(sharedKey);
-  const input = new Uint8Array(64);
+  const sharedBytes = sharedKey ? unb64(sharedKey) : new Uint8Array();
+  const input = new Uint8Array(secretBytes.length + sharedBytes.length);
   input.set(secretBytes);
-  input.set(sharedBytes, 32);
+  input.set(sharedBytes, secretBytes.length);
   const salt = crypto.getRandomValues(new Uint8Array(32));
   const keyIv = crypto.getRandomValues(new Uint8Array(12));
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -172,7 +178,7 @@ async function encryptInvitation(
     );
     const [wrappingKey, contentKey] = await Promise.all([
       crypto.subtle.deriveKey(
-        { name: "HKDF", hash: "SHA-256", salt, info: invitationKeyContext },
+        { name: "HKDF", hash: "SHA-256", salt, info: keyContext },
         material,
         { name: "AES-GCM", length: 256 },
         false,
@@ -187,7 +193,7 @@ async function encryptInvitation(
         {
           name: "AES-GCM",
           iv: keyIv,
-          additionalData: invitationKeyContext,
+          additionalData: keyContext,
           tagLength: 128,
         },
         wrappingKey,
@@ -210,6 +216,7 @@ async function encryptInvitation(
       envelope: {
         v: 2,
         alg: "HKDF-SHA256+A256GCM+A256GCM",
+        keyMode,
         salt: b64(salt),
         keyIv: b64(keyIv),
         wrappedKey: b64(new Uint8Array(wrappedKey)),
@@ -230,11 +237,14 @@ async function encryptInvitation(
 }
 
 async function decryptInvitation(envelope, secret, sharedKey) {
+  const keyMode = envelope.keyMode || "shared";
+  const keyContext =
+    keyMode === "shared" ? invitationKeyContext : invitationLinkOnlyKeyContext;
   const secretBytes = unb64(secret);
-  const sharedBytes = unb64(sharedKey);
-  const input = new Uint8Array(64);
+  const sharedBytes = sharedKey ? unb64(sharedKey) : new Uint8Array();
+  const input = new Uint8Array(secretBytes.length + sharedBytes.length);
   input.set(secretBytes);
-  input.set(sharedBytes, 32);
+  input.set(sharedBytes, secretBytes.length);
   const salt = unb64(envelope.salt);
   const keyIv = unb64(envelope.keyIv);
   const wrappedKey = unb64(envelope.wrappedKey);
@@ -251,7 +261,7 @@ async function decryptInvitation(envelope, secret, sharedKey) {
       ["deriveKey"],
     );
     const wrappingKey = await crypto.subtle.deriveKey(
-      { name: "HKDF", hash: "SHA-256", salt, info: invitationKeyContext },
+      { name: "HKDF", hash: "SHA-256", salt, info: keyContext },
       material,
       { name: "AES-GCM", length: 256 },
       false,
@@ -262,7 +272,7 @@ async function decryptInvitation(envelope, secret, sharedKey) {
         {
           name: "AES-GCM",
           iv: keyIv,
-          additionalData: invitationKeyContext,
+          additionalData: keyContext,
           tagLength: 128,
         },
         wrappingKey,
@@ -332,8 +342,6 @@ function privateInvitation(overrides = {}) {
     libraryVersion: "2026.11",
     questions,
     encryptionPublicKey: responsePublicKey,
-    doubleBlind: false,
-    matchQuestion: "",
     timedMode: false,
     packSlug: "original",
     createdAt: new Date().toISOString(),
@@ -343,10 +351,19 @@ function privateInvitation(overrides = {}) {
 
 async function createEncryptedGame(
   access,
-  { viewOnce = false, invitationOverrides = {}, expiresInHours = 12 } = {},
+  {
+    viewOnce = false,
+    invitationOverrides = {},
+    expiresInHours = 12,
+    useSharedKey = true,
+  } = {},
 ) {
   const encrypted = await encryptInvitation(
     privateInvitation(invitationOverrides),
+    undefined,
+    useSharedKey
+      ? b64(crypto.getRandomValues(new Uint8Array(16)))
+      : "",
   );
   const result = await json("/api/games", {
     method: "POST",
@@ -388,10 +405,6 @@ assert.equal(
 const createdAccess = await creatorCredential();
 const created = await createEncryptedGame(createdAccess, {
   viewOnce: true,
-  invitationOverrides: {
-    doubleBlind: true,
-    matchQuestion: "Would you choose me?",
-  },
 });
 assert.equal(created.response.status, 201, JSON.stringify(created.body));
 assert.equal(
@@ -427,7 +440,7 @@ await assert.rejects(
   decryptInvitation(
     publicGame.body.encryptedInvitation,
     created.invitationSecret,
-    b64(crypto.getRandomValues(new Uint8Array(32))),
+    b64(crypto.getRandomValues(new Uint8Array(16))),
   ),
   "A different shared key decrypted the invitation.",
 );
@@ -443,16 +456,41 @@ assert.equal(
 );
 assert.equal(decryptedCreatedInvitation.creatorName, "E2EE verifier");
 assert.deepEqual(decryptedCreatedInvitation.questions, questions);
+
+const linkOnlyAccess = await creatorCredential();
+const linkOnlyGame = await createEncryptedGame(linkOnlyAccess, {
+  invitationOverrides: { creatorName: "Link-only verifier" },
+  useSharedKey: false,
+});
+assert.equal(
+  linkOnlyGame.response.status,
+  201,
+  JSON.stringify(linkOnlyGame.body),
+);
+const linkOnlyPublic = await json(`/api/games/${linkOnlyGame.body.id}`);
+assert.equal(linkOnlyPublic.response.status, 200, JSON.stringify(linkOnlyPublic.body));
+assert.equal(linkOnlyPublic.body.encryptedInvitation.keyMode, "link");
+const linkOnlyPlaintext = await decryptInvitation(
+  linkOnlyPublic.body.encryptedInvitation,
+  linkOnlyGame.invitationSecret,
+  "",
+);
+assert.equal(linkOnlyPlaintext.creatorName, "Link-only verifier");
+const linkOnlyCleanup = await json(`/api/games/${linkOnlyGame.body.id}`, {
+  method: "DELETE",
+  headers: { authorization: `Bearer ${linkOnlyAccess.token}` },
+});
+assert.equal(linkOnlyCleanup.response.status, 200, JSON.stringify(linkOnlyCleanup.body));
+
 if (process.env.DATABASE_URL) {
   const sql = neon(process.env.DATABASE_URL);
   const [storedGame] =
-    await sql`SELECT creator_name, recipient_name, title, questions_json, encryption_public_key, match_question, encrypted_invitation FROM games WHERE id = ${gameId}`;
+    await sql`SELECT creator_name, recipient_name, title, questions_json, encryption_public_key, encrypted_invitation FROM games WHERE id = ${gameId}`;
   assert.equal(storedGame.creator_name, "");
   assert.equal(storedGame.recipient_name, "");
   assert.equal(storedGame.title, "");
   assert.equal(storedGame.questions_json, "[]");
   assert.equal(storedGame.encryption_public_key, "");
-  assert.equal(storedGame.match_question, "");
   assert.equal(
     String(storedGame.encrypted_invitation).includes("E2EE verifier"),
     false,
@@ -464,7 +502,6 @@ const privatePayload = {
   respondentName: "Synthetic respondent",
   answers: ["private alpha", "private beta", "private gamma"],
   reactions: ["🔥", "", "❤️"],
-  matchInterest: true,
 };
 const envelope = await encrypt(privatePayload, {
   kty: "EC",
@@ -760,7 +797,9 @@ console.log(
     creationRequiresClientTokenHash: true,
     activeGameAfterConsume: false,
     ciphertextReadableWithUserHeldKeys: true,
-    linkSecretAloneCannotDecrypt: true,
+    linkOnlyInvitationDecryptsWithCompleteLink: true,
+    sharedKeyModeRejectsWrongKey: true,
+    newSharedKeyBits: 128,
     sharedKeyAbsentFromServerPayload: true,
     concurrentSingleUseAccepted: 1,
     recipientSelfDeletion: true,

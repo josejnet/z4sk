@@ -47,7 +47,6 @@ async function fetchDashboard(
   privateSecret: string,
   invitationSecret: string,
   sharedKey: string,
-  creatorInterest: boolean,
 ) {
   const response = await fetch(`/api/games/${id}/responses`, {
     cache: "no-store",
@@ -66,7 +65,6 @@ async function fetchDashboard(
     privateSecret,
     invitationSecret,
     sharedKey,
-    creatorInterest,
   );
 }
 
@@ -91,7 +89,6 @@ async function decryptDashboard(
   privateSecret: string,
   invitationSecret: string,
   sharedKey: string,
-  creatorInterest: boolean,
 ) {
   if (!isEncryptedGameWire(result.game))
     throw new Error("Unsupported legacy invitation.");
@@ -114,9 +111,6 @@ async function decryptDashboard(
         respondentName: decrypted.respondentName,
         answers: decrypted.answers,
         reactions: decrypted.reactions,
-        matched: Boolean(
-          game.doubleBlind && creatorInterest && decrypted.matchInterest,
-        ),
         createdAt: stored.createdAt,
       } satisfies GameResponse;
     }),
@@ -198,7 +192,6 @@ const dashboardUi: Record<
     alertsOn: string;
     enableAlerts: string;
     openedNotification: string;
-    match: string;
   }
 > = {
   en: {
@@ -208,7 +201,6 @@ const dashboardUi: Record<
     alertsOn: "Alerts on",
     enableAlerts: "Enable alerts",
     openedNotification: "{name} opened your invitation.",
-    match: "MATCH",
   },
   es: {
     missing: "Falta la clave secreta del panel.",
@@ -217,7 +209,6 @@ const dashboardUi: Record<
     alertsOn: "Avisos activos",
     enableAlerts: "Activar avisos",
     openedNotification: "{name} ha abierto tu invitación.",
-    match: "MATCH",
   },
   it: {
     missing: "Manca la chiave segreta del pannello.",
@@ -226,7 +217,6 @@ const dashboardUi: Record<
     alertsOn: "Avvisi attivi",
     enableAlerts: "Attiva avvisi",
     openedNotification: "{name} ha aperto il tuo invito.",
-    match: "MATCH",
   },
   fr: {
     missing: "La clé secrète de l’espace est absente.",
@@ -235,7 +225,6 @@ const dashboardUi: Record<
     alertsOn: "Alertes actives",
     enableAlerts: "Activer les alertes",
     openedNotification: "{name} a ouvert votre invitation.",
-    match: "MATCH",
   },
   de: {
     missing: "Der geheime Dashboard-Schlüssel fehlt.",
@@ -244,7 +233,6 @@ const dashboardUi: Record<
     alertsOn: "Hinweise aktiv",
     enableAlerts: "Hinweise aktivieren",
     openedNotification: "{name} hat deine Einladung geöffnet.",
-    match: "MATCH",
   },
   nl: {
     missing: "De geheime dashboardsleutel ontbreekt.",
@@ -253,7 +241,6 @@ const dashboardUi: Record<
     alertsOn: "Meldingen aan",
     enableAlerts: "Meldingen aanzetten",
     openedNotification: "{name} heeft je uitnodiging geopend.",
-    match: "MATCH",
   },
   eo: {
     missing: "Mankas la sekreta panela ŝlosilo.",
@@ -262,7 +249,6 @@ const dashboardUi: Record<
     alertsOn: "Sciigoj aktivaj",
     enableAlerts: "Aktivigi sciigojn",
     openedNotification: "{name} malfermis vian inviton.",
-    match: "KONGRUO",
   },
   pt: {
     missing: "Falta a chave secreta do painel.",
@@ -271,7 +257,6 @@ const dashboardUi: Record<
     alertsOn: "Alertas ativos",
     enableAlerts: "Ativar alertas",
     openedNotification: "{name} abriu o teu convite.",
-    match: "MATCH",
   },
   zh: {
     missing: "缺少私人面板密钥。",
@@ -280,7 +265,6 @@ const dashboardUi: Record<
     alertsOn: "提醒已开启",
     enableAlerts: "开启提醒",
     openedNotification: "{name} 打开了你的邀请。",
-    match: "匹配",
   },
   hi: {
     missing: "निजी डैशबोर्ड की गुप्त कुंजी नहीं मिली।",
@@ -289,7 +273,6 @@ const dashboardUi: Record<
     alertsOn: "सूचनाएँ चालू",
     enableAlerts: "सूचनाएँ चालू करें",
     openedNotification: "{name} ने आपका निमंत्रण खोला।",
-    match: "मैच",
   },
   ja: {
     missing: "非公開パネルの秘密鍵がありません。",
@@ -298,7 +281,6 @@ const dashboardUi: Record<
     alertsOn: "通知オン",
     enableAlerts: "通知を有効にする",
     openedNotification: "{name}さんが招待を開きました。",
-    match: "マッチ",
   },
   tr: {
     missing: "Gizli panel anahtarı eksik.",
@@ -307,7 +289,6 @@ const dashboardUi: Record<
     alertsOn: "Bildirimler açık",
     enableAlerts: "Bildirimleri aç",
     openedNotification: "{name} davetini açtı.",
-    match: "EŞLEŞME",
   },
   machine: {
     missing: "ERR_ADMIN_KEY_MISSING",
@@ -316,7 +297,6 @@ const dashboardUi: Record<
     alertsOn: "ALERTS=ON",
     enableAlerts: "ENABLE_ALERTS",
     openedNotification: "event=invitation_opened; actor={name}",
-    match: "MATCH",
   },
 };
 const creatorCancellationUi: Record<
@@ -423,7 +403,6 @@ export function DashboardClient({ id }: { id: string }) {
   const [pendingWire, setPendingWire] = useState<DashboardWireData | null>(
     null,
   );
-  const [creatorInterest, setCreatorInterest] = useState(false);
   const { locale: preferredLocale, setLocale } = useLanguage();
   const [locale, setGameLocale] = useState<Locale>(preferredLocale);
   const [data, setData] = useState<DashboardData | null>(null);
@@ -431,7 +410,6 @@ export function DashboardClient({ id }: { id: string }) {
   const [error, setError] = useState("");
   const [revealed, setRevealed] = useState<{
     questions: string[];
-    matchQuestion: string;
     response: GameResponse;
   } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -445,7 +423,6 @@ export function DashboardClient({ id }: { id: string }) {
     const secret = fragment.get("key") || "";
     const decryptionSecret = fragment.get("decrypt") || "";
     const invitationSecret = fragment.get("invite") || "";
-    const interest = fragment.get("interest") === "1";
     let active = true;
     if (!secret || !decryptionSecret) {
       queueMicrotask(() => {
@@ -459,13 +436,28 @@ export function DashboardClient({ id }: { id: string }) {
       };
     }
     void fetchDashboardWire(id, secret)
-      .then((result) => {
+      .then(async (result) => {
         if (active) {
           setKey(secret);
           setPrivateKey(decryptionSecret);
           setInvitationKey(invitationSecret);
-          setCreatorInterest(interest);
-          setPendingWire(result);
+          if (
+            isEncryptedGameWire(result.game) &&
+            result.game.encryptedInvitation.keyMode === "link"
+          ) {
+            const decrypted = await decryptDashboard(
+              result,
+              decryptionSecret,
+              invitationSecret,
+              "",
+            );
+            if (!active) return;
+            setData(decrypted);
+            setGameLocale(decrypted.game.locale);
+            setLocale(decrypted.game.locale);
+          } else {
+            setPendingWire(result);
+          }
         }
       })
       .catch((cause) => {
@@ -489,7 +481,7 @@ export function DashboardClient({ id }: { id: string }) {
     };
   }, [id, preferredLocale, setLocale]);
   useEffect(() => {
-    if (!key || !privateKey || !sharedKey || !dashboardUnlocked) return;
+    if (!key || !privateKey || !dashboardUnlocked) return;
     const timer = window.setInterval(() => {
       void fetchDashboard(
         id,
@@ -497,7 +489,6 @@ export function DashboardClient({ id }: { id: string }) {
         privateKey,
         invitationKey,
         sharedKey,
-        creatorInterest,
       )
         .then((result) => {
           setData((current) => {
@@ -524,7 +515,6 @@ export function DashboardClient({ id }: { id: string }) {
     }, 15000);
     return () => window.clearInterval(timer);
   }, [
-    creatorInterest,
     dashboardUnlocked,
     id,
     invitationKey,
@@ -541,7 +531,6 @@ export function DashboardClient({ id }: { id: string }) {
         privateKey,
         invitationKey,
         nextSharedKey,
-        creatorInterest,
       );
       setSharedKey(nextSharedKey);
       setPendingWire(null);
@@ -563,7 +552,6 @@ export function DashboardClient({ id }: { id: string }) {
         privateKey,
         invitationKey,
         sharedKey,
-        creatorInterest,
       );
       setData(result);
       setGameLocale(result.game.locale);
@@ -600,16 +588,12 @@ export function DashboardClient({ id }: { id: string }) {
         | {
             questions: string[];
             encryptionPublicKey: Game["encryptionPublicKey"];
-            doubleBlind: boolean;
-            matchQuestion: string;
             response: StoredEncryptedResponse;
             error?: string;
           };
       if (!response.ok) throw new Error(result.error);
       let questions: string[];
       let encryptionPublicKey: Game["encryptionPublicKey"];
-      let doubleBlind: boolean;
-      let matchQuestion: string;
       if ("encryptedInvitation" in result) {
         const invitation = await decryptPrivateInvitation(
           result.encryptedInvitation,
@@ -618,15 +602,11 @@ export function DashboardClient({ id }: { id: string }) {
         );
         questions = invitation.questions;
         encryptionPublicKey = invitation.encryptionPublicKey;
-        doubleBlind = invitation.doubleBlind;
-        matchQuestion = invitation.matchQuestion;
         if (questions.length !== result.questionCount)
           throw new Error(dashboardUi[locale].loadError);
       } else {
         questions = result.questions;
         encryptionPublicKey = result.encryptionPublicKey;
-        doubleBlind = result.doubleBlind;
-        matchQuestion = result.matchQuestion;
       }
       const decrypted = await decryptPrivateResponse(
         result.response.encryptedPayload,
@@ -640,15 +620,11 @@ export function DashboardClient({ id }: { id: string }) {
         throw new Error(dashboardUi[locale].loadError);
       setRevealed({
         questions,
-        matchQuestion,
         response: {
           id: result.response.id,
           respondentName: decrypted.respondentName,
           answers: decrypted.answers,
           reactions: decrypted.reactions,
-          matched: Boolean(
-            doubleBlind && creatorInterest && decrypted.matchInterest,
-          ),
           createdAt: result.response.createdAt,
         },
       });
@@ -658,7 +634,6 @@ export function DashboardClient({ id }: { id: string }) {
       setPrivateKey("");
       setInvitationKey("");
       setSharedKey("");
-      setCreatorInterest(false);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : flow(locale, "panelError"),
@@ -721,7 +696,6 @@ export function DashboardClient({ id }: { id: string }) {
           <ResponseCard
             response={revealed.response}
             questions={revealed.questions}
-            matchQuestion={revealed.matchQuestion}
             locale={locale}
             once
           />
@@ -842,7 +816,6 @@ export function DashboardClient({ id }: { id: string }) {
                   key={response.id}
                   response={response}
                   questions={data.game.questions}
-                  matchQuestion={data.game.matchQuestion}
                   locale={locale}
                 />
               ))
@@ -934,27 +907,17 @@ function EmptyState({
 function ResponseCard({
   response,
   questions,
-  matchQuestion,
   locale,
   once = false,
 }: {
   response: GameResponse;
   questions: string[];
-  matchQuestion?: string;
   locale: Locale;
   once?: boolean;
 }) {
   const [open, setOpen] = useState(true);
   return (
     <article className={`response-card ${open ? "open" : ""}`}>
-      {response.matched && (
-        <div className="dashboard-match">
-          <b>
-            🔥 {dashboardUi[locale].match} · {response.respondentName}
-          </b>
-          {matchQuestion && <small>{matchQuestion}</small>}
-        </div>
-      )}
       <button
         className="response-header"
         onClick={() => setOpen((value) => !value)}

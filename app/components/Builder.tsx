@@ -896,7 +896,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
       />
       </>}
       {step === 1 && (
-        <div className="step-panel">
+        <div className="step-panel identity-step">
           <div className="two-fields">
             <div>
               <label htmlFor="creator">{t("yourName")}</label>
@@ -971,42 +971,46 @@ export function Builder({ onClose }: { onClose?: () => void }) {
         </div>
       )}
       {step === 2 && (
-        <div className="step-panel">
-          <fieldset className="intensity-fieldset">
-            <legend>{t("chooseIntensity")}</legend>
-            <div className="level-grid">
-              {getLevels(locale).map((item) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  className={level === item.id ? "active" : ""}
-                  onClick={() => chooseLevel(item.id)}
-                  aria-pressed={level === item.id}
-                >
-                  <span className="level-icon">{item.icon}</span>
-                  <span>
-                    <b>{item.label}</b>
-                    <small>{item.copy}</small>
-                  </span>
-                </button>
-              ))}
+        <div className="step-panel choice-step">
+          <div className="choice-layout">
+            <div>
+              <fieldset className="intensity-fieldset">
+                <legend>{t("chooseIntensity")}</legend>
+                <div className="level-grid">
+                  {getLevels(locale).map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      className={level === item.id ? "active" : ""}
+                      onClick={() => chooseLevel(item.id)}
+                      aria-pressed={level === item.id}
+                    >
+                      <span className="level-icon">{item.icon}</span>
+                      <span>
+                        <b>{item.label}</b>
+                        <small>{item.copy}</small>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              {level === "sinfiltro" && (
+                <label className="age-check">
+                  <input
+                    type="checkbox"
+                    checked={adultConfirmed}
+                    onChange={(event) => setAdultConfirmed(event.target.checked)}
+                  />
+                  <span>{t("adultConfirm")}</span>
+                </label>
+              )}
             </div>
-          </fieldset>
-          {level === "sinfiltro" && (
-            <label className="age-check">
-              <input
-                type="checkbox"
-                checked={adultConfirmed}
-                onChange={(event) => setAdultConfirmed(event.target.checked)}
-              />
-              <span>{t("adultConfirm")}</span>
-            </label>
-          )}
-          <ResponseMode
-            locale={locale}
-            viewOnce={viewOnce}
-            setViewOnce={setViewOnce}
-          />
+            <ResponseMode
+              locale={locale}
+              viewOnce={viewOnce}
+              setViewOnce={setViewOnce}
+            />
+          </div>
           <div className="button-row">
             <button className="secondary" onClick={() => setStep(1)}>
               ← {t("back")}
@@ -1022,7 +1026,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
         </div>
       )}
       {step === 3 && (
-        <>
+        <div className="questions-step-layout">
           <FeatureConfig
             locale={locale}
             timedMode={timedMode}
@@ -1032,7 +1036,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             packSlug={packSlug}
             setPackSlug={setPackSlug}
           />
-          <div className="step-panel">
+          <div className="step-panel questions-panel">
             <div className="selection-meta">
               <div>
                 <p>{t("selectHint")}</p>
@@ -1109,7 +1113,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
       {step === 4 && (
         <div className="step-panel security-step">

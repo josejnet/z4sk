@@ -277,6 +277,11 @@
   color: inherit;
 }
 @media (max-width: 720px) {
+  .shared-key-setup,
+  .shared-key-card {
+    padding: 14px;
+    margin: 14px 0;
+  }
   .shared-key-card-grid {
     grid-template-columns: 1fr;
   }
@@ -285,8 +290,10 @@
     font-size: 18px !important;
   }
   .shared-key-choice,
-  .shared-key-scan-actions,
   .shared-key-card-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .shared-key-scan-actions {
     grid-template-columns: 1fr;
   }
   .shared-key-setup-title {
@@ -302,6 +309,6 @@
     padding: 16px;
   }
   .shared-key-card canvas {
-    width: min(100%, 260px) !important;
+    width: min(100%, 220px) !important;
   }
 }

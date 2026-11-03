@@ -9,3 +9,17 @@
 .builder-dialog::-webkit-scrollbar-thumb{min-height:48px;border:2px solid #1a1817;border-radius:999px;background:#75452f}
 .builder-dialog::-webkit-scrollbar-thumb:hover{background:var(--orange)}
 .builder-dialog::-webkit-scrollbar-button{display:none}
+
+/* On wide screens the configurator behaves like a workspace, not a reading column. */
+@media(min-width:901px){
+  .builder-dialog{width:min(1380px,calc(100vw - 48px));max-height:94dvh}
+  .builder-dialog .builder-shell{padding:clamp(28px,3.2vw,48px)}
+}
+
+@media(max-width:620px){
+  .builder-dialog .builder-shell{padding:60px 16px calc(18px + env(safe-area-inset-bottom))}
+  .builder-close{top:calc(10px + env(safe-area-inset-top));right:12px;width:40px;height:40px}
+  .builder-top h2{font-size:26px;line-height:1.05;margin-top:7px}
+  .builder-top .step{font-size:9px}
+  .steps-line{margin:13px 0 18px}
+}

@@ -302,7 +302,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(htmlInvite, /createOrganicQrDataUrl/);
   assert.match(htmlInvite, /document\.body\.appendChild\(link\)/);
   assert.match(htmlInvite, /window\.setTimeout\(\(\) => URL\.revokeObjectURL/);
-  assert.doesNotMatch(htmlInvite, /<script>/);
+  assert.equal(htmlInvite.toLowerCase().includes("<script"), false);
   for (const locale of ["en", "es", "it", "fr", "de", "nl", "eo", "pt", "zh", "hi", "ja", "tr", "machine"]) assert.match(sharedKeyCopy, new RegExp(`\\b${locale}:`));
   assert.match(shareCss, /@media\(max-width:620px\)/);
   assert.match(shareCss, /\.share-webmail\{display:none\}/);

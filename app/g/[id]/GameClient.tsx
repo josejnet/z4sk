@@ -206,137 +206,138 @@ type TimedCopy = {
 };
 const timedCopy = localized<TimedCopy>({
   en: {
-    badge: "30-SECOND CHALLENGE",
-    warning: "Once you start, every question gets its own 30-second countdown.",
-    confirmOne: "I understand I have only 30 seconds to answer each question.",
+    badge: "ONLY 15 SECONDS PER QUESTION",
+    warning: "Important: once you start, every question has a countdown of only 15 seconds.",
+    confirmOne: "I understand I have only 15 seconds to answer each question.",
     confirmTwo:
       "I understand that at zero my text is locked, the next question opens automatically and I cannot go back.",
     seconds: "SECONDS",
     expired: "⏱ No answer · time expired",
   },
   es: {
-    badge: "RETO DE 30 SEGUNDOS",
+    badge: "SOLO 15 SEGUNDOS POR PREGUNTA",
     warning:
-      "Cuando empieces, cada pregunta tendrá su propia cuenta atrás de 30 segundos.",
+      "Importante: en cuanto empieces, cada pregunta tendrá una cuenta atrás de solo 15 segundos.",
     confirmOne:
-      "Entiendo que solo tengo 30 segundos para responder cada pregunta.",
+      "Entiendo que solo tengo 15 segundos para responder cada pregunta.",
     confirmTwo:
       "Entiendo que al llegar a cero se guarda lo escrito, se abre automáticamente la siguiente pregunta y no podré volver atrás.",
     seconds: "SEGUNDOS",
     expired: "⏱ Sin respuesta · tiempo agotado",
   },
   it: {
-    badge: "SFIDA DA 30 SECONDI",
+    badge: "SOLO 15 SECONDI PER DOMANDA",
     warning:
-      "Dopo l’inizio, ogni domanda avrà un proprio conto alla rovescia di 30 secondi.",
+      "Importante: dopo l’inizio, ogni domanda avrà un conto alla rovescia di soli 15 secondi.",
     confirmOne:
-      "Ho capito di avere solo 30 secondi per rispondere a ogni domanda.",
+      "Ho capito di avere solo 15 secondi per rispondere a ogni domanda.",
     confirmTwo:
       "Ho capito che a zero il testo viene bloccato, si apre automaticamente la domanda successiva e non posso tornare indietro.",
     seconds: "SECONDI",
     expired: "⏱ Nessuna risposta · tempo scaduto",
   },
   fr: {
-    badge: "DÉFI DE 30 SECONDES",
+    badge: "15 SECONDES SEULEMENT PAR QUESTION",
     warning:
-      "Après le démarrage, chaque question aura son propre compte à rebours de 30 secondes.",
+      "Important : après le démarrage, chaque question aura un compte à rebours de 15 secondes seulement.",
     confirmOne:
-      "Je comprends que je n’ai que 30 secondes pour répondre à chaque question.",
+      "Je comprends que je n’ai que 15 secondes pour répondre à chaque question.",
     confirmTwo:
       "Je comprends qu’à zéro mon texte est verrouillé, la question suivante s’ouvre automatiquement et je ne peux pas revenir en arrière.",
     seconds: "SECONDES",
     expired: "⏱ Sans réponse · temps écoulé",
   },
   de: {
-    badge: "30-SEKUNDEN-CHALLENGE",
+    badge: "NUR 15 SEKUNDEN PRO FRAGE",
     warning:
-      "Nach dem Start hat jede Frage ihren eigenen 30-Sekunden-Countdown.",
+      "Wichtig: Nach dem Start hat jede Frage einen Countdown von nur 15 Sekunden.",
     confirmOne:
-      "Ich verstehe, dass ich für jede Frage nur 30 Sekunden Zeit habe.",
+      "Ich verstehe, dass ich für jede Frage nur 15 Sekunden Zeit habe.",
     confirmTwo:
       "Ich verstehe, dass mein Text bei null gesperrt wird, automatisch die nächste Frage erscheint und ich nicht zurückgehen kann.",
     seconds: "SEKUNDEN",
     expired: "⏱ Keine Antwort · Zeit abgelaufen",
   },
   nl: {
-    badge: "30-SECONDENCHALLENGE",
+    badge: "SLECHTS 15 SECONDEN PER VRAAG",
     warning:
-      "Na de start krijgt elke vraag een eigen aftelling van 30 seconden.",
-    confirmOne: "Ik begrijp dat ik per vraag maar 30 seconden heb.",
+      "Belangrijk: na de start krijgt elke vraag een aftelling van slechts 15 seconden.",
+    confirmOne: "Ik begrijp dat ik per vraag maar 15 seconden heb.",
     confirmTwo:
       "Ik begrijp dat mijn tekst bij nul wordt vastgezet, de volgende vraag automatisch opent en ik niet terug kan.",
     seconds: "SECONDEN",
     expired: "⏱ Geen antwoord · tijd verstreken",
   },
   eo: {
-    badge: "30-SEKUNDA DEFIO",
+    badge: "NUR 15 SEKUNDOJ POR DEMANDO",
     warning:
-      "Post la komenco, ĉiu demando havos propran 30-sekundan retronombradon.",
-    confirmOne: "Mi komprenas, ke mi havas nur 30 sekundojn por ĉiu demando.",
+      "Grave: post la komenco, ĉiu demando havos retronombradon de nur 15 sekundoj.",
+    confirmOne: "Mi komprenas, ke mi havas nur 15 sekundojn por ĉiu demando.",
     confirmTwo:
       "Mi komprenas, ke je nulo mia teksto fiksiĝas, la sekva demando aŭtomate malfermiĝas kaj mi ne povas reiri.",
     seconds: "SEKUNDOJ",
     expired: "⏱ Neniu respondo · tempo finiĝis",
   },
   pt: {
-    badge: "DESAFIO DE 30 SEGUNDOS",
+    badge: "APENAS 15 SEGUNDOS POR PERGUNTA",
     warning:
-      "Depois de começares, cada pergunta terá a sua própria contagem decrescente de 30 segundos.",
+      "Importante: depois de começares, cada pergunta terá uma contagem de apenas 15 segundos.",
     confirmOne:
-      "Compreendo que só tenho 30 segundos para responder a cada pergunta.",
+      "Compreendo que só tenho 15 segundos para responder a cada pergunta.",
     confirmTwo:
       "Compreendo que, ao chegar a zero, o texto fica bloqueado, a pergunta seguinte abre automaticamente e não posso voltar atrás.",
     seconds: "SEGUNDOS",
     expired: "⏱ Sem resposta · tempo esgotado",
   },
   zh: {
-    badge: "30 秒挑战",
-    warning: "开始后，每道题都会单独进行 30 秒倒计时。",
-    confirmOne: "我明白每道题只有 30 秒作答时间。",
+    badge: "每题仅 15 秒",
+    warning: "重要：开始后，每道题都只有 15 秒倒计时。",
+    confirmOne: "我明白每道题只有 15 秒作答时间。",
     confirmTwo:
       "我明白倒计时归零时，已输入内容会被锁定并自动进入下一题，而且无法返回。",
     seconds: "秒",
     expired: "⏱ 未回答 · 时间已到",
   },
   hi: {
-    badge: "30 सेकंड चुनौती",
-    warning: "शुरू करने के बाद हर सवाल की अपनी 30 सेकंड की उलटी गिनती होगी।",
+    badge: "हर सवाल के लिए केवल 15 सेकंड",
+    warning: "महत्वपूर्ण: शुरू करने के बाद हर सवाल के लिए केवल 15 सेकंड की उलटी गिनती होगी।",
     confirmOne:
-      "मैं समझता/समझती हूँ कि हर सवाल का जवाब देने के लिए मेरे पास सिर्फ 30 सेकंड हैं।",
+      "मैं समझता/समझती हूँ कि हर सवाल का जवाब देने के लिए मेरे पास सिर्फ 15 सेकंड हैं।",
     confirmTwo:
       "मैं समझता/समझती हूँ कि समय शून्य होने पर लिखा हुआ जवाब लॉक होगा, अगला सवाल अपने आप खुलेगा और मैं वापस नहीं जा सकूँगा/सकूँगी।",
     seconds: "सेकंड",
     expired: "⏱ कोई जवाब नहीं · समय समाप्त",
   },
   ja: {
-    badge: "30秒チャレンジ",
-    warning: "開始すると、質問ごとに30秒のカウントダウンが始まります。",
-    confirmOne: "各質問の回答時間が30秒だけであることを理解しました。",
+    badge: "1問につき15秒のみ",
+    warning: "重要：開始すると、質問ごとに15秒だけのカウントダウンが始まります。",
+    confirmOne: "各質問の回答時間が15秒だけであることを理解しました。",
     confirmTwo:
       "0秒になると入力内容が確定し、自動的に次の質問へ進み、前には戻れないことを理解しました。",
     seconds: "秒",
     expired: "⏱ 回答なし・時間切れ",
   },
   tr: {
-    badge: "30 SANİYE MEYDAN OKUMASI",
+    badge: "HER SORU İÇİN YALNIZCA 15 SANİYE",
     warning:
-      "Başladıktan sonra her sorunun kendine ait 30 saniyelik geri sayımı olur.",
+      "Önemli: başladıktan sonra her sorunun yalnızca 15 saniyelik geri sayımı olur.",
     confirmOne:
-      "Her soruyu yanıtlamak için yalnızca 30 saniyem olduğunu anlıyorum.",
+      "Her soruyu yanıtlamak için yalnızca 15 saniyem olduğunu anlıyorum.",
     confirmTwo:
       "Süre sıfıra geldiğinde yazdıklarımın kilitleneceğini, sonraki sorunun otomatik açılacağını ve geri dönemeyeceğimi anlıyorum.",
     seconds: "SANİYE",
     expired: "⏱ Yanıt yok · süre doldu",
   },
   machine: {
-    badge: "MODE::30S_PER_QUESTION",
-    warning: "ON start => deadline(question)=30s",
-    confirmOne: "ACK deadline_each_question==30s",
+    badge: "ONLY_15S_PER_QUESTION",
+    warning: "IMPORTANT: ON start => deadline(question)=15s",
+    confirmOne: "ACK deadline_each_question==15s",
     confirmTwo: "ACK on_zero=LOCK_INPUT+ADVANCE; navigation.back=false",
     seconds: "SECONDS",
     expired: "TIMEOUT_NO_ANSWER",
   },
 });
+const QUESTION_TIME_LIMIT_SECONDS = 15;
 function countdown(expiresAt: string, now: number) {
   const left = Math.max(0, new Date(expiresAt).getTime() - now);
   const hours = Math.floor(left / 3600000);
@@ -367,7 +368,9 @@ export function GameClient({ id }: { id: string }) {
   const [reportSent, setReportSent] = useState(false);
   const [timedConsentOne, setTimedConsentOne] = useState(false);
   const [timedConsentTwo, setTimedConsentTwo] = useState(false);
-  const [questionSeconds, setQuestionSeconds] = useState(30);
+  const [questionSeconds, setQuestionSeconds] = useState(
+    QUESTION_TIME_LIMIT_SECONDS,
+  );
   const [deletionCredential, setDeletionCredential] = useState<{
     responseId: string;
     deletionToken: string;
@@ -391,7 +394,7 @@ export function GameClient({ id }: { id: string }) {
       setIndex(0);
       setTimedConsentOne(false);
       setTimedConsentTwo(false);
-      setQuestionSeconds(30);
+      setQuestionSeconds(QUESTION_TIME_LIMIT_SECONDS);
       setPendingGame(null);
       setPhase("intro");
     },
@@ -504,7 +507,7 @@ export function GameClient({ id }: { id: string }) {
       setPhase("done");
     } catch {
       setMessage(gameUi[locale].sendError);
-      setQuestionSeconds(30);
+      setQuestionSeconds(QUESTION_TIME_LIMIT_SECONDS);
       setPhase("questions");
     }
   }
@@ -520,14 +523,14 @@ export function GameClient({ id }: { id: string }) {
     if (index === game.questions.length - 1)
       void submit(nextAnswers, reactions);
     else {
-      setQuestionSeconds(30);
+      setQuestionSeconds(QUESTION_TIME_LIMIT_SECONDS);
       setIndex((value) => value + 1);
     }
   });
 
   useEffect(() => {
     if (!game?.timedMode || phase !== "questions") return;
-    const deadline = Date.now() + 30_000;
+    const deadline = Date.now() + QUESTION_TIME_LIMIT_SECONDS * 1000;
     let handled = false;
     const tick = () => {
       const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
@@ -605,7 +608,7 @@ export function GameClient({ id }: { id: string }) {
   }
 
   function advanceQuestion() {
-    setQuestionSeconds(30);
+    setQuestionSeconds(QUESTION_TIME_LIMIT_SECONDS);
     setIndex((value) => value + 1);
   }
 
@@ -791,7 +794,7 @@ export function GameClient({ id }: { id: string }) {
                 (game.timedMode && (!timedConsentOne || !timedConsentTwo))
               }
               onClick={() => {
-                setQuestionSeconds(30);
+                setQuestionSeconds(QUESTION_TIME_LIMIT_SECONDS);
                 setPhase("questions");
               }}
             >
@@ -836,14 +839,14 @@ export function GameClient({ id }: { id: string }) {
         </div>
         {game.timedMode && (
           <div
-            className={`question-timer ${questionSeconds <= 10 ? "urgent" : ""}`}
+            className={`question-timer ${questionSeconds <= 5 ? "urgent" : ""}`}
             role="timer"
-            aria-live={questionSeconds <= 10 ? "polite" : "off"}
+            aria-live={questionSeconds <= 5 ? "polite" : "off"}
           >
             <span>{timedCopy[locale].seconds}</span>
             <b>{questionSeconds}</b>
             <progress
-              max={30}
+              max={QUESTION_TIME_LIMIT_SECONDS}
               value={questionSeconds}
               aria-label={`${timedCopy[locale].seconds}: ${questionSeconds}`}
             />

@@ -17,7 +17,7 @@
 - El enlace completo abre una invitación sin llave. Si se activa la llave opcional, enlace y llave son necesarios y deben viajar por canales diferentes. El ID visible solo identifica la llave: no permite recuperarla ni abrirla.
 - La clave privada de descifrado permanece en el fragmento del enlace secreto o en el QR privado; nunca se envía a la API.
 - Cada destinatario recibe un enlace independiente para borrar su propia respuesta.
-- El reto opcional de 30 segundos utiliza plazos absolutos, avance automático y no permite volver atrás.
+- El reto opcional de 15 segundos deja el límite claro con dos confirmaciones antes de empezar y utiliza plazos absolutos, avance automático y sin vuelta atrás.
 - Incluye trece bibliotecas de idiomas y un modo legible por máquinas.
 
 ## Recorrido del producto
@@ -36,10 +36,10 @@ Navegador del creador
   -> cifra localmente nombres, preguntas, ajustes y clave pública
   -> envía texto cifrado, hash del token y política mínima
   -> comparte /g/:id#invite=<secreto-enlace> por el canal A
-  -> si está protegida, comparte QR/12 palabras por el canal B
+  -> si está protegida, comparte el QR/frase de recuperación de 12 palabras por el canal B
 
 Navegador del destinatario
-  -> abre directamente una invitación sin llave; en modo protegido lee el QR con cámara/Fotos o introduce 12 palabras
+  -> abre directamente una invitación sin llave; en modo protegido lee el QR de llave con cámara/Fotos o introduce la frase de recuperación de 12 palabras
   -> descifra localmente la invitación
   -> cifra localmente toda la respuesta privada
   -> guarda el texto cifrado mediante POST /api/games/:id/responses
@@ -94,7 +94,7 @@ Guarda su conexión restringida en `Z4SK_STAGING_DATABASE_URL`, o utiliza un `DA
 
 Para las nuevas invitaciones, Z4SK evita que el contenido legible de invitaciones y respuestas llegue a las APIs de creación/respuesta o a la base activa. No es anónimo: siguen visibles los identificadores aleatorios, número de preguntas, estado, caducidad, fechas, rutas y metadatos operativos de infraestructura.
 
-**Trata cada enlace completo como una contraseña.** Puede abrir una invitación sin llave. Si el creador activa la llave opcional, envía su QR con marca o las 12 palabras por separado; entonces harán falta ambos secretos. El ID no es la llave y no permite recuperarla. El enlace del creador da acceso al panel y a las respuestas; en invitaciones protegidas también exige la llave opcional. Un navegador, dispositivo, extensión, despliegue, portapapeles, cámara o captura comprometidos aún pueden revelar el contenido.
+**Trata cada enlace completo como una contraseña.** Puede abrir una invitación sin llave. Si el creador activa la llave opcional, envía su QR con marca o la frase de recuperación de 12 palabras por separado; entonces harán falta ambos secretos. El ID no es la llave y no permite recuperarla. El enlace del creador da acceso al panel y a las respuestas; en invitaciones protegidas también exige la llave opcional. Un navegador, dispositivo, extensión, despliegue, portapapeles, cámara o captura comprometidos aún pueden revelar el contenido.
 
 - [Auditoría pública](https://z4sk.vercel.app/audit): protocolo, límites, código y evidencia en vivo.
 - [Auditoría externa automatizada](docs/EXTERNAL_AUDIT.es.md): hallazgos de CodeQL, OWASP ZAP y OpenSSF, correcciones y riesgo residual.

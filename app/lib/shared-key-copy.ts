@@ -42,12 +42,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
       "I saved my copy and will send the other copy through a different channel.",
     cardTitle: "Reusable shared key",
     cardBody:
-      "Save the branded QR. On the same phone, choose it later from Photos or paste the 12 words. The ID only identifies the key; it cannot open it.",
+      "Save the branded QR. On the same phone, choose it later from Photos or paste the recovery phrase. The ID only identifies the key; it cannot open it.",
     fingerprint: "KEY ID · NOT A SECRET",
-    phrase: "12-WORD COPY",
+    phrase: "RECOVERY PHRASE",
     phraseHelp:
-      "These words are the same key as the QR. Keep them private; they are not an extra factor.",
-    copyWords: "Copy recovery words",
+      "This secure 12-word phrase is the same key as the QR. Keep it private; it is not an extra factor.",
+    copyWords: "Copy recovery phrase",
     copied: "Copied",
     download: "Download fixed QR",
     unlockTitle: "Shared key required",
@@ -56,14 +56,14 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     scan: "Scan QR with camera",
     stop: "Stop camera",
     upload: "Choose QR from Photos",
-    words: "Or paste the 12 words (old 24-word keys also work)",
+    words: "Or paste the recovery phrase (12 words; old 24-word phrases also work)",
     unlock: "Unlock locally",
     invalid: "That QR or recovery phrase is not a valid Z4SK shared key.",
     camera:
       "Camera access failed. You can upload the QR image or enter the words.",
     working: "Checking locally…",
     differentChannel:
-      "Do not send this key together with the invitation link. Anyone who obtains both can decrypt the invitation.",
+      "This is the key QR, not the invitation QR. Send it separately from the invitation link or QR. Anyone who obtains both can decrypt the invitation.",
   },
   es: {
     protectTitle: "Llave extra · opcional",
@@ -76,13 +76,13 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     confirm: "He guardado mi copia y entregaré la otra por un canal diferente.",
     cardTitle: "Llave compartida reutilizable",
     cardBody:
-      "Guarda el QR con marca Z4SK. En el mismo móvil podrás elegirlo desde Fotos o pegar las 12 palabras. El identificador solo reconoce la llave; no la abre.",
+      "Guarda el QR con marca Z4SK. En el mismo móvil podrás elegirlo desde Fotos o pegar la frase de recuperación. El identificador solo reconoce la llave; no la abre.",
     fingerprint: "ID DE LLAVE · NO ES SECRETO",
-    phrase: "COPIA DE 12 PALABRAS",
+    phrase: "FRASE DE RECUPERACIÓN",
     phraseHelp:
-      "Estas palabras representan la misma llave que el QR. Mantenlas en secreto; no son un factor adicional.",
-    copyWords: "Copiar palabras",
-    copied: "Copiadas",
+      "Esta frase segura de 12 palabras representa la misma llave que el QR. Mantenla en secreto; no es un factor adicional.",
+    copyWords: "Copiar frase de recuperación",
+    copied: "Frase copiada",
     download: "Descargar QR fijo",
     unlockTitle: "Hace falta la llave compartida",
     unlockBody:
@@ -90,14 +90,14 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     scan: "Escanear QR con la cámara",
     stop: "Detener cámara",
     upload: "Elegir QR desde Fotos",
-    words: "O pega las 12 palabras (también admite llaves antiguas de 24)",
+    words: "O pega la frase de recuperación (12 palabras; también admite frases antiguas de 24)",
     unlock: "Desbloquear localmente",
     invalid: "Ese QR o frase de recuperación no es una llave Z4SK válida.",
     camera:
       "No se pudo usar la cámara. Puedes subir la imagen del QR o introducir las palabras.",
     working: "Comprobando localmente…",
     differentChannel:
-      "No envíes esta llave junto al enlace. Quien consiga ambos podrá descifrar la invitación.",
+      "Este es el QR de la llave, no el QR de invitación. Envíalo separado del enlace o QR de invitación. Quien consiga ambos podrá descifrarla.",
   },
   it: {
     protectTitle: "Chiave extra · facoltativa",
@@ -110,12 +110,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     confirm: "Ho salvato la mia copia e invierò l'altra su un canale diverso.",
     cardTitle: "Chiave condivisa riutilizzabile",
     cardBody:
-      "Salva il QR Z4SK. Sullo stesso telefono potrai sceglierlo da Foto o incollare le 12 parole. L'ID identifica soltanto la chiave.",
+      "Salva il QR Z4SK. Sullo stesso telefono potrai sceglierlo da Foto o incollare la frase di recupero. L'ID identifica soltanto la chiave.",
     fingerprint: "ID CHIAVE · NON SEGRETO",
-    phrase: "COPIA DI 12 PAROLE",
+    phrase: "FRASE DI RECUPERO",
     phraseHelp:
       "Le parole rappresentano la stessa chiave del QR e non sono un fattore aggiuntivo.",
-    copyWords: "Copia le parole",
+    copyWords: "Copia la frase di recupero",
     copied: "Copiate",
     download: "Scarica QR fisso",
     unlockTitle: "Serve la chiave condivisa",
@@ -131,7 +131,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
       "Fotocamera non disponibile. Carica l'immagine o inserisci le parole.",
     working: "Verifica locale…",
     differentChannel:
-      "Non inviare la chiave insieme al link. Chi possiede entrambi può decifrare l'invito.",
+      "Questo è il QR della chiave, non il QR dell'invito. Invialo separatamente dal link o QR dell'invito. Chi possiede entrambi può decifrarlo.",
   },
   fr: {
     protectTitle: "Clé supplémentaire · facultative",
@@ -145,12 +145,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
       "J'ai conservé ma copie et transmettrai l'autre par un canal différent.",
     cardTitle: "Clé partagée réutilisable",
     cardBody:
-      "Enregistrez le QR Z4SK. Sur le même téléphone, choisissez-le dans Photos ou collez les 12 mots. L'identifiant ne fait qu'identifier la clé.",
+      "Enregistrez le QR Z4SK. Sur le même téléphone, choisissez-le dans Photos ou collez la phrase de récupération. L'identifiant ne fait qu'identifier la clé.",
     fingerprint: "ID DE CLÉ · NON SECRET",
-    phrase: "COPIE EN 12 MOTS",
+    phrase: "PHRASE DE RÉCUPÉRATION",
     phraseHelp:
       "Les mots représentent la même clé que le QR, pas un facteur supplémentaire.",
-    copyWords: "Copier les mots",
+    copyWords: "Copier la phrase de récupération",
     copied: "Copiés",
     download: "Télécharger le QR fixe",
     unlockTitle: "Clé partagée requise",
@@ -165,7 +165,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     camera: "Caméra indisponible. Importez l'image ou saisissez les mots.",
     working: "Vérification locale…",
     differentChannel:
-      "N'envoyez pas cette clé avec le lien. Quiconque possède les deux peut déchiffrer l'invitation.",
+      "Ceci est le QR de la clé, pas celui de l'invitation. Envoyez-le séparément du lien ou QR d'invitation. Quiconque possède les deux peut la déchiffrer.",
   },
   de: {
     protectTitle: "Zusatzschlüssel · optional",
@@ -179,12 +179,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
       "Ich habe meine Kopie gespeichert und übermittle die andere getrennt.",
     cardTitle: "Wiederverwendbarer Schlüssel",
     cardBody:
-      "Speichere den Z4SK-QR. Auf demselben Handy kannst du ihn später aus Fotos wählen oder die 12 Wörter einfügen. Die ID identifiziert den Schlüssel nur.",
+      "Speichere den Z4SK-QR. Auf demselben Handy kannst du ihn später aus Fotos wählen oder die Wiederherstellungsphrase einfügen. Die ID identifiziert den Schlüssel nur.",
     fingerprint: "SCHLÜSSEL-ID · NICHT GEHEIM",
-    phrase: "12-WORT-KOPIE",
+    phrase: "WIEDERHERSTELLUNGSPHRASE",
     phraseHelp:
       "Wörter und QR sind derselbe Schlüssel, kein zusätzlicher Faktor.",
-    copyWords: "Wörter kopieren",
+    copyWords: "Wiederherstellungsphrase kopieren",
     copied: "Kopiert",
     download: "Festen QR laden",
     unlockTitle: "Geteilter Schlüssel erforderlich",
@@ -200,7 +200,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
       "Kamera nicht verfügbar. Lade das Bild hoch oder gib die Wörter ein.",
     working: "Lokale Prüfung…",
     differentChannel:
-      "Schlüssel und Link nie zusammen senden. Wer beide besitzt, kann entschlüsseln.",
+      "Dies ist der Schlüssel-QR, nicht der Einladungs-QR. Sende ihn getrennt vom Einladungslink oder -QR. Wer beides besitzt, kann entschlüsseln.",
   },
   nl: {
     protectTitle: "Extra sleutel · optioneel",
@@ -214,11 +214,11 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
       "Ik heb mijn kopie bewaard en geef de andere via een ander kanaal.",
     cardTitle: "Herbruikbare gedeelde sleutel",
     cardBody:
-      "Bewaar de Z4SK-QR. Op dezelfde telefoon kies je hem later uit Foto's of plak je de 12 woorden. De ID identificeert de sleutel alleen.",
+      "Bewaar de Z4SK-QR. Op dezelfde telefoon kies je hem later uit Foto's of plak je de herstelzin. De ID identificeert de sleutel alleen.",
     fingerprint: "SLEUTEL-ID · NIET GEHEIM",
-    phrase: "KOPIE MET 12 WOORDEN",
+    phrase: "HERSTELZIN",
     phraseHelp: "De woorden en QR zijn dezelfde sleutel, geen extra factor.",
-    copyWords: "Woorden kopiëren",
+    copyWords: "Herstelzin kopiëren",
     copied: "Gekopieerd",
     download: "Vaste QR downloaden",
     unlockTitle: "Gedeelde sleutel vereist",
@@ -234,7 +234,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
       "Camera niet beschikbaar. Upload de afbeelding of voer de woorden in.",
     working: "Lokaal controleren…",
     differentChannel:
-      "Stuur sleutel en link niet samen. Wie beide heeft kan de uitnodiging ontsleutelen.",
+      "Dit is de sleutel-QR, niet de uitnodigings-QR. Stuur hem apart van de uitnodigingslink of -QR. Wie beide heeft kan ontsleutelen.",
   },
   eo: {
     protectTitle: "Plia ŝlosilo · nedeviga",
@@ -247,11 +247,11 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     confirm: "Mi konservis mian kopion kaj transdonos la alian aparte.",
     cardTitle: "Reuzebla komuna ŝlosilo",
     cardBody:
-      "Konservu la Z4SK-QR. En la sama telefono elektu ĝin poste el Fotoj aŭ algluu la 12 vortojn. La ID nur identigas la ŝlosilon.",
+      "Konservu la Z4SK-QR. En la sama telefono elektu ĝin poste el Fotoj aŭ algluu la reakiran frazon. La ID nur identigas la ŝlosilon.",
     fingerprint: "ŜLOSILA ID · NE SEKRETO",
-    phrase: "12-VORTA KOPIO",
+    phrase: "REAKIRA FRAZO",
     phraseHelp: "La vortoj kaj QR estas la sama ŝlosilo, ne plia faktoro.",
-    copyWords: "Kopii vortojn",
+    copyWords: "Kopii reakiran frazon",
     copied: "Kopiite",
     download: "Elŝuti fiksan QR",
     unlockTitle: "Komuna ŝlosilo bezonata",
@@ -266,7 +266,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     camera: "Fotilo ne disponeblas. Alŝutu la bildon aŭ enigu la vortojn.",
     working: "Loka kontrolo…",
     differentChannel:
-      "Ne sendu la ŝlosilon kun la ligilo. Kiu havas ambaŭ povas deĉifri.",
+      "Ĉi tiu estas la ŝlosila QR, ne la invita QR. Sendu ĝin aparte de la invita ligilo aŭ QR. Kiu havas ambaŭ povas deĉifri.",
   },
   pt: {
     protectTitle: "Chave extra · opcional",
@@ -280,11 +280,11 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
       "Guardei a minha cópia e entregarei a outra por um canal diferente.",
     cardTitle: "Chave partilhada reutilizável",
     cardBody:
-      "Guarda o QR Z4SK. No mesmo telemóvel, escolhe-o depois nas Fotos ou cola as 12 palavras. O ID apenas identifica a chave.",
+      "Guarda o QR Z4SK. No mesmo telemóvel, escolhe-o depois nas Fotos ou cola a frase de recuperação. O ID apenas identifica a chave.",
     fingerprint: "ID DA CHAVE · NÃO É SEGREDO",
-    phrase: "CÓPIA DE 12 PALAVRAS",
+    phrase: "FRASE DE RECUPERAÇÃO",
     phraseHelp: "As palavras são a mesma chave do QR, não outro fator.",
-    copyWords: "Copiar palavras",
+    copyWords: "Copiar frase de recuperação",
     copied: "Copiadas",
     download: "Descarregar QR fixo",
     unlockTitle: "Chave partilhada necessária",
@@ -299,7 +299,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     camera: "Câmara indisponível. Carrega a imagem ou introduz as palavras.",
     working: "A verificar localmente…",
     differentChannel:
-      "Não envies a chave junto com o link. Quem tiver ambos pode decifrar o convite.",
+      "Este é o QR da chave, não o QR do convite. Envia-o separado do link ou QR do convite. Quem tiver ambos pode decifrar.",
   },
   zh: {
     protectTitle: "额外密钥 · 可选",
@@ -310,11 +310,11 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     replace: "使用其他密钥",
     confirm: "我已保存自己的副本，并会通过另一渠道交付另一份。",
     cardTitle: "可重复使用的共享密钥",
-    cardBody: "保存带 Z4SK 品牌的二维码。在同一手机上可稍后从照片中选择，或粘贴 12 个词。标识符只能识别密钥，不能打开它。",
+    cardBody: "保存带 Z4SK 品牌的二维码。在同一手机上可稍后从照片中选择，或粘贴恢复短语。标识符只能识别密钥，不能打开它。",
     fingerprint: "密钥标识 · 不是秘密",
-    phrase: "12 词副本",
+    phrase: "恢复短语",
     phraseHelp: "词语与二维码代表同一密钥，并非额外因素。",
-    copyWords: "复制恢复词",
+    copyWords: "复制恢复短语",
     copied: "已复制",
     download: "下载固定二维码",
     unlockTitle: "需要共享密钥",
@@ -328,7 +328,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     camera: "无法使用相机。请上传图片或输入恢复词。",
     working: "正在本地检查…",
     differentChannel:
-      "不要将密钥与链接一起发送。同时获得两者的人可以解密邀请。",
+      "这是密钥二维码，不是邀请二维码。请与邀请链接或二维码分开发送。同时获得两者的人可以解密邀请。",
   },
   hi: {
     protectTitle: "अतिरिक्त कुंजी · वैकल्पिक",
@@ -341,11 +341,11 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
       "मैंने अपनी प्रति सुरक्षित की है और दूसरी अलग माध्यम से दूँगा/दूँगी।",
     cardTitle: "दोबारा उपयोग होने वाली साझा कुंजी",
     cardBody:
-      "Z4SK वाला QR सहेजें। उसी फोन पर बाद में उसे फ़ोटो से चुनें या 12 शब्द चिपकाएँ। ID केवल कुंजी पहचानता है; खोलता नहीं।",
+      "Z4SK वाला QR सहेजें। उसी फोन पर बाद में उसे फ़ोटो से चुनें या रिकवरी वाक्य चिपकाएँ। ID केवल कुंजी पहचानता है; खोलता नहीं।",
     fingerprint: "कुंजी ID · रहस्य नहीं",
-    phrase: "12 शब्दों की प्रति",
+    phrase: "रिकवरी वाक्य",
     phraseHelp: "शब्द और QR एक ही कुंजी हैं, अतिरिक्त कारक नहीं।",
-    copyWords: "शब्द कॉपी करें",
+    copyWords: "रिकवरी वाक्य कॉपी करें",
     copied: "कॉपी हुआ",
     download: "स्थिर QR डाउनलोड करें",
     unlockTitle: "साझा कुंजी आवश्यक",
@@ -359,7 +359,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     camera: "कैमरा उपलब्ध नहीं। चित्र अपलोड करें या शब्द लिखें।",
     working: "डिवाइस पर जाँच…",
     differentChannel:
-      "कुंजी और लिंक साथ न भेजें। दोनों पाने वाला निमंत्रण खोल सकता है।",
+      "यह कुंजी QR है, निमंत्रण QR नहीं। इसे निमंत्रण लिंक या QR से अलग भेजें। दोनों पाने वाला निमंत्रण खोल सकता है।",
   },
   ja: {
     protectTitle: "追加の共有鍵・任意",
@@ -370,11 +370,11 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     replace: "別の鍵を使う",
     confirm: "自分のコピーを保存し、もう一方を別経路で渡します。",
     cardTitle: "再利用可能な共有鍵",
-    cardBody: "Z4SK入りQRを保存してください。同じ端末では写真から選ぶか、12語を貼り付けます。IDは鍵を識別するだけで、解除には使えません。",
+    cardBody: "Z4SK入りQRを保存してください。同じ端末では写真から選ぶか、復元フレーズを貼り付けます。IDは鍵を識別するだけで、解除には使えません。",
     fingerprint: "鍵ID・秘密ではありません",
-    phrase: "12語のコピー",
+    phrase: "復元フレーズ",
     phraseHelp: "単語とQRは同じ鍵で、追加要素ではありません。",
-    copyWords: "復元語をコピー",
+    copyWords: "復元フレーズをコピー",
     copied: "コピー済み",
     download: "固定QRを保存",
     unlockTitle: "共有鍵が必要です",
@@ -389,7 +389,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     camera: "カメラを利用できません。画像または単語を使用してください。",
     working: "端末内で確認中…",
     differentChannel:
-      "鍵とリンクを一緒に送らないでください。両方を持つ人は復号できます。",
+      "これは鍵QRで、招待QRではありません。招待リンクまたはQRとは別に送ってください。両方を持つ人は復号できます。",
   },
   tr: {
     protectTitle: "Ek anahtar · isteğe bağlı",
@@ -401,11 +401,11 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     confirm: "Kopyamı sakladım; diğerini farklı kanaldan ileteceğim.",
     cardTitle: "Yeniden kullanılabilir anahtar",
     cardBody:
-      "Z4SK markalı QR'ı kaydet. Aynı telefonda daha sonra Fotoğraflar'dan seç veya 12 kelimeyi yapıştır. ID yalnızca anahtarı tanımlar.",
+      "Z4SK markalı QR'ı kaydet. Aynı telefonda daha sonra Fotoğraflar'dan seç veya kurtarma ifadesini yapıştır. ID yalnızca anahtarı tanımlar.",
     fingerprint: "ANAHTAR ID · SIR DEĞİL",
-    phrase: "12 KELİMELİK KOPYA",
+    phrase: "KURTARMA İFADESİ",
     phraseHelp: "Kelimeler QR ile aynı anahtardır; ek faktör değildir.",
-    copyWords: "Kelimeleri kopyala",
+    copyWords: "Kurtarma ifadesini kopyala",
     copied: "Kopyalandı",
     download: "Sabit QR indir",
     unlockTitle: "Paylaşılan anahtar gerekli",
@@ -419,7 +419,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     camera: "Kamera kullanılamadı. Görsel yükle veya kelimeleri gir.",
     working: "Yerel kontrol…",
     differentChannel:
-      "Anahtarı bağlantıyla birlikte gönderme. İkisini alan daveti çözebilir.",
+      "Bu anahtar QR'ıdır, davet QR'ı değildir. Davet bağlantısı veya QR'ından ayrı gönder. İkisini alan daveti çözebilir.",
   },
   machine: {
     protectTitle: "SHARED_KEY::OPTIONAL",
@@ -432,9 +432,9 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     cardTitle: "REUSABLE_SHARED_KEY",
     cardBody: "server.receive=false; persistence=false",
     fingerprint: "KEY_ID::NON_SECRET",
-    phrase: "RECOVERY_WORDS[12]",
+    phrase: "RECOVERY_PHRASE[12]",
     phraseHelp: "mnemonic==qr_key; additional_factor=false",
-    copyWords: "COPY words",
+    copyWords: "COPY recovery_phrase",
     copied: "COPIED",
     download: "DOWNLOAD fixed_qr",
     unlockTitle: "SHARED_KEY_REQUIRED",
@@ -448,6 +448,6 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     camera: "ERR_CAMERA; USE file OR words",
     working: "LOCAL_VERIFY…",
     differentChannel:
-      "MUST_NOT_SEND key WITH link; holder(link,key).decrypt=true",
+      "key_qr!=invitation_qr; SEND_SEPARATELY; holder(invitation,key).decrypt=true",
   },
 };

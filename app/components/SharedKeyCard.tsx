@@ -95,7 +95,7 @@ export function SharedKeyCard({
     };
   }, [copy.cardTitle, copy.fingerprint, sharedKey, showRecovery]);
 
-  async function copyWords() {
+  async function copyPhrase() {
     if (!rendered.mnemonic) return;
     await navigator.clipboard.writeText(rendered.mnemonic);
     setCopied(true);
@@ -112,7 +112,7 @@ export function SharedKeyCard({
   }
 
   const ready = rendered.key === sharedKey;
-  const words = ready ? rendered.mnemonic.split(" ").filter(Boolean) : [];
+  const recoveryPhrase = ready ? rendered.mnemonic.normalize("NFC") : "";
   return (
     <section className="shared-key-card" aria-label={copy.cardTitle}>
       <div className="shared-key-card-head">
@@ -143,14 +143,9 @@ export function SharedKeyCard({
               <i aria-hidden="true">+</i>
             </summary>
             <p>{copy.phraseHelp}</p>
-            <ol>
-              {words.map((word, index) => (
-                <li key={`${word}-${index}`}>
-                  <small>{index + 1}</small>
-                  {word.normalize("NFC")}
-                </li>
-              ))}
-            </ol>
+            <p className="shared-key-phrase" lang="es">
+              {recoveryPhrase}
+            </p>
           </details>
         )}
       </div>
@@ -159,7 +154,11 @@ export function SharedKeyCard({
           {copy.download}
         </button>
         {showRecovery && (
-          <button type="button" disabled={!rendered.mnemonic} onClick={copyWords}>
+          <button
+            type="button"
+            disabled={!rendered.mnemonic}
+            onClick={copyPhrase}
+          >
             {copied ? copy.copied : copy.copyWords}
           </button>
         )}

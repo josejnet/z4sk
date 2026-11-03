@@ -157,24 +157,16 @@
   font-size: 11px;
   line-height: 1.5;
 }
-.shared-key-recovery ol {
-  list-style: none;
-  padding: 0;
+.shared-key-phrase {
   margin: 14px 0 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-.shared-key-recovery li {
-  background: #191716;
-  border: 1px solid #2f2b29;
-  padding: 8px;
-  color: #d6cec7;
-  font-size: 11px;
-}
-.shared-key-recovery li small {
-  color: #6d655f;
-  margin-right: 7px;
+  padding: 18px;
+  border: 1px solid #4a403a;
+  background: linear-gradient(135deg, #1d1917, #121111);
+  color: #f1e9e1 !important;
+  font: 500 20px/1.65 Georgia, serif !important;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 .shared-key-channel-warning {
   display: flex;
@@ -288,8 +280,9 @@
   .shared-key-card-grid {
     grid-template-columns: 1fr;
   }
-  .shared-key-recovery ol {
-    grid-template-columns: repeat(2, 1fr);
+  .shared-key-phrase {
+    padding: 15px;
+    font-size: 18px !important;
   }
   .shared-key-choice,
   .shared-key-scan-actions,

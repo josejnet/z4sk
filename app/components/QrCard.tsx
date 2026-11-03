@@ -36,9 +36,9 @@ const COPY: Record<Locale, Copy> = {
     secretBody:
       "Keep this image private. Anyone who scans it can open your dashboard and read the answers.",
     secretCta: "SECRET · DO NOT SHARE",
-    publicHeading: "Invitation QR card",
+    publicHeading: "Invitation QR · same access as the answer link",
     publicHint:
-      "This QR contains the invitation link, not the separately shared reusable key.",
+      "Send this QR or the link shown below: both open the same invitation. This QR never contains your private dashboard link.",
     privateHeading: "Private dashboard QR",
     privateHint:
       "Save it or take a screenshot. It replaces email recovery and is generated only on this device.",
@@ -58,9 +58,9 @@ const COPY: Record<Locale, Copy> = {
     secretBody:
       "Guarda esta imagen en privado. Quien la escanee podrá abrir tu panel y leer las respuestas.",
     secretCta: "SECRETO · NO COMPARTIR",
-    publicHeading: "Tarjeta QR de invitación",
+    publicHeading: "QR de invitación · el mismo acceso que el enlace",
     publicHint:
-      "Este QR contiene el enlace de invitación, no la llave reutilizable compartida por separado.",
+      "Envía este QR o el enlace que aparece debajo: ambos abren la misma invitación. Este QR nunca contiene el enlace de tu panel privado.",
     privateHeading: "QR del panel privado",
     privateHint:
       "Guárdalo o haz una captura. Sustituye la recuperación por correo y se genera solo en este dispositivo.",
@@ -447,7 +447,7 @@ async function renderCard(
     ctx,
     invitation
       ? protectedBySharedKey
-        ? SHARED_KEY_COPY[locale].unlockBody
+        ? `${c.inviteBody} ${SHARED_KEY_COPY[locale].unlockBody}`
         : c.inviteBody
       : protectedBySharedKey
         ? PRIVATE_WARNING[locale]
@@ -565,7 +565,7 @@ export function QrCard({
           <p>
             {invitation
               ? protectedBySharedKey
-                ? SHARED_KEY_COPY[locale].differentChannel
+                ? `${c.publicHint} ${SHARED_KEY_COPY[locale].unlockBody}`
                 : c.publicHint
               : protectedBySharedKey
                 ? PRIVATE_WARNING[locale]

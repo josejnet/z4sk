@@ -8,9 +8,9 @@
 
 Z4SK encrypts invitation and response content in the browsers. A database disclosure should expose authenticated ciphertext and operational metadata, not display names, questions, settings, respondent names or answers.
 
-Every new invitation uses a **256-bit random link secret** in the URL fragment. A creator may optionally add a **128-bit reusable shared key** represented by a branded Z4SK QR or the equivalent 12 Spanish BIP39 words. Legacy 256-bit/24-word shared keys remain accepted.
+Every new invitation uses a **256-bit random link secret** in the URL fragment. A creator may optionally add a **128-bit reusable shared key** represented by a branded Z4SK QR or the equivalent 12-word Spanish BIP39 recovery phrase. Legacy 256-bit/24-word shared keys remain accepted.
 
-A complete link decrypts a link-only invitation. In shared-key mode, both link and shared key are required. The shared key is never placed in a URL, request, API response or database row. It is scanned with the camera, read from a local image in Photos, or entered as 12 words. QR and words are two representations of the same key, not two factors. The displayed key ID is a non-secret identifier; it cannot recover or unlock the key.
+A complete link decrypts a link-only invitation. In shared-key mode, both link and shared key are required. The shared key is never placed in a URL, request, API response or database row. It is scanned with the camera, read from a local image in Photos, or entered as a 12-word recovery phrase. QR and phrase are two representations of the same key, not two factors. The displayed key ID is a non-secret identifier; it cannot recover or unlock the key.
 
 > Treat every complete invitation or creator link like a password. If the optional shared key is enabled, send it through a different channel. Anyone who obtains the complete link can open link-only mode; anyone who obtains both secrets can open protected mode. The creator link additionally authorizes the dashboard and carries the response private key.
 
@@ -31,7 +31,7 @@ sequenceDiagram
   A->>D: Store ciphertext and minimal operational metadata
   C-->>R: Complete link through channel A
   opt Shared-key mode
-    C-->>R: Branded QR/12 words through channel B
+    C-->>R: Branded key QR/12-word recovery phrase through channel B
   end
   R->>A: GET /api/games/:id
   A-->>R: ciphertext + state + expiry

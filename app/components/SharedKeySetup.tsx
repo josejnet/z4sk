@@ -11,14 +11,18 @@ export function SharedKeySetup({
   locale,
   sharedKey,
   confirmed,
+  linkOnly,
   onChange,
   onConfirm,
+  onLinkOnly,
 }: {
   locale: Locale;
   sharedKey: string;
   confirmed: boolean;
+  linkOnly: boolean;
   onChange: (key: string, generated: boolean) => void;
   onConfirm: (value: boolean) => void;
+  onLinkOnly: (value: boolean) => void;
 }) {
   const copy = SHARED_KEY_COPY[locale];
   const [showImport, setShowImport] = useState(false);
@@ -27,13 +31,23 @@ export function SharedKeySetup({
   function create() {
     setGenerated(true);
     setShowImport(false);
+    onLinkOnly(false);
     onChange(generateSharedKey(), true);
   }
 
   function replace() {
     setGenerated(false);
     setShowImport(false);
+    onLinkOnly(false);
     onChange("", false);
+  }
+
+  function chooseLinkOnly() {
+    setGenerated(false);
+    setShowImport(false);
+    onChange("", false);
+    onConfirm(false);
+    onLinkOnly(true);
   }
 
   if (sharedKey)
@@ -65,6 +79,22 @@ export function SharedKeySetup({
       </section>
     );
 
+  if (linkOnly)
+    return (
+      <section className="shared-key-setup ready link-only-ready">
+        <div className="shared-key-setup-title">
+          <span>✓</span>
+          <div>
+            <h3>{copy.linkOnlyReady}</h3>
+            <p>{copy.linkOnlyBody}</p>
+          </div>
+          <button type="button" onClick={() => onLinkOnly(false)}>
+            {copy.changeProtection}
+          </button>
+        </div>
+      </section>
+    );
+
   return (
     <section className="shared-key-setup">
       <div className="shared-key-setup-title">
@@ -81,6 +111,13 @@ export function SharedKeySetup({
         <button type="button" onClick={() => setShowImport((value) => !value)}>
           {copy.existing}
         </button>
+        <button
+          type="button"
+          className="link-only-choice"
+          onClick={chooseLinkOnly}
+        >
+          {copy.linkOnly}
+        </button>
       </div>
       {showImport && (
         <SharedKeyUnlock
@@ -89,6 +126,7 @@ export function SharedKeySetup({
           onKey={(key) => {
             setGenerated(false);
             setShowImport(false);
+            onLinkOnly(false);
             onChange(key, false);
             onConfirm(true);
           }}

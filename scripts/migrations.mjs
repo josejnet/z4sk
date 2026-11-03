@@ -4,7 +4,7 @@ const migrations = [
   {
     id: "2026-11-01-baseline-and-runtime-cleanup",
     statements: [
-      `CREATE TABLE IF NOT EXISTS games (id TEXT PRIMARY KEY, creator_token_hash TEXT NOT NULL, creator_email TEXT NOT NULL DEFAULT '', creator_name TEXT NOT NULL, recipient_name TEXT NOT NULL, title TEXT NOT NULL, level TEXT NOT NULL, locale TEXT NOT NULL DEFAULT 'en', library_version TEXT NOT NULL DEFAULT '2026.08', questions_json TEXT NOT NULL, encryption_public_key TEXT NOT NULL DEFAULT '', premium INTEGER NOT NULL DEFAULT 0, view_once INTEGER NOT NULL DEFAULT 0, double_blind INTEGER NOT NULL DEFAULT 0, match_question TEXT NOT NULL DEFAULT '', timed_mode INTEGER NOT NULL DEFAULT 0, creator_interest INTEGER NOT NULL DEFAULT 0, pack_slug TEXT NOT NULL DEFAULT 'original', opened_at TEXT, closed INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, expires_at TEXT NOT NULL)`,
+      `CREATE TABLE IF NOT EXISTS games (id TEXT PRIMARY KEY, creator_token_hash TEXT NOT NULL, submission_token_hash TEXT NOT NULL DEFAULT '', creator_email TEXT NOT NULL DEFAULT '', creator_name TEXT NOT NULL, recipient_name TEXT NOT NULL, title TEXT NOT NULL, level TEXT NOT NULL, locale TEXT NOT NULL DEFAULT 'en', library_version TEXT NOT NULL DEFAULT '2026.08', questions_json TEXT NOT NULL, encryption_public_key TEXT NOT NULL DEFAULT '', premium INTEGER NOT NULL DEFAULT 0, view_once INTEGER NOT NULL DEFAULT 0, double_blind INTEGER NOT NULL DEFAULT 0, match_question TEXT NOT NULL DEFAULT '', timed_mode INTEGER NOT NULL DEFAULT 0, creator_interest INTEGER NOT NULL DEFAULT 0, pack_slug TEXT NOT NULL DEFAULT 'original', opened_at TEXT, closed INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, expires_at TEXT NOT NULL)`,
       `CREATE TABLE IF NOT EXISTS responses (id TEXT PRIMARY KEY, game_id TEXT NOT NULL REFERENCES games(id) ON DELETE CASCADE, respondent_name TEXT NOT NULL, answers_json TEXT NOT NULL, reactions_json TEXT NOT NULL DEFAULT '[]', encrypted_payload TEXT NOT NULL DEFAULT '', matched INTEGER NOT NULL DEFAULT 0, single_use INTEGER NOT NULL DEFAULT 0, delete_token_hash TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL)`,
       `CREATE INDEX IF NOT EXISTS idx_responses_game_created ON responses(game_id, created_at)`,
       `CREATE TABLE IF NOT EXISTS question_metrics (question_hash TEXT NOT NULL, locale TEXT NOT NULL, level TEXT NOT NULL, library_version TEXT NOT NULL, selected_count INTEGER NOT NULL DEFAULT 0, completed_count INTEGER NOT NULL DEFAULT 0, total_answer_chars INTEGER NOT NULL DEFAULT 0, last_completed_at TEXT, PRIMARY KEY (question_hash, locale, level, library_version))`,
@@ -22,6 +22,7 @@ const migrations = [
       `ALTER TABLE games ADD COLUMN IF NOT EXISTS view_once INTEGER NOT NULL DEFAULT 0`,
       `ALTER TABLE games ADD COLUMN IF NOT EXISTS creator_email TEXT NOT NULL DEFAULT ''`,
       `ALTER TABLE games ADD COLUMN IF NOT EXISTS encryption_public_key TEXT NOT NULL DEFAULT ''`,
+      `ALTER TABLE games ADD COLUMN IF NOT EXISTS submission_token_hash TEXT NOT NULL DEFAULT ''`,
       `ALTER TABLE games ADD COLUMN IF NOT EXISTS locale TEXT NOT NULL DEFAULT 'en'`,
       `ALTER TABLE games ADD COLUMN IF NOT EXISTS library_version TEXT NOT NULL DEFAULT '2026.08'`,
       `ALTER TABLE games ADD COLUMN IF NOT EXISTS double_blind INTEGER NOT NULL DEFAULT 0`,
@@ -83,6 +84,12 @@ const migrations = [
     id: "2026-11-02-remove-expired-and-pre-v2-invitations",
     statements: [
       `DELETE FROM games WHERE expires_at::timestamptz <= CURRENT_TIMESTAMP OR encrypted_invitation = '' OR encrypted_invitation::jsonb->>'v' IS DISTINCT FROM '2' OR encrypted_invitation::jsonb->>'alg' IS DISTINCT FROM 'HKDF-SHA256+A256GCM+A256GCM' OR encrypted_invitation::jsonb->>'salt' IS NULL OR encrypted_invitation::jsonb->>'keyIv' IS NULL OR encrypted_invitation::jsonb->>'wrappedKey' IS NULL OR encrypted_invitation::jsonb->>'iv' IS NULL OR encrypted_invitation::jsonb->>'ciphertext' IS NULL`,
+    ],
+  },
+  {
+    id: "2026-11-04-response-submission-credentials",
+    statements: [
+      `ALTER TABLE games ADD COLUMN IF NOT EXISTS submission_token_hash TEXT NOT NULL DEFAULT ''`,
     ],
   },
 ];

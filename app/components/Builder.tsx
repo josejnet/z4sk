@@ -16,6 +16,7 @@ import {
 } from "../lib/response-crypto";
 import {
   attachInvitationSecret,
+  attachSubmissionToken,
   encryptPrivateInvitation,
   generateInvitationSecret,
 } from "../lib/invitation-crypto";
@@ -699,6 +700,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [sharedKey, setSharedKey] = useState("");
   const [sharedKeyConfirmed, setSharedKeyConfirmed] = useState(false);
   const [sharedKeyGenerated, setSharedKeyGenerated] = useState(false);
+  const [linkOnlyConfirmed, setLinkOnlyConfirmed] = useState(false);
   const questions = getQuestions(locale, level);
   const emailValid =
     !creatorEmail.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail);
@@ -753,15 +755,19 @@ export function Builder({ onClose }: { onClose?: () => void }) {
     setLoading(true);
     setError("");
     try {
+      if (!sharedKey && !linkOnlyConfirmed)
+        throw new Error(SHARED_KEY_COPY[locale].chooseRequired);
       if (sharedKey && !sharedKeyConfirmed)
         throw new Error(SHARED_KEY_COPY[locale].confirm);
       const normalizedCreatorName = creatorName.trim().replace(/\s+/g, " ");
       const normalizedRecipientName = recipientName.trim().replace(/\s+/g, " ");
-      const [encryptionKeys, access] = await Promise.all([
+      const [encryptionKeys, access, submissionAccess] = await Promise.all([
         generateResponseKeyPair(),
+        generateCreatorAccessCredential(),
         generateCreatorAccessCredential(),
       ]);
       const invitationSecret = generateInvitationSecret();
+      const expectedKeyMode = linkOnlyConfirmed ? "link" : "shared";
       const encryptedInvitation = await encryptPrivateInvitation(
         {
           creatorName: normalizedCreatorName,
@@ -779,22 +785,29 @@ export function Builder({ onClose }: { onClose?: () => void }) {
         invitationSecret,
         sharedKey,
       );
+      if (encryptedInvitation.keyMode !== expectedKeyMode)
+        throw new Error(SHARED_KEY_COPY[locale].chooseRequired);
       const response = await fetch("/api/games", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           encryptedInvitation,
+          keyMode: expectedKeyMode,
           questionCount: selected.length,
           viewOnce,
           expiresInHours,
           creatorTokenHash: access.tokenHash,
+          submissionTokenHash: submissionAccess.tokenHash,
         }),
       });
       const data = (await response.json()) as Omit<Created, "adminUrl"> & {
         error?: string;
       };
       if (!response.ok) throw new Error(t("formError"));
-      const playUrl = attachInvitationSecret(data.playUrl, invitationSecret);
+      const playUrl = attachInvitationSecret(
+        attachSubmissionToken(data.playUrl, submissionAccess.token),
+        invitationSecret,
+      );
       const privateUrl = attachInvitationSecret(
         `${window.location.origin}/p/${data.id}#key=${encodeURIComponent(access.token)}`,
         invitationSecret,
@@ -1121,13 +1134,21 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             locale={locale}
             sharedKey={sharedKey}
             confirmed={sharedKeyConfirmed}
+            linkOnly={linkOnlyConfirmed}
             onChange={(key, generated) => {
               setSharedKey(key);
               setSharedKeyGenerated(generated);
               setSharedKeyConfirmed(false);
+              setLinkOnlyConfirmed(false);
             }}
             onConfirm={setSharedKeyConfirmed}
+            onLinkOnly={setLinkOnlyConfirmed}
           />
+          {!sharedKey && !linkOnlyConfirmed && (
+            <p id="security-choice-help" className="security-requirement">
+              {SHARED_KEY_COPY[locale].chooseRequired}
+            </p>
+          )}
           {sharedKeyConfirmed && (
             <p
               id="security-requirement"
@@ -1148,13 +1169,19 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             </button>
             <button
               className="primary"
-              disabled={loading || Boolean(sharedKey && !sharedKeyConfirmed)}
+              disabled={
+                loading ||
+                (!linkOnlyConfirmed && !sharedKeyConfirmed) ||
+                Boolean(sharedKey && !sharedKeyConfirmed)
+              }
               aria-describedby={
                 sharedKey && !sharedKeyConfirmed
                   ? "shared-key-confirmation"
                   : sharedKeyConfirmed
                     ? "security-requirement"
-                    : undefined
+                    : !linkOnlyConfirmed
+                      ? "security-choice-help"
+                      : undefined
               }
               onClick={createGame}
             >
@@ -1166,89 +1193,123 @@ export function Builder({ onClose }: { onClose?: () => void }) {
       )}
       {step === 5 && created && (
         <div className="success-panel">
-          <div className="success-icon">✓</div>
-          <span className="success-kicker">{t("created")}</span>
-          <h3 id="builder-title" tabIndex={-1}>{t("interesting")}</h3>
-          <p>{interpolate(successFlowCopy[locale], { name: recipientName })}</p>
-          <ShareInvitation
-            locale={locale}
-            recipientName={recipientName}
-            playUrl={created.playUrl}
-            shareText={t("shareText")}
-            protectedBySharedKey={Boolean(sharedKey)}
-          />
-          <QrCard
-            kind="invitation"
-            locale={locale}
-            name={recipientName}
-            url={created.playUrl}
-            protectedBySharedKey={Boolean(sharedKey)}
-          />
+          <header className="success-hero">
+            <div className="success-icon">✓</div>
+            <span className="success-kicker">{t("created")}</span>
+            <h3 id="builder-title" tabIndex={-1}>
+              {t("interesting")}
+            </h3>
+            <p>
+              {interpolate(successFlowCopy[locale], { name: recipientName })}
+            </p>
+          </header>
           {sharedKey && (
-            <SharedKeyCard
-              locale={locale}
-              sharedKey={sharedKey}
-              showRecovery={sharedKeyGenerated}
-            />
+            <a className="success-key-status" href="#success-shared-key">
+              <span>✓</span>
+              <div>
+                <strong>{SHARED_KEY_COPY[locale].ready}</strong>
+                <small>{SHARED_KEY_COPY[locale].differentChannel}</small>
+              </div>
+              <b>{SHARED_KEY_COPY[locale].cardTitle} ↓</b>
+            </a>
           )}
-          <div className="link-box">
-            <span>{t("answerLink")}</span>
-            <div>
-              <code>{created.playUrl}</code>
-              <button onClick={() => copy(created.playUrl, "play")}>
-                {copied === "play" ? t("copied") : t("copy")}
-              </button>
-            </div>
-          </div>
-          <div className="admin-box">
-            <span className="lock">◆</span>
-            <div>
-              <b>{viewOnce ? t("privateOnce") : t("privatePanel")}</b>
-              <p>{viewOnce ? t("privateOnceCopy") : t("secretCopy")}</p>
-              <div className="admin-actions">
-                <a
-                  href={created.adminUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t("openPanel")}
-                </a>
-                <button onClick={() => copy(created.adminUrl, "admin")}>
-                  {copied === "admin" ? t("copied") : t("copySecret")}
-                </button>
+          <div className="success-delivery-grid">
+            <div className="success-share-column">
+              <ShareInvitation
+                locale={locale}
+                recipientName={recipientName}
+                playUrl={created.playUrl}
+                shareText={t("shareText")}
+                protectedBySharedKey={Boolean(sharedKey)}
+              />
+              <div className="link-box">
+                <span>{t("answerLink")}</span>
+                <div>
+                  <code>{created.playUrl}</code>
+                  <button onClick={() => copy(created.playUrl, "play")}>
+                    {copied === "play" ? t("copied") : t("copy")}
+                  </button>
+                </div>
               </div>
             </div>
+            <QrCard
+              kind="invitation"
+              locale={locale}
+              name={recipientName}
+              url={created.playUrl}
+              protectedBySharedKey={Boolean(sharedKey)}
+            />
+            <div className="success-private-column">
+              <div className="admin-box">
+                <span className="lock">◆</span>
+                <div>
+                  <b>{viewOnce ? t("privateOnce") : t("privatePanel")}</b>
+                  <p>{viewOnce ? t("privateOnceCopy") : t("secretCopy")}</p>
+                  <div className="admin-actions">
+                    <a
+                      href={created.adminUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t("openPanel")}
+                    </a>
+                    <button onClick={() => copy(created.adminUrl, "admin")}>
+                      {copied === "admin" ? t("copied") : t("copySecret")}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <QrCard
+                kind="dashboard"
+                locale={locale}
+                name={creatorName}
+                url={created.adminUrl}
+                protectedBySharedKey={Boolean(sharedKey)}
+              />
+            </div>
           </div>
+          {sharedKey ? (
+            <section id="success-shared-key" className="success-shared-key">
+              <SharedKeyCard
+                locale={locale}
+                sharedKey={sharedKey}
+                showRecovery={sharedKeyGenerated}
+              />
+            </section>
+          ) : (
+            <div className="success-link-only-notice">
+              <b>◇</b>
+              <div>
+                <strong>{SHARED_KEY_COPY[locale].linkOnlyReady}</strong>
+                <p>{SHARED_KEY_COPY[locale].linkOnlyBody}</p>
+              </div>
+            </div>
+          )}
           <p className="encryption-notice">
             <span>◆</span>
             {encryptionCopy[locale].notice}
           </p>
-          <QrCard
-            kind="dashboard"
-            locale={locale}
-            name={creatorName}
-            url={created.adminUrl}
-            protectedBySharedKey={Boolean(sharedKey)}
-          />
-          {creatorEmail.trim() && emailValid && (
-            <button className="html-download" onClick={emailAccessLink}>
-              {accessCopy[locale].send}
+          <div className="success-tools">
+            {creatorEmail.trim() && emailValid && (
+              <button className="html-download" onClick={emailAccessLink}>
+                {accessCopy[locale].send}
+              </button>
+            )}
+            <button
+              className="html-download"
+              onClick={() =>
+                void downloadInvitationHtml({
+                  creatorName,
+                  recipientName,
+                  playUrl: created.playUrl,
+                  locale,
+                  protectedBySharedKey: Boolean(sharedKey),
+                })
+              }
+            >
+              {t("downloadHtml")}
             </button>
-          )}
-          <button
-            className="html-download"
-            onClick={() =>
-              downloadInvitationHtml({
-                creatorName,
-                recipientName,
-                playUrl: created.playUrl,
-                locale,
-                protectedBySharedKey: Boolean(sharedKey),
-              })
-            }
-          >
-            {t("downloadHtml")}
-          </button>
+          </div>
           <div className={`growth-unlock ${unlocked ? "unlocked" : ""}`}>
             <span>{unlocked ? "✓" : "↗"}</span>
             <div>
@@ -1274,6 +1335,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
               setSharedKey("");
               setSharedKeyConfirmed(false);
               setSharedKeyGenerated(false);
+              setLinkOnlyConfirmed(false);
               setStep(1);
             }}
           >

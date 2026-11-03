@@ -3,7 +3,7 @@ import { bearerToken, checkRateLimit, deleteGameData, ensureSchema, getDatabase,
 import { isEncryptedResponseEnvelope } from "../../../../lib/encryption-types";
 
 type Context = { params: Promise<{ id: string }> };
-type GameRow = { id: string; creator_token_hash: string; creator_name: string; recipient_name: string; title: string; questions_json: string; encryption_public_key: string; encrypted_invitation: string; question_count: number; locale: string; level: string; library_version: string; premium: number; view_once: number; timed_mode: number; pack_slug: string; opened_at: string | null; created_at: string; closed: number; expires_at: string };
+type GameRow = { id: string; creator_token_hash: string; submission_token_hash: string; creator_name: string; recipient_name: string; title: string; questions_json: string; encryption_public_key: string; encrypted_invitation: string; question_count: number; locale: string; level: string; library_version: string; premium: number; view_once: number; timed_mode: number; pack_slug: string; opened_at: string | null; created_at: string; closed: number; expires_at: string };
 
 export async function POST(request: Request, context: Context) {
   try {
@@ -13,13 +13,14 @@ export async function POST(request: Request, context: Context) {
     const rateLimit = await checkRateLimit(request, "submit-response", 30, 10);
     if (!rateLimit.allowed) return NextResponse.json({ error: "Too many responses. Try again shortly." }, { status: 429, headers: { "retry-after": String(rateLimit.retryAfterSeconds) } });
     const { id } = await context.params;
-    const invitationRateLimit = await checkRateLimit(request, `submit-response:${id}`, 10, 10);
-    if (!invitationRateLimit.allowed) return NextResponse.json({ error: "Demasiados intentos para esta invitación. Inténtalo más tarde." }, { status: 429, headers: { "retry-after": String(invitationRateLimit.retryAfterSeconds) } });
     const db = getDatabase();
-    const game = await db.prepare(`SELECT creator_token_hash, questions_json, encrypted_invitation, question_count, locale, level, library_version, view_once, closed, expires_at FROM games WHERE id = ?`).bind(id).first<Pick<GameRow, "creator_token_hash" | "questions_json" | "encrypted_invitation" | "question_count" | "locale" | "level" | "library_version" | "view_once" | "closed" | "expires_at">>();
+    const game = await db.prepare(`SELECT creator_token_hash, submission_token_hash, questions_json, encrypted_invitation, question_count, locale, level, library_version, view_once, closed, expires_at FROM games WHERE id = ?`).bind(id).first<Pick<GameRow, "creator_token_hash" | "submission_token_hash" | "questions_json" | "encrypted_invitation" | "question_count" | "locale" | "level" | "library_version" | "view_once" | "closed" | "expires_at">>();
     if (!game) return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 404 });
     if (new Date(game.expires_at) <= new Date()) { await deleteGameData(db, id); return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 410 }); }
     if (game.closed) return NextResponse.json({ error: "Este cuestionario ya no está disponible." }, { status: 404 });
+    if (game.submission_token_hash && game.submission_token_hash !== await hashToken(bearerToken(request))) return NextResponse.json({ error: "Este enlace de invitación no es válido." }, { status: 403 });
+    const invitationRateLimit = await checkRateLimit(request, `submit-response:${id}`, 10, 10);
+    if (!invitationRateLimit.allowed) return NextResponse.json({ error: "Demasiados intentos para esta invitación. Inténtalo más tarde." }, { status: 429, headers: { "retry-after": String(invitationRateLimit.retryAfterSeconds) } });
     const existing = await db.prepare(`SELECT COUNT(*) AS count FROM responses WHERE game_id = ?`).bind(id).first<{ count: number }>();
     if (game.view_once && Number(existing?.count || 0) > 0) return NextResponse.json({ error: "Alguien ya respondió a esta invitación de una sola vez." }, { status: 409 });
     if (!game.view_once && Number(existing?.count || 0) >= 100) return NextResponse.json({ error: "Esta invitación ha alcanzado su límite de respuestas." }, { status: 409 });

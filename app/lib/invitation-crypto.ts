@@ -32,6 +32,7 @@ const LOCALES = new Set<Locale>([
 ]);
 const PACKS = new Set(["original", "nightlife", "creator"]);
 const BASE64URL_KEY = /^[A-Za-z0-9_-]{43}$/;
+const BASE64URL_BEARER = /^[A-Za-z0-9_-]{32}$/;
 const asBufferSource = (bytes: Uint8Array) => bytes as unknown as BufferSource;
 
 export type PrivateInvitationPayload = Pick<
@@ -170,6 +171,16 @@ export function attachInvitationSecret(
   const url = new URL(urlValue);
   const fragment = new URLSearchParams(url.hash.slice(1));
   fragment.set("invite", invitationSecret);
+  url.hash = fragment.toString();
+  return url.toString();
+}
+
+export function attachSubmissionToken(urlValue: string, token: string) {
+  if (!BASE64URL_BEARER.test(token))
+    throw new Error("Invalid response submission token.");
+  const url = new URL(urlValue);
+  const fragment = new URLSearchParams(url.hash.slice(1));
+  fragment.set("submit", token);
   url.hash = fragment.toString();
   return url.toString();
 }

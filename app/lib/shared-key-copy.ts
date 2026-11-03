@@ -27,14 +27,19 @@ export type SharedKeyCopy = {
   camera: string;
   working: string;
   differentChannel: string;
+  linkOnly: string;
+  linkOnlyReady: string;
+  linkOnlyBody: string;
+  changeProtection: string;
+  chooseRequired: string;
 };
 
 export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
   en: {
-    protectTitle: "Extra shared key · optional",
+    protectTitle: "Choose invitation protection",
     protectBody:
-      "For extra protection, require a second secret sent separately. Without it, the complete link opens the invitation.",
-    generate: "Create a new shared key",
+      "Choose a separate key QR for two-secret protection, or explicitly continue with the complete link only.",
+    generate: "Create a separate key QR · recommended",
     existing: "Use an existing QR",
     ready: "Shared key ready",
     replace: "Use another key",
@@ -64,13 +69,19 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "Checking locally…",
     differentChannel:
       "This is the key QR, not the invitation QR. Send it separately from the invitation link or QR. Anyone who obtains both can decrypt the invitation.",
+    linkOnly: "Continue with the complete link only",
+    linkOnlyReady: "Link-only mode selected",
+    linkOnlyBody:
+      "No separate key QR will be created. Anyone who gets the complete invitation link can open it.",
+    changeProtection: "Change protection",
+    chooseRequired: "Choose link-only mode or create/import a separate key QR.",
   },
   es: {
-    protectTitle: "Llave extra · opcional",
+    protectTitle: "Elige cómo proteger la invitación",
     protectBody:
-      "Si quieres más protección, exige un segundo secreto enviado aparte. Sin llave, el enlace completo abre la invitación.",
-    generate: "Crear una llave nueva",
-    existing: "Usar un QR existente",
+      "Elige un QR de llave separado para usar dos secretos, o confirma expresamente que quieres continuar solo con el enlace completo.",
+    generate: "Crear QR de llave separada · recomendado",
+    existing: "Usar un QR de llave existente",
     ready: "Llave compartida preparada",
     replace: "Usar otra llave",
     confirm: "He guardado mi copia y entregaré la otra por un canal diferente.",
@@ -98,6 +109,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "Comprobando localmente…",
     differentChannel:
       "Este es el QR de la llave, no el QR de invitación. Envíalo separado del enlace o QR de invitación. Quien consiga ambos podrá descifrarla.",
+    linkOnly: "Continuar solo con el enlace completo",
+    linkOnlyReady: "Modo solo enlace seleccionado",
+    linkOnlyBody:
+      "No se creará un QR de llave separado. Quien consiga el enlace completo de invitación podrá abrirla.",
+    changeProtection: "Cambiar protección",
+    chooseRequired: "Elige solo enlace o crea/importa un QR de llave separado.",
   },
   it: {
     protectTitle: "Chiave extra · facoltativa",
@@ -132,6 +149,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "Verifica locale…",
     differentChannel:
       "Questo è il QR della chiave, non il QR dell'invito. Invialo separatamente dal link o QR dell'invito. Chi possiede entrambi può decifrarlo.",
+    linkOnly: "Continua solo con il link completo",
+    linkOnlyReady: "Modalità solo link selezionata",
+    linkOnlyBody:
+      "Non verrà creato un QR chiave separato. Chi ottiene il link completo può aprire l'invito.",
+    changeProtection: "Cambia protezione",
+    chooseRequired: "Scegli solo link oppure crea/importa un QR chiave separato.",
   },
   fr: {
     protectTitle: "Clé supplémentaire · facultative",
@@ -166,6 +189,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "Vérification locale…",
     differentChannel:
       "Ceci est le QR de la clé, pas celui de l'invitation. Envoyez-le séparément du lien ou QR d'invitation. Quiconque possède les deux peut la déchiffrer.",
+    linkOnly: "Continuer avec le lien complet uniquement",
+    linkOnlyReady: "Mode lien seul sélectionné",
+    linkOnlyBody:
+      "Aucun QR de clé séparé ne sera créé. Toute personne ayant le lien complet pourra ouvrir l'invitation.",
+    changeProtection: "Modifier la protection",
+    chooseRequired: "Choisissez le lien seul ou créez/importez un QR de clé séparé.",
   },
   de: {
     protectTitle: "Zusatzschlüssel · optional",
@@ -201,6 +230,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "Lokale Prüfung…",
     differentChannel:
       "Dies ist der Schlüssel-QR, nicht der Einladungs-QR. Sende ihn getrennt vom Einladungslink oder -QR. Wer beides besitzt, kann entschlüsseln.",
+    linkOnly: "Nur mit dem vollständigen Link fortfahren",
+    linkOnlyReady: "Nur-Link-Modus ausgewählt",
+    linkOnlyBody:
+      "Es wird kein separater Schlüssel-QR erstellt. Wer den vollständigen Einladungslink erhält, kann sie öffnen.",
+    changeProtection: "Schutz ändern",
+    chooseRequired: "Wähle nur Link oder erstelle/importiere einen separaten Schlüssel-QR.",
   },
   nl: {
     protectTitle: "Extra sleutel · optioneel",
@@ -235,6 +270,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "Lokaal controleren…",
     differentChannel:
       "Dit is de sleutel-QR, niet de uitnodigings-QR. Stuur hem apart van de uitnodigingslink of -QR. Wie beide heeft kan ontsleutelen.",
+    linkOnly: "Doorgaan met alleen de volledige link",
+    linkOnlyReady: "Alleen-linkmodus geselecteerd",
+    linkOnlyBody:
+      "Er wordt geen aparte sleutel-QR gemaakt. Iedereen met de volledige uitnodigingslink kan deze openen.",
+    changeProtection: "Beveiliging wijzigen",
+    chooseRequired: "Kies alleen-link of maak/importeer een aparte sleutel-QR.",
   },
   eo: {
     protectTitle: "Plia ŝlosilo · nedeviga",
@@ -267,6 +308,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "Loka kontrolo…",
     differentChannel:
       "Ĉi tiu estas la ŝlosila QR, ne la invita QR. Sendu ĝin aparte de la invita ligilo aŭ QR. Kiu havas ambaŭ povas deĉifri.",
+    linkOnly: "Daŭrigi nur per la kompleta ligilo",
+    linkOnlyReady: "Nur-ligila reĝimo elektita",
+    linkOnlyBody:
+      "Aparta ŝlosila QR ne estos kreita. Kiu ricevas la kompletan invitligilon povas malfermi ĝin.",
+    changeProtection: "Ŝanĝi protekton",
+    chooseRequired: "Elektu nur ligilon aŭ kreu/importu apartan ŝlosilan QR.",
   },
   pt: {
     protectTitle: "Chave extra · opcional",
@@ -300,6 +347,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "A verificar localmente…",
     differentChannel:
       "Este é o QR da chave, não o QR do convite. Envia-o separado do link ou QR do convite. Quem tiver ambos pode decifrar.",
+    linkOnly: "Continuar apenas com o link completo",
+    linkOnlyReady: "Modo apenas link selecionado",
+    linkOnlyBody:
+      "Não será criado um QR de chave separado. Quem obtiver o link completo poderá abrir o convite.",
+    changeProtection: "Alterar proteção",
+    chooseRequired: "Escolhe apenas link ou cria/importa um QR de chave separado.",
   },
   zh: {
     protectTitle: "额外密钥 · 可选",
@@ -329,6 +382,11 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "正在本地检查…",
     differentChannel:
       "这是密钥二维码，不是邀请二维码。请与邀请链接或二维码分开发送。同时获得两者的人可以解密邀请。",
+    linkOnly: "仅使用完整链接继续",
+    linkOnlyReady: "已选择仅链接模式",
+    linkOnlyBody: "不会创建单独的密钥二维码。获得完整邀请链接的人都可以打开邀请。",
+    changeProtection: "更改保护方式",
+    chooseRequired: "请选择仅链接，或创建/导入单独的密钥二维码。",
   },
   hi: {
     protectTitle: "अतिरिक्त कुंजी · वैकल्पिक",
@@ -360,6 +418,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "डिवाइस पर जाँच…",
     differentChannel:
       "यह कुंजी QR है, निमंत्रण QR नहीं। इसे निमंत्रण लिंक या QR से अलग भेजें। दोनों पाने वाला निमंत्रण खोल सकता है।",
+    linkOnly: "केवल पूरे लिंक के साथ जारी रखें",
+    linkOnlyReady: "केवल-लिंक मोड चुना गया",
+    linkOnlyBody:
+      "अलग कुंजी QR नहीं बनेगा। पूरा निमंत्रण लिंक पाने वाला कोई भी इसे खोल सकता है।",
+    changeProtection: "सुरक्षा बदलें",
+    chooseRequired: "केवल लिंक चुनें या अलग कुंजी QR बनाएँ/आयात करें।",
   },
   ja: {
     protectTitle: "追加の共有鍵・任意",
@@ -390,6 +454,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "端末内で確認中…",
     differentChannel:
       "これは鍵QRで、招待QRではありません。招待リンクまたはQRとは別に送ってください。両方を持つ人は復号できます。",
+    linkOnly: "完全なリンクだけで続行",
+    linkOnlyReady: "リンクのみのモードを選択済み",
+    linkOnlyBody:
+      "別の鍵QRは作成されません。完全な招待リンクを入手した人は招待を開けます。",
+    changeProtection: "保護方法を変更",
+    chooseRequired: "リンクのみ、または別の鍵QRの作成・読み込みを選択してください。",
   },
   tr: {
     protectTitle: "Ek anahtar · isteğe bağlı",
@@ -420,6 +490,12 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "Yerel kontrol…",
     differentChannel:
       "Bu anahtar QR'ıdır, davet QR'ı değildir. Davet bağlantısı veya QR'ından ayrı gönder. İkisini alan daveti çözebilir.",
+    linkOnly: "Yalnızca tam bağlantıyla devam et",
+    linkOnlyReady: "Yalnız bağlantı modu seçildi",
+    linkOnlyBody:
+      "Ayrı bir anahtar QR oluşturulmaz. Tam davet bağlantısını alan herkes daveti açabilir.",
+    changeProtection: "Korumayı değiştir",
+    chooseRequired: "Yalnız bağlantıyı seç veya ayrı bir anahtar QR oluştur/içe aktar.",
   },
   machine: {
     protectTitle: "SHARED_KEY::OPTIONAL",
@@ -449,5 +525,10 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     working: "LOCAL_VERIFY…",
     differentChannel:
       "key_qr!=invitation_qr; SEND_SEPARATELY; holder(invitation,key).decrypt=true",
+    linkOnly: "CONTINUE link_only",
+    linkOnlyReady: "MODE=LINK_ONLY",
+    linkOnlyBody: "key_qr=null; holder(complete_link).decrypt=true",
+    changeProtection: "CHANGE_PROTECTION",
+    chooseRequired: "SELECT link_only OR shared_key_qr",
   },
 };

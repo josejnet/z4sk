@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Locale } from "../lib/i18n";
+import { drawOrganicQr } from "../lib/organic-qr";
 import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
 
 type QrKind = "invitation" | "dashboard";
@@ -44,7 +45,7 @@ const COPY: Record<Locale, Copy> = {
       "Save it or take a screenshot. It replaces email recovery and is generated only on this device.",
     png: "Download PNG",
     jpg: "Download JPG",
-    share: "Share image",
+    share: "Share QR + link",
     generating: "Generating secure QR…",
     error: "The QR image could not be generated.",
   },
@@ -66,7 +67,7 @@ const COPY: Record<Locale, Copy> = {
       "Guárdalo o haz una captura. Sustituye la recuperación por correo y se genera solo en este dispositivo.",
     png: "Descargar PNG",
     jpg: "Descargar JPG",
-    share: "Compartir imagen",
+    share: "Compartir QR + enlace",
     generating: "Generando QR seguro…",
     error: "No se ha podido generar la imagen QR.",
   },
@@ -88,7 +89,7 @@ const COPY: Record<Locale, Copy> = {
       "Salvalo o fai uno screenshot. Sostituisce il recupero via e-mail ed è generato solo su questo dispositivo.",
     png: "Scarica PNG",
     jpg: "Scarica JPG",
-    share: "Condividi immagine",
+    share: "Condividi QR + link",
     generating: "Generazione QR sicuro…",
     error: "Impossibile generare l'immagine QR.",
   },
@@ -110,7 +111,7 @@ const COPY: Record<Locale, Copy> = {
       "Enregistrez-le ou faites une capture. Il remplace la récupération par e-mail et reste généré sur cet appareil.",
     png: "Télécharger PNG",
     jpg: "Télécharger JPG",
-    share: "Partager l'image",
+    share: "Partager QR + lien",
     generating: "Création du QR sécurisé…",
     error: "Impossible de créer l'image QR.",
   },
@@ -132,7 +133,7 @@ const COPY: Record<Locale, Copy> = {
       "Speichere ihn oder mache einen Screenshot. Er ersetzt die E-Mail-Wiederherstellung und entsteht nur auf diesem Gerät.",
     png: "PNG herunterladen",
     jpg: "JPG herunterladen",
-    share: "Bild teilen",
+    share: "QR + Link teilen",
     generating: "Sicherer QR wird erstellt…",
     error: "Das QR-Bild konnte nicht erstellt werden.",
   },
@@ -154,7 +155,7 @@ const COPY: Record<Locale, Copy> = {
       "Bewaar hem of maak een screenshot. Dit vervangt e-mailherstel en wordt alleen op dit apparaat gemaakt.",
     png: "PNG downloaden",
     jpg: "JPG downloaden",
-    share: "Afbeelding delen",
+    share: "Deel QR + link",
     generating: "Veilige QR maken…",
     error: "De QR-afbeelding kon niet worden gemaakt.",
   },
@@ -176,7 +177,7 @@ const COPY: Record<Locale, Copy> = {
       "Konservu ĝin aŭ fotu la ekranon. Ĝi anstataŭas retpoŝtan reakiron kaj kreiĝas nur en ĉi tiu aparato.",
     png: "Elŝuti PNG",
     jpg: "Elŝuti JPG",
-    share: "Kundividi bildon",
+    share: "Kunhavigi QR + ligilon",
     generating: "Kreante sekuran QR…",
     error: "La QR-bildo ne povis esti kreita.",
   },
@@ -198,7 +199,7 @@ const COPY: Record<Locale, Copy> = {
       "Guarda-o ou faz uma captura. Substitui a recuperação por e-mail e é gerado apenas neste dispositivo.",
     png: "Descarregar PNG",
     jpg: "Descarregar JPG",
-    share: "Partilhar imagem",
+    share: "Partilhar QR + link",
     generating: "A gerar QR seguro…",
     error: "Não foi possível gerar a imagem QR.",
   },
@@ -217,7 +218,7 @@ const COPY: Record<Locale, Copy> = {
     privateHint: "保存图片或截图。它可替代邮箱找回，并且只在此设备上生成。",
     png: "下载 PNG",
     jpg: "下载 JPG",
-    share: "分享图片",
+    share: "分享二维码和链接",
     generating: "正在生成安全二维码…",
     error: "无法生成二维码图片。",
   },
@@ -239,7 +240,7 @@ const COPY: Record<Locale, Copy> = {
       "इसे सहेजें या स्क्रीनशॉट लें। यह ईमेल रिकवरी की जगह लेता है और केवल इस डिवाइस पर बनता है।",
     png: "PNG डाउनलोड करें",
     jpg: "JPG डाउनलोड करें",
-    share: "तस्वीर साझा करें",
+    share: "QR और लिंक साझा करें",
     generating: "सुरक्षित QR बन रहा है…",
     error: "QR तस्वीर नहीं बन सकी।",
   },
@@ -261,7 +262,7 @@ const COPY: Record<Locale, Copy> = {
       "保存またはスクリーンショットしてください。メール復旧の代わりになり、この端末内だけで生成されます。",
     png: "PNGを保存",
     jpg: "JPGを保存",
-    share: "画像を共有",
+    share: "QRとリンクを共有",
     generating: "安全なQRを作成中…",
     error: "QR画像を作成できませんでした。",
   },
@@ -283,7 +284,7 @@ const COPY: Record<Locale, Copy> = {
       "Kaydet veya ekran görüntüsü al. E-posta kurtarmanın yerini alır ve yalnızca bu cihazda oluşturulur.",
     png: "PNG indir",
     jpg: "JPG indir",
-    share: "Görseli paylaş",
+    share: "QR + bağlantı paylaş",
     generating: "Güvenli QR oluşturuluyor…",
     error: "QR görseli oluşturulamadı.",
   },
@@ -302,7 +303,7 @@ const COPY: Record<Locale, Copy> = {
     privateHint: "recovery=email:none; generation=device_local",
     png: "DOWNLOAD .png",
     jpg: "DOWNLOAD .jpg",
-    share: "SHARE file",
+    share: "SHARE qr+url",
     generating: "GENERATING secure_qr…",
     error: "ERR_QR_GENERATION",
   },
@@ -380,7 +381,6 @@ async function renderCard(
   url: string,
   protectedBySharedKey: boolean,
 ) {
-  const { default: QRCode } = await import("qrcode");
   const c = COPY[locale];
   const invitation = kind === "invitation";
   const accent = invitation ? "#ff5a1f" : "#b989ff";
@@ -418,15 +418,10 @@ async function renderCard(
   drawWrapped(ctx, title, 540, 278, 880, 72, 3);
   ctx.textAlign = "left";
   const qr = document.createElement("canvas");
-  await QRCode.toCanvas(qr, url, {
-    width: 440,
-    margin: 3,
-    errorCorrectionLevel: "H",
-    color: { dark: "#080808", light: "#ffffff" },
-  });
+  await drawOrganicQr(qr, url, { targetSize: 440 });
   ctx.fillStyle = "#fff";
   ctx.fillRect(310, 500, 460, 460);
-  ctx.drawImage(qr, 320, 510, 440, 440);
+  ctx.drawImage(qr, 540 - qr.width / 2, 730 - qr.height / 2);
   ctx.strokeStyle = accent;
   ctx.lineWidth = 4;
   ctx.strokeRect(310, 500, 460, 460);
@@ -535,7 +530,9 @@ export function QrCard({
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `z4sk-${invitation ? "invitation" : "private-dashboard"}.${type === "image/png" ? "png" : "jpg"}`;
+    document.body.appendChild(link);
     link.click();
+    link.remove();
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   }
   async function share() {
@@ -551,6 +548,8 @@ export function QrCard({
       await navigator.share({
         files: [file],
         title: invitation ? c.publicHeading : c.privateHeading,
+        text: invitation ? `${c.inviteBody}\n${url}` : c.privateHint,
+        ...(invitation ? { url } : {}),
       });
     } catch {
       /* Closing the native share sheet is not an error. */

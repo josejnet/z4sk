@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Locale } from "../lib/i18n";
+import { drawOrganicQr } from "../lib/organic-qr";
 import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
 import {
   encodeSharedKeyQr,
@@ -32,17 +33,11 @@ export function SharedKeyCard({
     void Promise.all([
       encodeSharedKeyQr(sharedKey),
       sharedKeyFingerprint(sharedKey),
-      import("qrcode"),
     ])
-      .then(async ([payload, nextFingerprint, module]) => {
+      .then(async ([payload, nextFingerprint]) => {
         if (!active || !canvasRef.current) return;
         const qr = document.createElement("canvas");
-        await module.default.toCanvas(qr, payload, {
-          width: 500,
-          margin: 3,
-          errorCorrectionLevel: "H",
-          color: { dark: "#080808", light: "#ffffff" },
-        });
+        await drawOrganicQr(qr, payload, { targetSize: 500 });
         if (!active) return;
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
@@ -68,7 +63,11 @@ export function SharedKeyCard({
         context.fillText(copy.cardTitle.toUpperCase(), 52, 116);
         context.fillStyle = "#ffffff";
         context.fillRect(70, 155, 580, 580);
-        context.drawImage(qr, 110, 195, 500, 500);
+        context.drawImage(
+          qr,
+          360 - qr.width / 2,
+          445 - qr.height / 2,
+        );
         context.strokeStyle = "#ff5a1f";
         context.lineWidth = 4;
         context.strokeRect(70, 155, 580, 580);
@@ -102,13 +101,22 @@ export function SharedKeyCard({
     window.setTimeout(() => setCopied(false), 1600);
   }
 
-  function download() {
+  async function download() {
     const canvas = canvasRef.current;
     if (!canvas || rendered.key !== sharedKey) return;
+    const blob = await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob(
+        (value) => (value ? resolve(value) : reject(new Error("image"))),
+        "image/png",
+      ),
+    );
     const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
+    link.href = URL.createObjectURL(blob);
     link.download = `z4sk-shared-key-${rendered.fingerprint || "private"}.png`;
+    document.body.appendChild(link);
     link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   }
 
   const ready = rendered.key === sharedKey;
@@ -150,7 +158,11 @@ export function SharedKeyCard({
         )}
       </div>
       <div className="shared-key-card-actions">
-        <button type="button" disabled={!ready} onClick={download}>
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={() => void download()}
+        >
           {copy.download}
         </button>
         {showRecovery && (

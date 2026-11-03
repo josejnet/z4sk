@@ -1,4 +1,5 @@
 import type { Locale } from "./i18n";
+import { createOrganicQrDataUrl } from "./organic-qr";
 import { SHARED_KEY_COPY } from "./shared-key-copy";
 type InviteCopy = {
   title: string;
@@ -14,7 +15,7 @@ const copy: Record<Locale, InviteCopy> = {
     title: "You have something pending · Z4SK",
     from: "AN INVITATION FROM",
     headline: "{name}, there are questions only you can answer.",
-    body: "Answer honestly. Opening this invitation requires this link and the shared key sent through a different channel.",
+    body: "Answer honestly. Only the sender can read your encrypted answers.",
     open: "OPEN QUESTIONNAIRE",
     privacy: "Private bearer link · No account",
     sponsor: "SPONSOR SPACE",
@@ -23,7 +24,7 @@ const copy: Record<Locale, InviteCopy> = {
     title: "Tienes algo pendiente · Z4SK",
     from: "UNA INVITACIÓN DE",
     headline: "{name}, hay preguntas que solo tú puedes responder.",
-    body: "Contesta con sinceridad. Para abrir la invitación hacen falta este enlace y la llave enviada por un canal diferente.",
+    body: "Contesta con sinceridad. Solo quien te la envió podrá leer tus respuestas cifradas.",
     open: "ABRIR CUESTIONARIO",
     privacy: "Enlace privado al portador · Sin registro",
     sponsor: "ESPACIO DE PATROCINIO",
@@ -128,7 +129,21 @@ const copy: Record<Locale, InviteCopy> = {
     sponsor: "SPONSOR_SLOT",
   },
 };
-export function downloadInvitationHtml(input: {
+function escapeHtml(value: string) {
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[character] || character,
+  );
+}
+
+export async function downloadInvitationHtml(input: {
   recipientName: string;
   creatorName: string;
   playUrl: string;
@@ -136,21 +151,19 @@ export function downloadInvitationHtml(input: {
   protectedBySharedKey?: boolean;
 }) {
   const s = copy[input.locale];
-  const data = {
-    ...input,
-    ...s,
-    body: input.protectedBySharedKey
-      ? SHARED_KEY_COPY[input.locale].unlockBody
-      : s.body,
-    headline: s.headline.replace("{name}", input.recipientName),
-  };
-  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-  const html = `<!doctype html><html lang="${input.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${s.title}</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0b0b;color:#f4efe8;font-family:Arial,sans-serif;padding:22px}.card{width:min(100%,420px);border:1px solid #302b28;background:linear-gradient(145deg,#181513,#101010);padding:34px;box-shadow:0 30px 80px #000}.logo{font-weight:800;letter-spacing:.2em;font-size:12px}.spark{color:#ff5a1f;font-size:50px;margin:50px 0 20px}small{color:#ff5a1f;letter-spacing:.15em;font-weight:700}h1{font:400 42px/1.03 Georgia,serif;letter-spacing:-.04em;margin:14px 0 18px}p{color:#aaa19a;line-height:1.6}.cta{display:block;background:#ff5a1f;color:#111;text-decoration:none;padding:17px 20px;margin-top:30px;font-weight:800;text-align:center}.ad{border-top:1px solid #2d2927;margin-top:30px;padding-top:18px;color:#625d59;font-size:10px;text-align:center}.privacy{font-size:11px;color:#6f6964;text-align:center;margin-top:18px}</style></head><body><main class="card"><div class="logo">Z4SK</div><div class="spark">✦</div><small><span id="fl"></span> <span id="from"></span></small><h1 id="headline"></h1><p id="body"></p><a class="cta" id="open"></a><div class="privacy" id="privacy"></div><div class="ad" id="ad"></div></main><script>const d=JSON.parse(decodeURIComponent(escape(atob('${encoded}'))));fl.textContent=d.from;from.textContent=d.creatorName;headline.textContent=d.headline;body.textContent=d.body;open.textContent=d.open+' →';open.href=d.playUrl;privacy.textContent='◆ '+d.privacy;ad.textContent=d.sponsor+' · Z4SK';</script></body></html>`;
+  const body = input.protectedBySharedKey
+    ? SHARED_KEY_COPY[input.locale].unlockBody
+    : s.body;
+  const headline = s.headline.replace("{name}", input.recipientName);
+  const qrDataUrl = await createOrganicQrDataUrl(input.playUrl, 420);
+  const html = `<!doctype html><html lang="${escapeHtml(input.locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(s.title)}</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0b0b;color:#f4efe8;font-family:Arial,sans-serif;padding:22px}.card{width:min(100%,460px);border:1px solid #302b28;background:linear-gradient(145deg,#181513,#101010);padding:34px;box-shadow:0 30px 80px #000}.logo{font-weight:800;letter-spacing:.2em;font-size:12px}.spark{color:#ff5a1f;font-size:42px;margin:34px 0 16px}small{color:#ff5a1f;letter-spacing:.15em;font-weight:700}h1{font:400 42px/1.03 Georgia,serif;letter-spacing:-.04em;margin:14px 0 18px}p{color:#aaa19a;line-height:1.6}.qr{display:block;width:min(100%,320px);height:auto;margin:24px auto;background:#fff;border:12px solid #fff}.cta{display:block;background:#ff5a1f;color:#111;text-decoration:none;padding:17px 20px;margin-top:22px;font-weight:800;text-align:center}.link{color:#8f8781;font:11px/1.5 monospace;overflow-wrap:anywhere;margin-top:16px}.ad{border-top:1px solid #2d2927;margin-top:30px;padding-top:18px;color:#625d59;font-size:10px;text-align:center}.privacy{font-size:11px;color:#6f6964;text-align:center;margin-top:18px}</style></head><body><main class="card"><div class="logo">Z4SK</div><div class="spark">✦</div><small>${escapeHtml(s.from)} ${escapeHtml(input.creatorName)}</small><h1>${escapeHtml(headline)}</h1><p>${escapeHtml(body)}</p><img class="qr" src="${qrDataUrl}" alt="QR Z4SK"><a class="cta" href="${escapeHtml(input.playUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(s.open)} →</a><p class="link">${escapeHtml(input.playUrl)}</p><div class="privacy">◆ ${escapeHtml(s.privacy)}</div><div class="ad">${escapeHtml(s.sponsor)} · Z4SK</div></main></body></html>`;
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = `open-${input.recipientName.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, "-")}.html`;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

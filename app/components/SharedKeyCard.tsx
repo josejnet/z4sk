@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import type { Locale } from "../lib/i18n";
 import { drawOrganicQr } from "../lib/organic-qr";
 import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
@@ -50,10 +51,12 @@ export function SharedKeyCard({
   locale,
   sharedKey,
   showRecovery = true,
+  footer,
 }: {
   locale: Locale;
   sharedKey: string;
   showRecovery?: boolean;
+  footer?: ReactNode;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rendered, setRendered] = useState({
@@ -217,6 +220,7 @@ export function SharedKeyCard({
                 {copied ? copy.copied : copy.copyWords}
               </button>
             </div>
+            {footer}
           </div>
         )}
       </div>

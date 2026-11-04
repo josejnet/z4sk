@@ -82,19 +82,21 @@ export function SharedKeySetup({
           locale={locale}
           sharedKey={sharedKey}
           showRecovery
+          footer={
+            <label id="shared-key-confirmation" className="shared-key-confirm">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(event) => {
+                  const next = event.target.checked;
+                  onConfirm(next);
+                  if (next) onCreate(sharedKey, false);
+                }}
+              />
+              <span>{copy.confirm}</span>
+            </label>
+          }
         />
-        <label id="shared-key-confirmation" className="shared-key-confirm">
-          <input
-            type="checkbox"
-            checked={confirmed}
-            onChange={(event) => {
-              const next = event.target.checked;
-              onConfirm(next);
-              if (next) onCreate(sharedKey, false);
-            }}
-          />
-          <span>{copy.confirm}</span>
-        </label>
       </section>
     );
 

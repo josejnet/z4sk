@@ -1,7 +1,2 @@
-# Security-sensitive application, workflow and documentation changes require owner review.
-* @josejnet
-/.github/ @josejnet
-/app/api/ @josejnet
-/app/lib/ @josejnet
-/db/ @josejnet
-/scripts/ @josejnet
+# Security-sensitive paths are reviewed by the normal checks and repository rules.
+# No default owner is listed here so Dependabot updates do not request a personal review.

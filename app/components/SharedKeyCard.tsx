@@ -201,27 +201,36 @@ export function SharedKeyCard({
             <p className="shared-key-phrase" lang="es">
               {recoveryPhrase}
             </p>
+            <div className="shared-key-card-actions">
+              <button
+                type="button"
+                disabled={!ready}
+                onClick={() => void download()}
+              >
+                {copy.download}
+              </button>
+              <button
+                type="button"
+                disabled={!rendered.mnemonic}
+                onClick={copyPhrase}
+              >
+                {copied ? copy.copied : copy.copyWords}
+              </button>
+            </div>
           </div>
         )}
       </div>
-      <div className="shared-key-card-actions">
-        <button
-          type="button"
-          disabled={!ready}
-          onClick={() => void download()}
-        >
-          {copy.download}
-        </button>
-        {showRecovery && (
+      {!showRecovery && (
+        <div className="shared-key-card-actions">
           <button
             type="button"
-            disabled={!rendered.mnemonic}
-            onClick={copyPhrase}
+            disabled={!ready}
+            onClick={() => void download()}
           >
-            {copied ? copy.copied : copy.copyWords}
+            {copy.download}
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 }

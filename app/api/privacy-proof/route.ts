@@ -275,7 +275,7 @@ export async function GET() {
         id: "expiry-games",
         label: "No expired invitation rows remain in the active database",
         pass: Number(expiredGames?.count || 0) === 0,
-        evidence: `${Number(expiredGames?.count || 0)} expired invitation records await scheduled physical purge.`,
+        evidence: `${Number(expiredGames?.count || 0)} expired invitation records await scheduled or opportunistic physical purge.`,
       },
       {
         id: "purge-heartbeat",
@@ -323,7 +323,7 @@ export async function GET() {
         launchReadiness: launchReady ? "ready" : "blocked",
         checks,
         retention: {
-          cron: "daily at 03:00 UTC; exact timing and retries are not guaranteed on Vercel Hobby",
+          cron: "daily at 03:00 UTC, plus a best-effort purge of up to 25 expired invitations when a new invitation is created; exact cron timing and retries are not guaranteed on Vercel Hobby",
           activeDatabaseDeadline:
             "all public and private access stops exactly at expiry; post-expiry access triggers active-row deletion",
           explicitDeletion:

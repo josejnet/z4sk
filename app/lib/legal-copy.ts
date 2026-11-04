@@ -135,7 +135,22 @@ const PRIVACY_DELETION_COPY:Record<Locale,string>={
   tr:"Erişim tam sona erme anında durur. Oluşturucu veya alıcı silme işlemi ve tek görüntüleme aktif veriyi işlem içinde kaldırır. Günlük temizlik en iyi çabadır; 24 saat içinde fiziksel silme garantisi yoktur. Neon kurtarma geçmişi tam politikada yayımlanan pencereye uyar.",
   machine:"access.stop=expires_at; active_delete=transaction(creator|recipient|consume_once); cron=daily_best_effort; physical_delete_sla_24h=false; neon_restore_window=full_policy"
 };
-for(const locale of Object.keys(PRIVACY_DELETION_COPY) as Locale[])LEGAL_COPY[locale].docs.privacy.points[2][1]=PRIVACY_DELETION_COPY[locale];
+const OPPORTUNISTIC_RETENTION_SUFFIX:Record<Locale,string>={
+  en:" A bounded purge also runs when a new invitation is created; the daily cleanup remains the fallback.",
+  es:" También se intenta una purga limitada al crear una invitación nueva; la limpieza diaria sigue siendo el respaldo.",
+  it:" Una purga limitata viene eseguita anche quando si crea un nuovo invito; la pulizia giornaliera resta il backup.",
+  fr:" Une purge limitée est également tentée lors de la création d’une nouvelle invitation ; le nettoyage quotidien reste le filet de sécurité.",
+  de:" Beim Erstellen einer neuen Einladung wird zusätzlich eine begrenzte Bereinigung versucht; die tägliche Bereinigung bleibt der Fallback.",
+  nl:" Bij het maken van een nieuwe uitnodiging wordt ook een beperkte opschoning geprobeerd; de dagelijkse opschoning blijft de back-up.",
+  eo:" Limigita purigo okazas ankaŭ ĉe kreado de nova invito; la ĉiutaga purigo restas la rezervo.",
+  pt:" Também é tentada uma purga limitada ao criar um novo convite; a limpeza diária continua a ser o recurso de reserva.",
+  zh:" 创建新邀请时也会尝试执行有限清理；每日清理仍是备用机制。",
+  hi:" नया निमंत्रण बनाते समय सीमित सफाई भी आज़माई जाती है; दैनिक सफाई बैकअप बनी रहती है।",
+  ja:" 新しい招待の作成時にも最大件数を制限した削除を試み、日次削除をフォールバックとして維持します。",
+  tr:" Yeni bir davet oluşturulurken sınırlı bir temizlik de denenir; günlük temizlik yedek mekanizma olarak kalır.",
+  machine:"; opportunistic_purge=on_create(max=25); cron=daily_fallback"
+};
+for(const locale of Object.keys(PRIVACY_DELETION_COPY) as Locale[]){LEGAL_COPY[locale].docs.privacy.points[2][1]=PRIVACY_DELETION_COPY[locale]+OPPORTUNISTIC_RETENTION_SUFFIX[locale];}
 LEGAL_COPY.es.docs.privacy.points[3]=["Métricas, infraestructura y derechos",OWNER_BLINDNESS_COPY.es.founder];
 const SPONSOR_METRICS_COPY:Record<Locale,string>={
   en:" Sponsor statistics are first-party aggregate counters by campaign, day, language and placement; no user, device or invitation identifier is stored.",

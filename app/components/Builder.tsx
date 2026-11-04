@@ -475,146 +475,6 @@ const paymentCopy = localized<{ title: string; copy: string; soon: string }>({
   },
 });
 void paymentCopy;
-const accessCopy = localized<{
-  email: string;
-  placeholder: string;
-  security: string;
-  invalid: string;
-  send: string;
-  subject: string;
-  body: string;
-}>({
-  en: {
-    email: "YOUR EMAIL · OPTIONAL",
-    placeholder: "you@example.com",
-    security:
-      "Security measure: Z4SK never receives or stores it. It is used here only to open your email app; your email provider processes it if you send the message. Leave it blank and save the private QR instead. Use a nickname for extra privacy.",
-    invalid: "Enter a valid email or leave it blank.",
-    send: "Open my email app with the access link",
-    subject: "Your private Z4SK access link",
-    body: "This is your unique private dashboard link. Keep it secret:",
-  },
-  es: {
-    email: "TU CORREO · OPCIONAL",
-    placeholder: "tu@ejemplo.com",
-    security:
-      "Medida de seguridad: Z4SK nunca lo recibe ni lo guarda. Aquí solo se usa para abrir tu aplicación de correo; tu proveedor lo tratará si envías el mensaje. Puedes dejarlo vacío y conservar el QR privado. Usa un alias para mayor privacidad.",
-    invalid: "Introduce un correo válido o déjalo vacío.",
-    send: "Abrir mi correo con el enlace de acceso",
-    subject: "Tu enlace privado de acceso a Z4SK",
-    body: "Este es tu enlace único al panel privado. Guárdalo en secreto:",
-  },
-  it: {
-    email: "LA TUA EMAIL · FACOLTATIVA",
-    placeholder: "tu@esempio.com",
-    security:
-      "Misura di sicurezza: Z4SK non la riceve né la salva. Qui serve solo ad aprire l'app e-mail; il provider la tratterà se invii il messaggio. Puoi lasciarla vuota e conservare il QR privato. Usa un alias per maggiore privacy.",
-    invalid: "Inserisci un indirizzo valido o lascia il campo vuoto.",
-    send: "Apri l'app e-mail con il link di accesso",
-    subject: "Il tuo link privato Z4SK",
-    body: "Questo è il link unico al pannello privato. Tienilo segreto:",
-  },
-  fr: {
-    email: "VOTRE E-MAIL · FACULTATIVE",
-    placeholder: "vous@exemple.com",
-    security:
-      "Mesure de sécurité : Z4SK ne la reçoit ni ne la stocke. Elle sert ici uniquement à ouvrir votre application e-mail ; votre fournisseur la traitera si vous envoyez le message. Laissez-la vide et conservez le QR privé. Utilisez un pseudonyme pour plus de confidentialité.",
-    invalid: "Saisissez une adresse valide ou laissez le champ vide.",
-    send: "Ouvrir mon e-mail avec le lien d'accès",
-    subject: "Votre lien privé Z4SK",
-    body: "Voici votre lien unique vers l’espace privé. Gardez-le secret :",
-  },
-  de: {
-    email: "DEINE E-MAIL · OPTIONAL",
-    placeholder: "du@beispiel.de",
-    security:
-      "Sicherheitsmaßnahme: Z4SK empfängt oder speichert sie nicht. Sie dient hier nur zum Öffnen deiner E-Mail-App; beim Senden verarbeitet sie dein Anbieter. Lass sie leer und sichere den privaten QR. Nutze für mehr Privatsphäre einen Alias.",
-    invalid: "Gib eine gültige E-Mail ein oder lass das Feld leer.",
-    send: "E-Mail-App mit Zugangslink öffnen",
-    subject: "Dein privater Z4SK-Link",
-    body: "Dies ist dein einmaliger privater Dashboard-Link. Halte ihn geheim:",
-  },
-  nl: {
-    email: "JOUW E-MAIL · OPTIONEEL",
-    placeholder: "jij@voorbeeld.nl",
-    security:
-      "Beveiligingsmaatregel: Z4SK ontvangt of bewaart het adres niet. Het wordt hier alleen gebruikt om je e-mailapp te openen; bij verzenden verwerkt je provider het. Laat het leeg en bewaar de privé-QR. Gebruik een alias voor extra privacy.",
-    invalid: "Vul een geldig adres in of laat het veld leeg.",
-    send: "E-mailapp openen met toegangslink",
-    subject: "Jouw privétoegangslink voor Z4SK",
-    body: "Dit is de unieke link naar je privédashboard. Houd hem geheim:",
-  },
-  eo: {
-    email: "VIA RETPOŜTO · NEDEVIGA",
-    placeholder: "vi@ekzemplo.org",
-    security:
-      "Sekureca rimedo: Z4SK ne ricevas aŭ konservas ĝin. Ĝi estas uzata ĉi tie nur por malfermi la retpoŝtan aplikaĵon; via provizanto prilaboros ĝin se vi sendos. Lasu ĝin malplena kaj konservu la privatan QR. Uzu kaŝnomon por pli da privateco.",
-    invalid: "Enigu validan adreson aŭ lasu ĝin malplena.",
-    send: "Malfermi retpoŝton kun la alirligilo",
-    subject: "Via privata alirligilo al Z4SK",
-    body: "Jen via unika ligilo al la privata panelo. Tenu ĝin sekreta:",
-  },
-  pt: {
-    email: "O TEU E-MAIL · OPCIONAL",
-    placeholder: "tu@exemplo.pt",
-    security:
-      "Medida de segurança: o Z4SK nunca o recebe nem guarda. Aqui só é usado para abrir a aplicação de e-mail; o teu fornecedor processa-o se enviares a mensagem. Deixa-o vazio e guarda o QR privado. Usa um pseudónimo para maior privacidade.",
-    invalid: "Introduz um e-mail válido ou deixa o campo vazio.",
-    send: "Abrir o e-mail com o link de acesso",
-    subject: "O teu link privado de acesso ao Z4SK",
-    body: "Este é o teu link único para o painel privado. Guarda-o em segredo:",
-  },
-  zh: {
-    email: "你的邮箱 · 可选",
-    placeholder: "you@example.com",
-    security:
-      "安全措施：Z4SK 不会接收或保存邮箱。这里只用于打开邮件应用；发送后由你的邮件服务商处理。你可以留空并保存私人二维码。如需更高隐私，请使用昵称。",
-    invalid: "请输入有效邮箱，或将其留空。",
-    send: "用邮件应用打开访问链接",
-    subject: "你的 Z4SK 私人访问链接",
-    body: "这是你的专属私人面板链接，请妥善保管：",
-  },
-  hi: {
-    email: "आपका ईमेल · वैकल्पिक",
-    placeholder: "you@example.com",
-    security:
-      "सुरक्षा उपाय: Z4SK ईमेल को न प्राप्त करता है, न सहेजता है। यहाँ यह सिर्फ ईमेल ऐप खोलने के लिए है; संदेश भेजने पर आपका ईमेल प्रदाता इसे संभालेगा। इसे खाली छोड़कर निजी QR सहेज सकते हैं। अधिक गोपनीयता के लिए उपनाम रखें।",
-    invalid: "सही ईमेल डालें या इसे खाली छोड़ें।",
-    send: "एक्सेस लिंक के साथ ईमेल ऐप खोलें",
-    subject: "आपका निजी Z4SK एक्सेस लिंक",
-    body: "यह आपके निजी डैशबोर्ड का अनोखा लिंक है। इसे गुप्त रखें:",
-  },
-  ja: {
-    email: "メールアドレス · 任意",
-    placeholder: "you@example.com",
-    security:
-      "安全対策：Z4SKはメールアドレスを受信も保存もしません。ここではメールアプリを開くためだけに使い、送信後はメール事業者が処理します。空欄にして非公開QRを保存できます。より匿名にするなら別名を使ってください。",
-    invalid: "正しいメールアドレスを入力するか、空欄にしてください。",
-    send: "アクセスリンクをメールアプリで開く",
-    subject: "Z4SKの非公開アクセスリンク",
-    body: "非公開パネルへの専用リンクです。秘密に保管してください：",
-  },
-  tr: {
-    email: "E-POSTAN · İSTEĞE BAĞLI",
-    placeholder: "sen@ornek.com",
-    security:
-      "Güvenlik önlemi: Z4SK e-postayı almaz veya saklamaz. Burada yalnızca e-posta uygulamanı açmak için kullanılır; mesajı gönderirsen sağlayıcın işler. Boş bırakıp özel QR'ı kaydedebilirsin. Daha fazla gizlilik için takma ad kullan.",
-    invalid: "Geçerli bir e-posta gir veya boş bırak.",
-    send: "Erişim bağlantısıyla e-posta uygulamasını aç",
-    subject: "Özel Z4SK erişim bağlantın",
-    body: "Bu, özel paneline ait benzersiz bağlantıdır. Gizli tut:",
-  },
-  machine: {
-    email: "creator.email? // OPTIONAL",
-    placeholder: "user@example.net",
-    security:
-      "SECURITY: Z4SK_receive=false; database_store=false; mailto.local_compose=true; on_send=>email_provider_process=true; display_name.visible=true",
-    invalid: "ASSERT email==null OR email.valid",
-    send: "OPEN mailto: WITH admin_url",
-    subject: "Z4SK_PRIVATE_ACCESS_URL",
-    body: "admin_url follows; classification=SECRET:",
-  },
-});
 const encryptionCopy = localized<Record<"notice", string>>({
   en: {
     notice:
@@ -695,7 +555,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [step, setStep] = useState(1);
   const [creatorName, setCreatorName] = useState("");
-  const [creatorEmail, setCreatorEmail] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [level, setLevel] = useState<Level>("coqueto");
   const [adultConfirmed, setAdultConfirmed] = useState(false);
@@ -716,12 +575,9 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [sharedKeyConfirmed, setSharedKeyConfirmed] = useState(false);
   const [linkOnlyConfirmed, setLinkOnlyConfirmed] = useState(false);
   const questions = getQuestions(locale, level);
-  const emailValid =
-    !creatorEmail.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail);
   const identityValid =
     creatorName.trim().length >= 1 &&
-    recipientName.trim().length >= 1 &&
-    emailValid;
+    recipientName.trim().length >= 1;
   const intensityValid = level !== "sinfiltro" || adultConfirmed;
 
   useEffect(() => {
@@ -936,30 +792,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
               <small id="recipient-name-rule" className="name-rule">
                 {NAME_RULE_COPY[locale]}
               </small>
-            </div>
-            <div className="email-field">
-              <label htmlFor="creator-email">{accessCopy[locale].email}</label>
-              <input
-                id="creator-email"
-                type="email"
-                autoComplete="email"
-                value={creatorEmail}
-                onChange={(event) =>
-                  setCreatorEmail(event.target.value.slice(0, 120))
-                }
-                placeholder={accessCopy[locale].placeholder}
-                aria-describedby="email-security email-error"
-                aria-invalid={!emailValid}
-              />
-              <p id="email-security" className="email-security">
-                <span>◆</span>
-                {accessCopy[locale].security}
-              </p>
-              {!emailValid && (
-                <p id="email-error" className="form-error" role="alert">
-                  {accessCopy[locale].invalid}
-                </p>
-              )}
             </div>
           </div>
           <button
@@ -1276,7 +1108,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             className="text-button"
             onClick={() => {
               setCreated(null);
-              setCreatorEmail("");
               setSharedKey("");
               setSharedKeyConfirmed(false);
               setLinkOnlyConfirmed(false);

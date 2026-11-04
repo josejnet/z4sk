@@ -1,8 +1,7 @@
 .wizard-next{margin-top:32px}
 .intensity-fieldset{margin-top:0}
 .builder-dialog .button-row{padding-top:20px}
-.identity-step .two-fields{grid-template-columns:repeat(3,minmax(0,1fr));align-items:start}
-.identity-step .email-field{grid-column:auto}
+.identity-step .two-fields{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
 .choice-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);gap:clamp(28px,4vw,64px);align-items:start}
 .choice-layout .response-mode{margin-top:0}
 .choice-layout .response-mode-grid{grid-template-columns:1fr}
@@ -53,7 +52,6 @@
 
 @media(max-width:900px){
   .identity-step .two-fields,.choice-layout,.questions-step-layout{grid-template-columns:1fr}
-  .identity-step .email-field{grid-column:auto}
   .choice-layout .response-mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .questions-step-layout>.feature-config{position:static}
   .questions-panel .questions-list{grid-template-columns:1fr}

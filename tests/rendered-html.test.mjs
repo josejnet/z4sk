@@ -171,9 +171,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /¿CUÁNDO DESAPARECE\?/);
   assert.doesNotMatch(builder, /PACK PATROCINADO/);
   assert.match(builder, /SMART MIX/);
-  assert.match(builder, /creatorEmail/);
-  assert.match(builder, /YOUR EMAIL · OPTIONAL/);
-  assert.match(builder, /Z4SK never receives or stores it/);
+  assert.doesNotMatch(builder, /creatorEmail|creator-email|YOUR EMAIL · OPTIONAL/);
+  assert.match(builder, /<button[\s\S]{0,220}onClick=\{\(\) => setStep\(2\)\}/);
   assert.match(builder, /<QrCard[\s\S]{0,100}kind="invitation"/);
   assert.match(builder, /<QrCard[\s\S]{0,100}kind="dashboard"/);
   assert.match(builder, /generateResponseKeyPair/);

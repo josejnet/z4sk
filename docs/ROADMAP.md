@@ -2,6 +2,7 @@
 
 ## Phase 1 — validate the loop
 
+- define a separate, explicit opt-in newsletter that is not associated with invitations
 - connect the branded domain and complete trademark clearance
 - measure create → share → open → response → remix
 - add automated expiry cleanup and retention evidence

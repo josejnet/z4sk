@@ -61,7 +61,7 @@ const COPY: Record<Locale, Copy> = {
     secretCta: "SECRETO · NO COMPARTIR",
     publicHeading: "QR de invitación · el mismo acceso que el enlace",
     publicHint:
-      "Envía este QR o el enlace que aparece debajo: ambos abren la misma invitación. Este QR nunca contiene el enlace de tu panel privado.",
+      "Envía este QR o el enlace que aparece debajo: ambos abren la misma invitación. Este QR nunca contiene el enlace de tu panel privado. El enlace por sí solo no puede abrir esta invitación.",
     privateHeading: "QR del panel privado",
     privateHint:
       "Guárdalo o haz una captura. Sustituye la recuperación por correo y se genera solo en este dispositivo.",
@@ -311,7 +311,7 @@ const COPY: Record<Locale, Copy> = {
 
 const PRIVATE_WARNING: Record<Locale, string> = {
   en: "Warning: this QR contains the secret creator link, but not the separate shared key. Keep it private. Anyone who obtains both can open the dashboard and decrypt answers.",
-  es: "Aviso: este QR contiene el enlace secreto del creador, pero no la llave compartida. Guárdalo en privado. Quien consiga ambos podrá abrir el panel y descifrar respuestas.",
+  es: "Este QR contiene el enlace secreto del creador, pero no la llave compartida. Guárdalo en privado. Quien consiga ambos podrá abrir el panel y descifrar respuestas.",
   it: "Attenzione: questo QR contiene il link segreto del creatore, ma non la chiave condivisa separata. Chi ottiene entrambi può aprire il pannello e decifrare le risposte.",
   fr: "Attention : ce QR contient le lien secret du créateur, mais pas la clé partagée séparée. Toute personne obtenant les deux peut ouvrir le tableau de bord et déchiffrer les réponses.",
   de: "Warnung: Dieser QR enthält den geheimen Ersteller-Link, aber nicht den getrennten gemeinsamen Schlüssel. Wer beides besitzt, kann das Dashboard öffnen und Antworten entschlüsseln.",

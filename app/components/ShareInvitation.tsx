@@ -32,7 +32,7 @@ const copy: Record<Locale, Copy> = {
   },
   es: {
     title: "1 · Envía el enlace o el QR de invitación",
-    hint: "El enlace y el QR de invitación dan el mismo acceso para responder: basta con enviar uno. Nunca compartas el enlace de tu panel privado.",
+    hint: "Envía este enlace o el QR que aparece debajo: ambos abren la misma invitación. Este enlace nunca contiene el acceso a tu panel privado. El enlace por sí solo no puede abrir esta invitación.",
     keyStep: "2 · Como activaste la llave opcional, envía su QR o frase de recuperación por separado; nunca junto a la invitación.",
     answerStep: "La persona responde y las respuestas cifradas aparecen únicamente en tu panel privado.",
     whatsapp: "WhatsApp",

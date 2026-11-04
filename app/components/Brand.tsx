@@ -21,5 +21,6 @@ export function TopNav({ minimal = false }: { minimal?: boolean }) {
 type SponsorPlacement = "invitation" | "completion" | "dashboard";
 
 export function Sponsor(_props: { compact?: boolean; placement: SponsorPlacement }) {
+  void _props;
   return null;
 }

@@ -20,7 +20,7 @@ export function SharedKeySetup({
   sharedKey: string;
   confirmed: boolean;
   linkOnly: boolean;
-  onChange: (key: string, generated: boolean) => void;
+  onChange: (key: string) => void;
   onConfirm: (value: boolean) => void;
   onLinkOnly: (value: boolean) => void;
 }) {
@@ -41,26 +41,22 @@ export function SharedKeySetup({
     machine: "KEY=reusable; direction=bidirectional; messages=many; lifetime=ongoing",
   };
   const [showImport, setShowImport] = useState(false);
-  const [generated, setGenerated] = useState(false);
 
   function create() {
-    setGenerated(true);
     setShowImport(false);
     onLinkOnly(false);
-    onChange(generateSharedKey(), true);
+    onChange(generateSharedKey());
   }
 
   function replace() {
-    setGenerated(false);
     setShowImport(false);
     onLinkOnly(false);
-    onChange("", false);
+    onChange("");
   }
 
   function chooseLinkOnly() {
-    setGenerated(false);
     setShowImport(false);
-    onChange("", false);
+    onChange("");
     onConfirm(false);
     onLinkOnly(true);
   }
@@ -82,7 +78,7 @@ export function SharedKeySetup({
         <SharedKeyCard
           locale={locale}
           sharedKey={sharedKey}
-          showRecovery={generated}
+          showRecovery
         />
         <label id="shared-key-confirmation" className="shared-key-confirm">
           <input
@@ -141,10 +137,9 @@ export function SharedKeySetup({
           compact
           locale={locale}
           onKey={(key) => {
-            setGenerated(false);
             setShowImport(false);
             onLinkOnly(false);
-            onChange(key, false);
+            onChange(key);
             onConfirm(true);
           }}
         />

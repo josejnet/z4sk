@@ -42,9 +42,9 @@ export function SharedKeyCard({
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
         if (!context) throw new Error("canvas");
-        canvas.width = 720;
+        canvas.width = 1200;
         const mnemonic = showRecovery ? sharedKeyToMnemonic(sharedKey) : "";
-        canvas.height = showRecovery ? 1040 : 900;
+        canvas.height = 800;
         context.fillStyle = "#0b0b0b";
         context.fillRect(0, 0, canvas.width, canvas.height);
         const glow = context.createRadialGradient(600, 80, 20, 600, 80, 420);
@@ -63,42 +63,36 @@ export function SharedKeyCard({
         context.font = "700 18px Arial, 'Noto Sans', sans-serif";
         context.fillText(copy.cardTitle.toUpperCase(), 52, 116);
         context.fillStyle = "#ffffff";
-        context.fillRect(70, 155, 580, 580);
+        context.fillRect(70, 150, 560, 560);
         context.drawImage(
           qr,
-          360 - qr.width / 2,
-          445 - qr.height / 2,
+          350 - qr.width / 2,
+          430 - qr.height / 2,
+          500,
+          500,
         );
         context.strokeStyle = "#ff5a1f";
         context.lineWidth = 4;
-        context.strokeRect(70, 155, 580, 580);
+        context.strokeRect(70, 150, 560, 560);
         context.fillStyle = "#77706a";
         context.font = "700 15px Arial, 'Noto Sans', sans-serif";
-        context.fillText(copy.fingerprint, 70, 790);
+        context.fillText(copy.fingerprint, 70, 750);
         context.fillStyle = "#f4efe8";
         context.font = "700 24px monospace";
-        context.fillText(nextFingerprint, 70, 830);
+        context.fillText(nextFingerprint, 70, 785);
         context.fillStyle = "#ff5a1f";
         context.font = "700 16px Arial, sans-serif";
-        context.fillText("Z4SK · E2EE · 128 BIT", 70, 870);
+        context.fillText("Z4SK · E2EE · 128 BIT", 70, 815);
         if (mnemonic) {
           context.fillStyle = "#77706a";
           context.font = "700 15px Arial, 'Noto Sans', sans-serif";
-          context.fillText(copy.phrase, 70, 910);
+          const phraseX = 700;
+          context.fillText(copy.phrase, phraseX, 165);
           context.fillStyle = "#f4efe8";
-          context.font = "700 18px Arial, 'Noto Sans', sans-serif";
-          const words = mnemonic.split(" ");
-          let line = "";
-          let y = 945;
-          for (const word of words) {
-            const next = line ? `${line} ${word}` : word;
-            if (context.measureText(next).width > 580) {
-              context.fillText(line, 70, y);
-              line = word;
-              y += 27;
-            } else line = next;
-          }
-          if (line) context.fillText(line, 70, y);
+          context.font = "700 22px Arial, 'Noto Sans', sans-serif";
+          mnemonic.split(" ").forEach((word, index) => {
+            context.fillText(`${String(index + 1).padStart(2, "0")}  ${word}`, phraseX, 210 + index * 42);
+          });
         }
         setRendered({
           key: sharedKey,
@@ -112,7 +106,7 @@ export function SharedKeyCard({
     return () => {
       active = false;
     };
-  }, [copy.cardTitle, copy.fingerprint, sharedKey, showRecovery]);
+  }, [copy.cardTitle, copy.fingerprint, copy.phrase, sharedKey, showRecovery]);
 
   async function copyPhrase() {
     if (!rendered.mnemonic) return;
@@ -165,16 +159,13 @@ export function SharedKeyCard({
           )}
         </div>
         {showRecovery && (
-          <details className="shared-key-recovery">
-            <summary>
-              <span>{copy.phrase}</span>
-              <i aria-hidden="true">+</i>
-            </summary>
+          <div className="shared-key-recovery">
+            <div className="shared-key-recovery-label">{copy.phrase}</div>
             <p>{copy.phraseHelp}</p>
             <p className="shared-key-phrase" lang="es">
               {recoveryPhrase}
             </p>
-          </details>
+          </div>
         )}
       </div>
       <div className="shared-key-card-actions">

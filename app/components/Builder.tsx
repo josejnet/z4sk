@@ -406,6 +406,7 @@ const panelShareCopy = localized<{ button: string; hint: string }>({
   tr: { button: "Panelimi WhatsApp'ta paylaş", hint: "Özel panel bağlantısını kendi WhatsApp sohbetinde saklamak için kendine gönder." },
   machine: { button: "SHARE admin_url VIA whatsapp:// TO SELF", hint: "recipient=self; preserve=private_dashboard_url" },
 });
+void growthCopy;
 const paymentCopy = localized<{ title: string; copy: string; soon: string }>({
   en: {
     title: "Custom background + advanced stats · $0.99",
@@ -473,6 +474,7 @@ const paymentCopy = localized<{ title: string; copy: string; soon: string }>({
     soon: "STATUS=DISABLED",
   },
 });
+void paymentCopy;
 const accessCopy = localized<{
   email: string;
   placeholder: string;
@@ -712,7 +714,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [mixing, setMixing] = useState(false);
   const [sharedKey, setSharedKey] = useState("");
   const [sharedKeyConfirmed, setSharedKeyConfirmed] = useState(false);
-  const [sharedKeyGenerated, setSharedKeyGenerated] = useState(false);
   const [linkOnlyConfirmed, setLinkOnlyConfirmed] = useState(false);
   const questions = getQuestions(locale, level);
   const emailValid =
@@ -1122,9 +1123,8 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             sharedKey={sharedKey}
             confirmed={sharedKeyConfirmed}
             linkOnly={linkOnlyConfirmed}
-            onChange={(key, generated) => {
+              onChange={(key) => {
               setSharedKey(key);
-              setSharedKeyGenerated(generated);
               setSharedKeyConfirmed(false);
               setLinkOnlyConfirmed(false);
             }}
@@ -1263,7 +1263,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
               <SharedKeyCard
                 locale={locale}
                 sharedKey={sharedKey}
-                showRecovery={sharedKeyGenerated}
+                showRecovery
               />
             </section>
           ) : (
@@ -1286,7 +1286,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
               setCreatorEmail("");
               setSharedKey("");
               setSharedKeyConfirmed(false);
-              setSharedKeyGenerated(false);
               setLinkOnlyConfirmed(false);
               setStep(1);
             }}

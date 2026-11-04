@@ -110,13 +110,13 @@
 }
 .shared-key-card-grid {
   display: grid;
-  grid-template-columns: minmax(250px, 0.72fr) minmax(260px, 1.28fr);
+  grid-template-columns: minmax(320px, 0.9fr) minmax(300px, 1.1fr);
   gap: 22px;
   margin-top: 18px;
 }
 .shared-key-card canvas {
   display: block;
-  width: min(100%, 300px) !important;
+  width: min(100%, 520px) !important;
   height: auto !important;
   margin: auto;
   background: #fff;
@@ -130,34 +130,16 @@
   margin: 13px 0 0;
 }
 .shared-key-fingerprint span,
-.shared-key-recovery summary span {
+.shared-key-recovery-label {
   font: 700 9px/1 var(--font-mono);
   letter-spacing: 0.14em;
   color: #776f69;
 }
-.shared-key-recovery summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 44px;
-  padding: 0 12px;
+.shared-key-recovery-label {
+  display: block;
+  padding: 14px 12px;
   border: 1px solid #35302d;
   background: #171514;
-  cursor: pointer;
-  list-style: none;
-}
-.shared-key-recovery summary::-webkit-details-marker {
-  display: none;
-}
-.shared-key-recovery summary i {
-  color: #9a928c;
-  font: 400 18px/1 Arial, sans-serif;
-  font-style: normal;
-  transition: transform 0.18s ease;
-}
-.shared-key-recovery[open] summary i {
-  transform: rotate(45deg);
 }
 .shared-key-fingerprint code {
   color: #ddd5cd;
@@ -201,7 +183,12 @@
   color: #c7bfb8 !important;
   font: 600 11px/1.5 var(--font-geist) !important;
   letter-spacing: 0 !important;
+  padding: 12px 14px;
+  border: 1px solid #8b5a40;
+  background: rgba(255, 90, 31, 0.09);
+  color: #f0d7c9 !important;
 }
+.shared-key-confirm span { font-weight: 850 !important; }
 .shared-key-confirm input {
   width: 18px !important;
   height: 18px !important;
@@ -325,6 +312,6 @@
     padding: 16px;
   }
   .shared-key-card canvas {
-    width: min(100%, 220px) !important;
+    width: min(100%, 520px) !important;
   }
 }

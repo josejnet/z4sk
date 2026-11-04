@@ -79,7 +79,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
   es: {
     protectTitle: "Elige cómo proteger la invitación",
     protectBody:
-      "Elige un QR de llave separado para usar dos secretos, o confirma expresamente que quieres continuar solo con el enlace completo.",
+      "Crea una Clave Duo: un segundo secreto que se guarda y se comparte aparte del enlace. Si no la necesitas, elige continuar solo con el enlace completo.",
     generate: "Crear QR de Clave Duo · recomendado",
     existing: "Usar un QR de llave existente",
     ready: "Llave compartida preparada",
@@ -87,7 +87,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     confirm: "He guardado mi copia y entregaré la otra por un canal diferente.",
     cardTitle: "Clave Duo · reutilizable",
     cardBody:
-      "Guarda el QR con marca Z4SK. Esta clave puede quedarse entre ambas partes y usarse en ambas direcciones para muchos mensajes. En el mismo móvil podrás elegirla desde Fotos o pegar la frase de recuperación. El identificador solo la reconoce; no la abre.",
+      "Guarda el QR. Puedes conservar esta clave con la otra persona y usarla en ambos sentidos para muchos mensajes. También puedes pegar sus palabras de recuperación. El identificador no sirve para abrirla.",
     fingerprint: "ID DE LLAVE · NO ES SECRETO",
     phrase: "FRASE DE RECUPERACIÓN",
     phraseHelp:

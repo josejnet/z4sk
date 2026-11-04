@@ -26,6 +26,8 @@ The four-step builder collects only what is needed to create the invitation. The
 
 ![Questionnaire builder in Spanish](docs/screenshots/builder-es.png)
 
+![Public security and privacy audit](docs/screenshots/audit-en.png)
+
 The core journey is:
 
 ```text

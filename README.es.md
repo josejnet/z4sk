@@ -26,6 +26,8 @@ El constructor de cuatro pasos solicita únicamente la información necesaria pa
 
 ![Constructor del cuestionario](docs/screenshots/builder-es.png)
 
+![Auditoría pública de seguridad y privacidad](docs/screenshots/audit-en.png)
+
 El flujo principal es:
 
 ```text

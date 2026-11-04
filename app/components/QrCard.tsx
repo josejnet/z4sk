@@ -561,15 +561,13 @@ export function QrCard({
         <span>{invitation ? "QR ↗" : "QR ◆"}</span>
         <div>
           <h4>{invitation ? c.publicHeading : c.privateHeading}</h4>
-          <p>
-            {invitation
-              ? protectedBySharedKey
+          {invitation && (
+            <p>
+              {protectedBySharedKey
                 ? `${c.publicHint} ${SHARED_KEY_COPY[locale].unlockBody}`
-                : c.publicHint
-              : protectedBySharedKey
-                ? PRIVATE_WARNING[locale]
-                : PRIVATE_LINK_WARNING[locale]}
-          </p>
+                : c.publicHint}
+            </p>
+          )}
         </div>
       </div>
       <canvas

@@ -10,6 +10,42 @@ import {
   sharedKeyToMnemonic,
 } from "../lib/shared-key";
 
+const FRIENDLY_KEY_LABEL: Record<Locale, string> = {
+  en: "KEY NAME",
+  es: "NOMBRE DE LA CLAVE",
+  it: "NOME DELLA CHIAVE",
+  fr: "NOM DE LA CLÉ",
+  de: "SCHLÜSSELNAME",
+  nl: "SLEUTELNAAM",
+  eo: "NOMO DE LA ŜLOSILO",
+  pt: "NOME DA CHAVE",
+  zh: "密钥名称",
+  hi: "कुंजी का नाम",
+  ja: "鍵の名前",
+  tr: "ANAHTAR ADI",
+  machine: "KEY_NAME",
+};
+const FRIENDLY_KEY_NAMES: Record<Locale, string[]> = {
+  en: ["Beowulf", "Thunderbolt", "Ironclad", "Stormbringer", "Excalibur", "Nightfall", "Valiant", "Firebrand"],
+  es: ["Miura", "Jabonero", "Avispado", "Cobradiezmos", "Bailaor", "Fandanguero", "Orgulloso", "Relámpago"],
+  it: ["Orlando", "Folgore", "Azzurro", "Fiero", "Ruggente", "Valoroso", "Tempesta", "Invincibile"],
+  fr: ["Roland", "Foudre", "Vaillant", "Éclipse", "Légendaire", "Tonnerre", "Flambeau", "Invincible"],
+  de: ["Siegfried", "Donner", "Eisenherz", "Sturmfalke", "Wolfszahn", "Feuersturm", "Unbeugsam", "Nachtklinge"],
+  nl: ["Hector", "Bliksem", "Dapper", "Stormvogel", "Vuurhart", "IJzersterk", "Onversaagd", "Nachtwacht"],
+  eo: ["Arturo", "Fulmo", "Brava", "Fera", "Stelulo", "Glavo", "Kuraĝa", "Nokta"],
+  pt: ["Lusitano", "Trovão", "Valente", "Furacão", "Fidalgo", "Bravio", "Chama", "Invicto"],
+  zh: ["青龙", "雷霆", "赤焰", "玄武", "天狼", "不屈", "长风", "曜影"],
+  hi: ["अर्जुन", "वज्र", "अग्नि", "वीर", "गरुड़", "तूफान", "अजेय", "रुद्र"],
+  ja: ["雷神", "白虎", "烈風", "不屈", "夜桜", "紅蓮", "勇者", "天翔"],
+  tr: ["Bozkurt", "Yıldırım", "Alp", "Fırtına", "Kızıl", "Gökhan", "Yiğit", "Gece"],
+  machine: ["BEOWULF", "THUNDERBOLT", "IRONCLAD", "STORMBRINGER", "EXCALIBUR", "NIGHTFALL", "VALIANT", "FIREBRAND"],
+};
+function friendlyKeyName(fingerprint: string, locale: Locale) {
+  const names = FRIENDLY_KEY_NAMES[locale];
+  const index = Number.parseInt(fingerprint.slice(0, 4), 16) % names.length;
+  return `${names[index]} · ${fingerprint.slice(0, 4)}`;
+}
+
 export function SharedKeyCard({
   locale,
   sharedKey,
@@ -76,10 +112,10 @@ export function SharedKeyCard({
         context.strokeRect(70, 150, 560, 560);
         context.fillStyle = "#77706a";
         context.font = "700 15px Arial, 'Noto Sans', sans-serif";
-        context.fillText(copy.fingerprint, 70, 750);
+        context.fillText(FRIENDLY_KEY_LABEL[locale], 70, 750);
         context.fillStyle = "#f4efe8";
         context.font = "700 24px monospace";
-        context.fillText(nextFingerprint, 70, 785);
+        context.fillText(friendlyKeyName(nextFingerprint, locale), 70, 785);
         context.fillStyle = "#ff5a1f";
         context.font = "700 16px Arial, sans-serif";
         context.fillText("Z4SK · E2EE · 128 BIT", 70, 815);
@@ -106,7 +142,7 @@ export function SharedKeyCard({
     return () => {
       active = false;
     };
-  }, [copy.cardTitle, copy.fingerprint, copy.phrase, sharedKey, showRecovery]);
+  }, [copy.cardTitle, copy.fingerprint, copy.phrase, locale, sharedKey, showRecovery]);
 
   async function copyPhrase() {
     if (!rendered.mnemonic) return;
@@ -153,8 +189,8 @@ export function SharedKeyCard({
           <canvas ref={canvasRef} aria-label={copy.cardTitle} />
           {ready && rendered.fingerprint && (
             <p className="shared-key-fingerprint">
-              <span>{copy.fingerprint}</span>
-              <code>{rendered.fingerprint}</code>
+              <span>{FRIENDLY_KEY_LABEL[locale]}</span>
+              <code>{friendlyKeyName(rendered.fingerprint, locale)}</code>
             </p>
           )}
         </div>

@@ -1131,11 +1131,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             onConfirm={setSharedKeyConfirmed}
             onLinkOnly={setLinkOnlyConfirmed}
           />
-          {!sharedKey && !linkOnlyConfirmed && (
-            <p id="security-choice-help" className="security-requirement">
-              {SHARED_KEY_COPY[locale].chooseRequired}
-            </p>
-          )}
           {sharedKeyConfirmed && (
             <p
               id="security-requirement"
@@ -1166,9 +1161,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
                   ? "shared-key-confirmation"
                   : sharedKeyConfirmed
                     ? "security-requirement"
-                    : !linkOnlyConfirmed
-                      ? "security-choice-help"
-                      : undefined
+                  : undefined
               }
               onClick={createGame}
             >

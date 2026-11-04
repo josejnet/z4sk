@@ -90,6 +90,7 @@
   border-color: #5b4b42;
   color: #b9aea6;
 }
+.shared-key-choice .link-only-choice{min-height:38px;font-size:10px}
 .shared-key-choice .link-only-choice:hover,
 .shared-key-choice .link-only-choice:focus-visible {
   border-color: #a26b50;

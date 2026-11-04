@@ -1295,6 +1295,26 @@ const featureText = localized<FeatureText>({
     creator: "CREATOR_GREEN",
   },
 });
+const paletteLabels = localized<{
+  ocean: string;
+  solar: string;
+  aurora: string;
+  copper: string;
+}>({
+  en: { ocean: "Ocean · Blue", solar: "Solar · Coral", aurora: "Aurora · Teal", copper: "Forge · Copper" },
+  es: { ocean: "Océano · Azul", solar: "Solar · Coral", aurora: "Aurora · Turquesa", copper: "Forja · Cobre" },
+  it: { ocean: "Oceano · Blu", solar: "Solare · Corallo", aurora: "Aurora · Turchese", copper: "Forgia · Rame" },
+  fr: { ocean: "Océan · Bleu", solar: "Solaire · Corail", aurora: "Aurore · Turquoise", copper: "Forge · Cuivre" },
+  de: { ocean: "Ozean · Blau", solar: "Solar · Koralle", aurora: "Aurora · Türkis", copper: "Schmiede · Kupfer" },
+  nl: { ocean: "Oceaan · Blauw", solar: "Solar · Koraal", aurora: "Aurora · Turquoise", copper: "Smederij · Koper" },
+  eo: { ocean: "Oceano · Blua", solar: "Suna · Koralo", aurora: "Aŭroro · Turkiso", copper: "Forĝejo · Kupro" },
+  pt: { ocean: "Oceano · Azul", solar: "Solar · Coral", aurora: "Aurora · Turquesa", copper: "Forja · Cobre" },
+  zh: { ocean: "海洋 · 蓝", solar: "太阳 · 珊瑚", aurora: "极光 · 青绿", copper: "熔炉 · 铜" },
+  hi: { ocean: "समुद्र · नीला", solar: "सौर · मूंगा", aurora: "ऑरोरा · फ़िरोज़ी", copper: "भट्ठी · तांबा" },
+  ja: { ocean: "オーシャン・ブルー", solar: "ソーラー・コーラル", aurora: "オーロラ・ターコイズ", copper: "フォージ・カッパー" },
+  tr: { ocean: "Okyanus · Mavi", solar: "Solar · Mercan", aurora: "Aurora · Turkuaz", copper: "Dövmehane · Bakır" },
+  machine: { ocean: "OCEAN_BLUE", solar: "SOLAR_CORAL", aurora: "AURORA_TEAL", copper: "FORGE_COPPER" },
+});
 function FeatureConfig({
   locale,
   timedMode,
@@ -1363,6 +1383,10 @@ function FeatureConfig({
             <option value="original">{c.original}</option>
             <option value="nightlife">{c.nightlife}</option>
             <option value="creator">{c.creator}</option>
+            <option value="ocean">{paletteLabels[locale].ocean}</option>
+            <option value="solar">{paletteLabels[locale].solar}</option>
+            <option value="aurora">{paletteLabels[locale].aurora}</option>
+            <option value="copper">{paletteLabels[locale].copper}</option>
           </select>
           <small id="theme-help">{c.themeCopy}</small>
         </label>

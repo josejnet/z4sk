@@ -1,6 +1,14 @@
 .builder-shell.builder-theme-original{--orange:#ff5a1f;--builder-glow:rgba(255,90,31,.11)}
 .builder-shell.builder-theme-nightlife{--orange:#d777ff;--builder-glow:rgba(215,119,255,.12)}
 .builder-shell.builder-theme-creator{--orange:#5bd191;--builder-glow:rgba(91,209,145,.11)}
+.builder-shell.builder-theme-ocean{--orange:#52c7ff;--builder-bg:#0b1724;--builder-panel:#102638;--builder-field:#142f43;--builder-line:#28516b;--builder-selected:rgba(82,199,255,.14);--builder-glow:rgba(82,199,255,.18)}
+.builder-shell.builder-theme-solar{--orange:#ff8066;--builder-bg:#21140f;--builder-panel:#2a1914;--builder-field:#392019;--builder-line:#744335;--builder-selected:rgba(255,128,102,.14);--builder-glow:rgba(255,128,102,.18)}
+.builder-shell.builder-theme-aurora{--orange:#4fe0c0;--builder-bg:#091d1d;--builder-panel:#102b2a;--builder-field:#153a38;--builder-line:#2c6862;--builder-selected:rgba(79,224,192,.14);--builder-glow:rgba(79,224,192,.18)}
+.builder-shell.builder-theme-copper{--orange:#e8a15d;--builder-bg:#21140e;--builder-panel:#2a1b13;--builder-field:#3a2518;--builder-line:#715037;--builder-selected:rgba(232,161,93,.14);--builder-glow:rgba(232,161,93,.18)}
+.builder-shell[class*="builder-theme-"]{background:radial-gradient(circle at 55% 12%,var(--builder-glow,rgba(255,90,31,.11)),transparent 38%),var(--builder-bg,transparent)}
+.builder-shell[class*="builder-theme-"] .feature-config,.builder-shell[class*="builder-theme-"] .step-panel,.builder-shell[class*="builder-theme-"] .shared-key-setup{background:var(--builder-panel,#111);border-color:var(--builder-line,#3a3531)}
+.builder-shell[class*="builder-theme-"] .feature-selects select,.builder-shell[class*="builder-theme-"] .questions-list button{background:var(--builder-field,#111);border-color:var(--builder-line,#292725)}
+.builder-shell[class*="builder-theme-"] .questions-list button.selected{background:var(--builder-selected,rgba(255,90,31,.055));border-color:var(--orange)}
 .builder-shell.builder-theme-original .preview{background:radial-gradient(circle at 55% 45%,var(--builder-glow),transparent 45%)}
 .builder-shell.builder-theme-nightlife .preview{background:radial-gradient(circle at 55% 45%,var(--builder-glow),transparent 45%)}
 .builder-shell.builder-theme-creator .preview{background:radial-gradient(circle at 55% 45%,var(--builder-glow),transparent 45%)}

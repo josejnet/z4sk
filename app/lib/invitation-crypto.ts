@@ -30,7 +30,7 @@ const LOCALES = new Set<Locale>([
   "tr",
   "machine",
 ]);
-const PACKS = new Set(["original", "nightlife", "creator"]);
+const PACKS = new Set(["original", "nightlife", "creator", "ocean", "solar", "aurora", "copper"]);
 const BASE64URL_KEY = /^[A-Za-z0-9_-]{43}$/;
 const BASE64URL_BEARER = /^[A-Za-z0-9_-]{32}$/;
 const asBufferSource = (bytes: Uint8Array) => bytes as unknown as BufferSource;

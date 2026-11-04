@@ -9,7 +9,7 @@
 - database: Vercel-managed Neon Postgres
 - runtime database role: DML-only access to application tables
 - migration database role: schema-owner credential held only by GitHub Actions
-- retention trigger: `0 3 * * *` (daily at 03:00 UTC)
+- retention trigger: `0 3 * * *` (daily at 03:00 UTC), with a best-effort purge of up to 25 expired invitations on each new invitation
 
 Vercel Production requires `DATABASE_URL`, `FOUNDER_DASHBOARD_KEY`, `CRON_SECRET`, `RATE_LIMIT_HMAC_SECRET`, `OPERATOR_NAME`, `PRIVACY_EMAIL`, and the verified `NEON_RESTORE_WINDOW_HOURS`. Preview and Development use the isolated `z4sk_staging_e2e` database and their own HMAC secret.
 

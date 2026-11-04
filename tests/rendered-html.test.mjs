@@ -50,7 +50,7 @@ test("server-renders the English-first Z4SK product", async () => {
   const html = await response.text();
   assert.match(html, /<script[^>]+nonce=/);
   assert.match(html, /Z4SK — Ask\. Answer\. Dare\./i);
-  assert.match(html, /Some things you only/);
+  assert.match(html, /Some questions are/);
   assert.match(html, /Private answers/);
   assert.match(html, /hero-start/);
   assert.doesNotMatch(html, /class="studio"/);

@@ -4,6 +4,7 @@ import {
   ensureSchema,
   getDatabase,
   getRequestCountry,
+  purgeExpiredData,
   randomToken,
   recordEvent,
 } from "../../../db/runtime";
@@ -64,6 +65,11 @@ export async function POST(request: Request) {
         },
       );
     const db = getDatabase();
+    try {
+      await purgeExpiredData(db, "create-game", new Date(), 25);
+    } catch (error) {
+      console.error("create-game opportunistic retention", error);
+    }
     const id = randomToken(16);
     const createdAt = new Date();
     const expiresAt = new Date(

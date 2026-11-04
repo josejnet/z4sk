@@ -32,13 +32,19 @@ export async function deleteGameData(db: Database, id: string) {
   ]);
 }
 
-export async function purgeExpiredData(db: Database, source = "cron", now = new Date()) {
+export async function purgeExpiredData(
+  db: Database,
+  source = "cron",
+  now = new Date(),
+  maxGames = Number.POSITIVE_INFINITY,
+) {
   const runAt = now.toISOString();
   let expiredGames = 0;
   let deletedResponses = 0;
 
-  while (true) {
-    const expired = await db.prepare(`SELECT id FROM games WHERE expires_at <= ? LIMIT 250`).bind(runAt).all<{ id: string }>();
+  while (expiredGames < maxGames) {
+    const batchSize = Math.min(250, maxGames - expiredGames);
+    const expired = await db.prepare(`SELECT id FROM games WHERE expires_at <= ? LIMIT ${batchSize}`).bind(runAt).all<{ id: string }>();
     if (!expired.results.length) break;
     const ids = expired.results.map((row) => row.id);
     const placeholders = ids.map(() => "?").join(",");

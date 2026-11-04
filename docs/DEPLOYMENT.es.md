@@ -9,7 +9,7 @@
 - base de datos: Neon Postgres gestionado desde Vercel
 - rol de ejecución: acceso DML limitado a las tablas de la aplicación
 - rol de migración: credencial propietaria del esquema, disponible solo en GitHub Actions
-- retención: `0 3 * * *` (cada día a las 03:00 UTC)
+- retención: `0 3 * * *` (cada día a las 03:00 UTC), con una purga oportunista de hasta 25 invitaciones caducadas al crear cada invitación nueva
 
 Producción en Vercel necesita `DATABASE_URL`, `FOUNDER_DASHBOARD_KEY`, `CRON_SECRET`, `RATE_LIMIT_HMAC_SECRET`, `OPERATOR_NAME`, `PRIVACY_EMAIL` y el valor comprobado de `NEON_RESTORE_WINDOW_HOURS`. Preview y Development usan la base aislada `z4sk_staging_e2e` y su propio secreto HMAC.
 

@@ -1034,28 +1034,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
               protectedBySharedKey={Boolean(sharedKey)}
             />
             <div className="success-private-column">
-              <div className="admin-box">
-                <span className="lock">◆</span>
-                <div>
-                  <b>{viewOnce ? t("privateOnce") : t("privatePanel")}</b>
-                  <p>{viewOnce ? t("privateOnceCopy") : t("secretCopy")}</p>
-                  <div className="admin-actions">
-                    <a
-                      href={created.adminUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {t("openPanel")}
-                    </a>
-                    <button onClick={() => copy(created.adminUrl, "admin")}>
-                      {copied === "admin" ? t("copied") : t("copySecret")}
-                    </button>
-                    <button onClick={sharePrivatePanel}>
-                      {panelShareCopy[locale].button}
-                    </button>
-                  </div>
-                </div>
-              </div>
               <QrCard
                 kind="dashboard"
                 locale={locale}
@@ -1063,6 +1041,21 @@ export function Builder({ onClose }: { onClose?: () => void }) {
                 url={created.adminUrl}
                 protectedBySharedKey={Boolean(sharedKey)}
               />
+              <div className="private-panel-actions">
+                <b>{viewOnce ? t("privateOnce") : t("privatePanel")}</b>
+                <span>{viewOnce ? t("privateOnceCopy") : t("secretCopy")}</span>
+                <div className="admin-actions">
+                  <a href={created.adminUrl} target="_blank" rel="noopener noreferrer">
+                    {t("openPanel")}
+                  </a>
+                  <button onClick={() => copy(created.adminUrl, "admin")}>
+                    {copied === "admin" ? t("copied") : t("copySecret")}
+                  </button>
+                  <button onClick={sharePrivatePanel}>
+                    {panelShareCopy[locale].button}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           {sharedKey ? (

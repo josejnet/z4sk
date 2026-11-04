@@ -21,7 +21,7 @@
 .success-hero .success-icon{margin-bottom:16px}
 .success-hero h3{margin:12px 0}
 .success-hero p{margin:0;color:#9a928c;line-height:1.55}
-.success-delivery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+.success-delivery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}
 .success-key-status{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;margin:0 0 18px;padding:13px 15px;border:1px solid #3f7657;background:rgba(79,199,132,.07);color:#d5e9dc;text-decoration:none;text-align:left}
 .success-key-status>span{width:30px;height:30px;display:grid;place-items:center;border:1px solid #4b8a67;border-radius:50%;color:#62d894}
 .success-key-status strong,.success-key-status small{display:block}
@@ -31,11 +31,14 @@
 .success-share-column,.success-private-column{min-width:0;display:flex;flex-direction:column}
 .success-share-column .invitation-share,.success-share-column .link-box,.success-private-column .admin-box,.success-private-column .qr-card,.success-delivery-grid>.qr-card{margin:0}
 .success-share-column .link-box{margin-top:12px}
-.success-private-column .admin-box{margin-bottom:12px}
-.success-share-column .invitation-share,.success-delivery-grid>.qr-card,.success-private-column .admin-box{min-height:196px}
-.success-share-column .link-box{margin-top:auto}
-.success-private-column .qr-card{margin-top:auto}
-.success-private-column .admin-box{border-color:#654898;background:rgba(146,86,255,.055)}
+.success-share-column .invitation-share,.success-delivery-grid>.qr-card{min-height:196px}
+.success-share-column .link-box{margin-top:12px}
+.success-private-column .qr-card{margin:0}
+.private-panel-actions{margin-top:10px;padding:12px 14px;border:1px solid #654898;background:rgba(146,86,255,.055);color:#d8c9ed;text-align:left}
+.private-panel-actions>b,.private-panel-actions>span{display:block}
+.private-panel-actions>b{font-size:11px}
+.private-panel-actions>span{margin-top:4px;color:#a99ab9;font-size:9px;line-height:1.4}
+.private-panel-actions .admin-actions{margin-top:8px}
 .success-delivery-grid .qr-card canvas{width:min(100%,330px)}
 .success-delivery-grid>.qr-card{align-self:stretch;display:flex;flex-direction:column}
 .success-delivery-grid>.qr-card .qr-card-actions{margin-top:auto}

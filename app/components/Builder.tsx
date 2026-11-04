@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getDefaultQuestions, getLevels, getQuestions } from "../lib/questions";
 import type { Level } from "../lib/types";
-import { downloadInvitationHtml } from "../lib/html-invite";
 import { interpolate, type Locale, useLanguage } from "../lib/i18n";
 import { QrCard } from "./QrCard";
 import { ShareInvitation } from "./ShareInvitation";
@@ -392,6 +391,21 @@ const successFlowCopy = localized<string>({
   tr: "{name} kişisine davet bağlantısını veya QR'ını gönder; biri yeterlidir. İsteğe bağlı anahtarı ayrı gönder. Şifreli yanıtlar yalnızca özel panelinde görünür.",
   machine: "SEND invitation_url XOR invitation_qr TO {name}; IF shared_key THEN separate_channel; ciphertext.visible_at=creator_dashboard_only",
 });
+const panelShareCopy = localized<{ button: string; hint: string }>({
+  en: { button: "Share my panel on WhatsApp", hint: "Send this to yourself so you can keep the private dashboard link in your own WhatsApp chat." },
+  es: { button: "Compartir mi panel por WhatsApp", hint: "Envíatelo a ti mismo para guardar el enlace del panel privado en tu propio chat de WhatsApp." },
+  it: { button: "Condividi il mio pannello su WhatsApp", hint: "Invialo a te stesso per conservare il link del pannello privato nella tua chat WhatsApp." },
+  fr: { button: "Partager mon espace sur WhatsApp", hint: "Envoyez-le à vous-même pour conserver le lien privé dans votre propre conversation WhatsApp." },
+  de: { button: "Meinen Bereich über WhatsApp teilen", hint: "Sende ihn an dich selbst, damit der private Dashboard-Link in deinem eigenen WhatsApp-Chat bleibt." },
+  nl: { button: "Mijn dashboard delen via WhatsApp", hint: "Stuur het naar jezelf om de privélink in je eigen WhatsApp-chat te bewaren." },
+  eo: { button: "Kunhavigi mian panelon per WhatsApp", hint: "Sendu ĝin al vi mem por konservi la privatan panelan ligilon en via propra WhatsApp-babilejo." },
+  pt: { button: "Partilhar o meu painel no WhatsApp", hint: "Envia-o para ti próprio para guardares o link do painel privado na tua conversa do WhatsApp." },
+  zh: { button: "通过 WhatsApp 分享我的面板", hint: "请发送给自己，把私人面板链接保存在自己的 WhatsApp 对话中。" },
+  hi: { button: "WhatsApp पर मेरा डैशबोर्ड साझा करें", hint: "इसे खुद को भेजें, ताकि निजी डैशबोर्ड लिंक आपके अपने WhatsApp चैट में सुरक्षित रहे।" },
+  ja: { button: "WhatsAppで自分のパネルを共有", hint: "自分宛てに送り、非公開パネルのリンクを自分のWhatsAppチャットに保存してください。" },
+  tr: { button: "Panelimi WhatsApp'ta paylaş", hint: "Özel panel bağlantısını kendi WhatsApp sohbetinde saklamak için kendine gönder." },
+  machine: { button: "SHARE admin_url VIA whatsapp:// TO SELF", hint: "recipient=self; preserve=private_dashboard_url" },
+});
 const paymentCopy = localized<{ title: string; copy: string; soon: string }>({
   en: {
     title: "Custom background + advanced stats · $0.99",
@@ -695,7 +709,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<"play" | "admin" | null>(null);
-  const [unlocked, setUnlocked] = useState(false);
   const [mixing, setMixing] = useState(false);
   const [sharedKey, setSharedKey] = useState("");
   const [sharedKeyConfirmed, setSharedKeyConfirmed] = useState(false);
@@ -835,39 +848,13 @@ export function Builder({ onClose }: { onClose?: () => void }) {
     setCopied(type);
     setTimeout(() => setCopied(null), 1800);
   }
-  function emailAccessLink() {
+  function sharePrivatePanel() {
     if (!created) return;
-    const c = accessCopy[locale];
-    window.location.href = `mailto:${encodeURIComponent(creatorEmail)}?subject=${encodeURIComponent(c.subject)}&body=${encodeURIComponent(`${c.body}\n\n${created.adminUrl}`)}`;
+    const c = panelShareCopy[locale];
+    const message = `${c.hint}\n\n${created.adminUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   }
 
-  async function shareToUnlock() {
-    if (!created) return;
-    try {
-      if (navigator.share)
-        await navigator.share({
-          title: "Z4SK",
-          text: growthCopy[locale].share,
-          url: window.location.origin,
-        });
-      else
-        window.open(
-          `https://wa.me/?text=${encodeURIComponent(`${growthCopy[locale].share}\n\n${window.location.origin}`)}`,
-          "_blank",
-          "noopener,noreferrer",
-        );
-      const key = new URLSearchParams(
-        new URL(created.adminUrl).hash.slice(1),
-      ).get("key");
-      const response = await fetch(`/api/games/${created.id}/unlock`, {
-        method: "POST",
-        headers: { authorization: `Bearer ${key || ""}` },
-      });
-      if (response.ok) setUnlocked(true);
-    } catch {
-      /* A cancelled share leaves the questionnaire unchanged. */
-    }
-  }
   async function applySmartMix() {
     setMixing(true);
     try {
@@ -1256,6 +1243,9 @@ export function Builder({ onClose }: { onClose?: () => void }) {
                     <button onClick={() => copy(created.adminUrl, "admin")}>
                       {copied === "admin" ? t("copied") : t("copySecret")}
                     </button>
+                    <button onClick={sharePrivatePanel}>
+                      {panelShareCopy[locale].button}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1289,49 +1279,11 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             <span>◆</span>
             {encryptionCopy[locale].notice}
           </p>
-          <div className="success-tools">
-            {creatorEmail.trim() && emailValid && (
-              <button className="html-download" onClick={emailAccessLink}>
-                {accessCopy[locale].send}
-              </button>
-            )}
-            <button
-              className="html-download"
-              onClick={() =>
-                void downloadInvitationHtml({
-                  creatorName,
-                  recipientName,
-                  playUrl: created.playUrl,
-                  locale,
-                  protectedBySharedKey: Boolean(sharedKey),
-                })
-              }
-            >
-              {t("downloadHtml")}
-            </button>
-          </div>
-          <div className={`growth-unlock ${unlocked ? "unlocked" : ""}`}>
-            <span>{unlocked ? "✓" : "↗"}</span>
-            <div>
-              <b>
-                {unlocked
-                  ? growthCopy[locale].unlocked
-                  : growthCopy[locale].title}
-              </b>
-              {!unlocked && <p>{growthCopy[locale].copy}</p>}
-            </div>
-            {!unlocked && (
-              <button onClick={shareToUnlock}>
-                {growthCopy[locale].button}
-              </button>
-            )}
-          </div>
           <button
             className="text-button"
             onClick={() => {
               setCreated(null);
               setCreatorEmail("");
-              setUnlocked(false);
               setSharedKey("");
               setSharedKeyConfirmed(false);
               setSharedKeyGenerated(false);
@@ -1343,22 +1295,10 @@ export function Builder({ onClose }: { onClose?: () => void }) {
           </button>
         </div>
       )}
-      {step === 5 && created && (
-        <>
-          <div className="one-tap-disabled">
-            <span>◉</span>
-            <div>
-              <b>{paymentCopy[locale].title}</b>
-              <p>{paymentCopy[locale].copy}</p>
-            </div>
-            <em>{paymentCopy[locale].soon}</em>
-          </div>
-          {onClose && (
-            <button className="modal-done" type="button" onClick={onClose}>
-              {builderUi[locale].done}
-            </button>
-          )}
-        </>
+      {step === 5 && created && onClose && (
+        <button className="modal-done" type="button" onClick={onClose}>
+          {builderUi[locale].done}
+        </button>
       )}
     </div>
   );

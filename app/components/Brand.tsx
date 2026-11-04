@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { LOCALES, type Locale, useLanguage } from "../lib/i18n";
 
 const navCopy:Record<Locale,{home:string;language:string;advertisement:string}>={
@@ -20,41 +19,7 @@ export function TopNav({ minimal = false }: { minimal?: boolean }) {
 }
 
 type SponsorPlacement = "invitation" | "completion" | "dashboard";
-type SponsorConfig = {enabled:boolean;label?:string;headline?:string;ctaLabel?:string;destinationUrl?:string;campaignVersion?:string};
 
-export function Sponsor({ compact = false, placement }: { compact?: boolean; placement: SponsorPlacement }) {
-  const { locale } = useLanguage();
-  const [config, setConfig] = useState<SponsorConfig|null>(null);
-  const sponsorRef = useRef<HTMLElement>(null);
-  const impressionRecorded = useRef(false);
-  useEffect(() => { let active=true; void fetch("/api/ads",{credentials:"omit"}).then((response)=>response.json()).then((result)=>{if(active)setConfig(result)}).catch(()=>{if(active)setConfig({enabled:false})}); return()=>{active=false}; }, []);
-  useEffect(()=>{
-    const node=sponsorRef.current;
-    if(!node||!config?.enabled||!config.campaignVersion||impressionRecorded.current)return;
-    let timer=0;
-    const observer=new IntersectionObserver(([entry])=>{
-      window.clearTimeout(timer);
-      if(!entry?.isIntersecting||entry.intersectionRatio<0.5)return;
-      timer=window.setTimeout(()=>{
-        const sessionKey=`z4sk:sponsor:${config.campaignVersion}:${placement}`;
-        try{if(sessionStorage.getItem(sessionKey))return;sessionStorage.setItem(sessionKey,"1");}catch{/* Aggregate measurement still works when session storage is unavailable. */}
-        impressionRecorded.current=true;
-        void recordSponsorEvent("impression",placement,locale,config.campaignVersion!);
-        observer.disconnect();
-      },1000);
-    },{threshold:[0.5]});
-    observer.observe(node);
-    return()=>{window.clearTimeout(timer);observer.disconnect()};
-  },[config,locale,placement]);
-  if (!config?.enabled || !config.headline || !config.ctaLabel || !config.destinationUrl || !config.campaignVersion) return null;
-  return <aside ref={sponsorRef} className={`sponsor sponsor-live ${compact ? "sponsor-compact" : ""}`} aria-label={navCopy[locale].advertisement}><span>{config.label||navCopy[locale].advertisement}</span><p>{config.headline}</p><a href={config.destinationUrl} target="_blank" rel="noopener noreferrer sponsored nofollow" onClick={()=>void recordSponsorClick(placement,locale,config.campaignVersion!)}>{config.ctaLabel} <span aria-hidden="true">↗</span></a></aside>;
-}
-
-async function recordSponsorClick(placement:SponsorPlacement,locale:Locale,campaignVersion:string){
-  const sessionKey=`z4sk:sponsor-click:${campaignVersion}:${placement}`;
-  try{if(sessionStorage.getItem(sessionKey))return;sessionStorage.setItem(sessionKey,"1");}catch{/* Count the click when session storage is unavailable. */}
-  await recordSponsorEvent("click",placement,locale,campaignVersion);
-}
-async function recordSponsorEvent(eventType:"impression"|"click",placement:SponsorPlacement,locale:Locale,campaignVersion:string){
-  try{await fetch("/api/ads",{method:"POST",credentials:"omit",keepalive:true,headers:{"content-type":"application/json"},body:JSON.stringify({eventType,placement,locale,campaignVersion})});}catch{/* Advertising must never block the product flow. */}
+export function Sponsor(_props: { compact?: boolean; placement: SponsorPlacement }) {
+  return null;
 }

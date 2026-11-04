@@ -268,9 +268,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(shareInvitation, /https:\/\/wa\.me/);
   assert.match(shareInvitation, /mailto:\?subject/);
   assert.match(shareInvitation, /https:\/\/mail\.google\.com\/mail\/\?view=cm/);
-  assert.match(shareInvitation, /https:\/\/outlook\.office\.com\/mail\/deeplink\/compose\?/);
-  assert.match(shareInvitation, /https:\/\/compose\.mail\.yahoo\.com\/\?subject=/);
-  assert.match(shareInvitation, /navigator\.share/);
+  assert.doesNotMatch(shareInvitation, /https:\/\/outlook\.office\.com\/mail\/deeplink\/compose\?/);
+  assert.doesNotMatch(shareInvitation, /https:\/\/compose\.mail\.yahoo\.com\/\?subject=/);
+  assert.doesNotMatch(shareInvitation, /navigator\.share/);
   assert.match(shareInvitation, /adminUrl=NEVER_SHARE/);
   assert.match(shareInvitation, /The link and the invitation QR are the same access/);
   assert.match(shareInvitation, /SHARED_KEY_COPY\[locale\]\.differentChannel/);
@@ -385,11 +385,9 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(founderDashboard, /Sponsor performance/);
   assert.match(founderDashboard, /Viewable impressions/);
   assert.match(founderDashboard, /no user or invitation identifier/i);
-  assert.match(brand, /rel="noopener noreferrer sponsored nofollow"/);
-  assert.match(brand, /IntersectionObserver/);
-  assert.match(brand, /intersectionRatio<0\.5/);
-  assert.match(brand, /sessionStorage\.getItem/);
-  assert.match(brand, /recordSponsorClick/);
+  assert.doesNotMatch(brand, /rel="noopener noreferrer sponsored nofollow"/);
+  assert.doesNotMatch(brand, /IntersectionObserver/);
+  assert.doesNotMatch(brand, /recordSponsorClick/);
   assert.match(migrations, /CREATE TABLE IF NOT EXISTS sponsor_events/);
   assert.doesNotMatch(migrations, /sponsor_events[^`]*(?:user_id|device_id|game_id)/);
   assert.match(proofRoute, /live runtime self-audit/);
@@ -462,7 +460,8 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(privacyEngine, /purgeExpiredData/);
   assert.match(privacyEngine, /DELETE FROM responses WHERE game_id IN/);
   assert.match(vercel, /"schedule": "0 3 \* \* \*"/);
-  assert.match(builder, /hash\.slice\(1\)/);
+  assert.doesNotMatch(builder, /hash\.slice\(1\)/);
+  assert.match(builder, /sharePrivatePanel/);
   assert.doesNotMatch(builder, /localStorage/);
   assert.match(manifest, /"display":"standalone"/);
   assert.match(manifest, /"scope":"\/"/);

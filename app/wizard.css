@@ -34,6 +34,9 @@
 .success-share-column .link-box{margin-top:12px}
 .success-private-column .admin-box{margin-bottom:12px}
 .success-delivery-grid .qr-card canvas{width:min(100%,330px)}
+.success-delivery-grid>.qr-card{align-self:stretch;display:flex;flex-direction:column}
+.success-delivery-grid>.qr-card .qr-card-actions{margin-top:auto}
+.shared-key-explanation{margin-top:5px!important;color:#c4b8af!important;font-size:10px!important;line-height:1.45!important}
 .success-shared-key{margin-top:18px}
 .success-shared-key .shared-key-card{margin:0}
 .success-link-only-notice{display:flex;align-items:flex-start;gap:12px;margin-top:18px;padding:14px 16px;border:1px solid #5d493e;background:rgba(255,90,31,.055);text-align:left}

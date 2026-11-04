@@ -43,7 +43,8 @@ export function SharedKeyCard({
         const context = canvas.getContext("2d");
         if (!context) throw new Error("canvas");
         canvas.width = 720;
-        canvas.height = 900;
+        const mnemonic = showRecovery ? sharedKeyToMnemonic(sharedKey) : "";
+        canvas.height = showRecovery ? 1040 : 900;
         context.fillStyle = "#0b0b0b";
         context.fillRect(0, 0, canvas.width, canvas.height);
         const glow = context.createRadialGradient(600, 80, 20, 600, 80, 420);
@@ -80,10 +81,29 @@ export function SharedKeyCard({
         context.fillStyle = "#ff5a1f";
         context.font = "700 16px Arial, sans-serif";
         context.fillText("Z4SK · E2EE · 128 BIT", 70, 870);
+        if (mnemonic) {
+          context.fillStyle = "#77706a";
+          context.font = "700 15px Arial, 'Noto Sans', sans-serif";
+          context.fillText(copy.phrase, 70, 910);
+          context.fillStyle = "#f4efe8";
+          context.font = "700 18px Arial, 'Noto Sans', sans-serif";
+          const words = mnemonic.split(" ");
+          let line = "";
+          let y = 945;
+          for (const word of words) {
+            const next = line ? `${line} ${word}` : word;
+            if (context.measureText(next).width > 580) {
+              context.fillText(line, 70, y);
+              line = word;
+              y += 27;
+            } else line = next;
+          }
+          if (line) context.fillText(line, 70, y);
+        }
         setRendered({
           key: sharedKey,
           fingerprint: nextFingerprint,
-          mnemonic: showRecovery ? sharedKeyToMnemonic(sharedKey) : "",
+          mnemonic,
         });
       })
       .catch(() => {

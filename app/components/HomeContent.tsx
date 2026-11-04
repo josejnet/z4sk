@@ -185,7 +185,7 @@ export function HomeContent() {
         <div className="builder-modal" role="dialog" aria-modal="true" aria-labelledby="builder-title">
           <section ref={dialogRef} className="builder-dialog">
             <button className="builder-close" type="button" onClick={closeBuilder} aria-label={footerCopy[locale].close}>×</button>
-            <Builder key={locale} onClose={closeBuilder} />
+            <Builder key={locale} onClose={closeBuilder} initialUiPackSlug={packSlug} />
           </section>
         </div>
       )}

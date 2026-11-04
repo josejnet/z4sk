@@ -21,15 +21,16 @@
 .home-shell[class*="home-theme-"] .hero-start{background:var(--home-accent);box-shadow:0 18px 55px color-mix(in srgb,var(--home-accent) 22%,transparent)}
 .home-palette-picker{display:flex;align-items:center;justify-content:center;gap:12px;margin:22px auto -4px;color:#8d8580;font:600 9px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase}
 .home-palette-picker>div{display:flex;gap:7px}
-.home-palette-picker button{width:18px;height:18px;border:1px solid rgba(244,239,232,.35);border-radius:50%;background:var(--palette-color);cursor:pointer;box-shadow:0 0 0 0 transparent;transition:.18s ease}
+.home-palette-picker button{width:20px;height:20px;display:block;border:1px solid rgba(244,239,232,.7);border-radius:50%;background:var(--palette-color)!important;cursor:pointer;box-shadow:0 0 0 0 transparent;transition:.18s ease}
+.home-palette-picker button:nth-child(1){background:#ff5a1f!important}.home-palette-picker button:nth-child(2){background:#ff3b9d!important}.home-palette-picker button:nth-child(3){background:#7dffbf!important}.home-palette-picker button:nth-child(4){background:#52c7ff!important}.home-palette-picker button:nth-child(5){background:#ff8066!important}.home-palette-picker button:nth-child(6){background:#4fe0c0!important}.home-palette-picker button:nth-child(7){background:#e8a15d!important}
 .home-palette-picker button:hover{transform:translateY(-2px)}
 .home-palette-picker button.active{box-shadow:0 0 0 2px #0b0b0b,0 0 0 3px var(--palette-color);transform:scale(1.1)}
-@media(max-width:620px){.home-palette-picker{margin:17px auto -3px;gap:9px;font-size:8px}.home-palette-picker button{width:16px;height:16px}}
+@media(max-width:620px){.home-palette-picker{margin:17px auto -3px;gap:9px;font-size:8px}.home-palette-picker button{width:18px;height:18px}}
 .builder-dialog::-webkit-scrollbar-button{display:none}
 
 /* On wide screens the configurator behaves like a workspace, not a reading column. */
 @media(min-width:901px){
-  .builder-dialog{width:min(1380px,calc(100vw - 48px));max-height:94dvh}
+  .builder-dialog{width:min(1380px,calc(100vw - 48px));max-height:94dvh;overflow-y:auto;overflow-x:hidden}
   .builder-dialog .builder-shell{padding:clamp(28px,3.2vw,48px)}
 }
 

@@ -498,7 +498,7 @@ const builderUi = localized<{
   machine: { done: "DONE", remove: "REMOVE::{question}", security: "SECURITY_NEXT" },
 });
 
-export function Builder({ onClose }: { onClose?: () => void }) {
+export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?: () => void; initialUiPackSlug?: string }) {
   const { locale, t } = useLanguage();
   const shellRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -510,6 +510,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [viewOnce, setViewOnce] = useState(false);
   const [timedMode, setTimedMode] = useState(false);
   const [expiresInHours, setExpiresInHours] = useState(12);
+  const [uiPackSlug] = useState(initialUiPackSlug);
   const [packSlug, setPackSlug] = useState("original");
   const [selected, setSelected] = useState<string[]>(() =>
     getDefaultQuestions(locale, "coqueto"),
@@ -663,7 +664,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const displayedStep = step === 4 ? 5 : step;
   const totalSteps = 5;
   return (
-    <div ref={shellRef} className={`builder-shell builder-theme-${packSlug}`}>
+    <div ref={shellRef} className={`builder-shell builder-theme-${uiPackSlug}`}>
       {step <= 4 && <>
       <div className="builder-top" aria-live="polite">
         <div>

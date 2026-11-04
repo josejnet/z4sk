@@ -561,6 +561,7 @@ export function QrCard({
         <span>{invitation ? "QR ↗" : "QR ◆"}</span>
         <div>
           <h4>{invitation ? c.publicHeading : c.privateHeading}</h4>
+          {!invitation && <p>{c.privateHint}</p>}
           {invitation && (
             <p>
               {protectedBySharedKey

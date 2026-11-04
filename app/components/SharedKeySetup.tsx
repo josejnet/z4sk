@@ -7,6 +7,22 @@ import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
 import { SharedKeyCard } from "./SharedKeyCard";
 import { SharedKeyUnlock } from "./SharedKeyUnlock";
 
+const CONTINUE_COPY: Record<Locale, string> = {
+  en: "Continue",
+  es: "Continuar",
+  it: "Continua",
+  fr: "Continuer",
+  de: "Weiter",
+  nl: "Doorgaan",
+  eo: "Daŭrigi",
+  pt: "Continuar",
+  zh: "继续",
+  hi: "जारी रखें",
+  ja: "続ける",
+  tr: "Devam et",
+  machine: "CONTINUE",
+};
+
 export function SharedKeySetup({
   locale,
   sharedKey,
@@ -74,18 +90,24 @@ export function SharedKeySetup({
           sharedKey={sharedKey}
           showRecovery
           footer={
-            <label id="shared-key-confirmation" className="shared-key-confirm">
-              <input
-                type="checkbox"
-                checked={confirmed}
-                onChange={(event) => {
-                  const next = event.target.checked;
-                  onConfirm(next);
-                  if (next) onCreate(sharedKey, false);
-                }}
-              />
-              <span>{copy.confirm}</span>
-            </label>
+            <>
+              <label id="shared-key-confirmation" className="shared-key-confirm">
+                <input
+                  type="checkbox"
+                  checked={confirmed}
+                  onChange={(event) => onConfirm(event.target.checked)}
+                />
+                <span>{copy.confirm}</span>
+              </label>
+              <button
+                type="button"
+                className="shared-key-continue"
+                disabled={!confirmed}
+                onClick={() => onCreate(sharedKey, false)}
+              >
+                {CONTINUE_COPY[locale]} <span>→</span>
+              </button>
+            </>
           }
         />
       </section>
@@ -140,8 +162,7 @@ export function SharedKeySetup({
             setShowImport(false);
             onLinkOnly(false);
             onChange(key);
-            onConfirm(true);
-            onCreate(key, false);
+            onConfirm(false);
           }}
         />
       )}

@@ -262,6 +262,8 @@
 }
 .shared-key-recovery .shared-key-card-actions{grid-template-columns:1fr 1fr;margin-top:14px}
 .shared-key-recovery .shared-key-confirm{margin-top:12px!important}
+.shared-key-recovery .shared-key-continue{width:100%;min-height:46px;margin-top:10px;border:0;background:var(--orange);color:#111;font-weight:800;cursor:pointer}
+.shared-key-recovery .shared-key-continue:disabled{opacity:.4;cursor:not-allowed}
 .shared-key-unlock-page {
   min-height: calc(100vh - 66px);
   display: grid;

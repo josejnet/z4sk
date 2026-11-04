@@ -15,6 +15,7 @@ export function SharedKeySetup({
   onChange,
   onConfirm,
   onLinkOnly,
+  onCreate,
 }: {
   locale: Locale;
   sharedKey: string;
@@ -23,6 +24,7 @@ export function SharedKeySetup({
   onChange: (key: string) => void;
   onConfirm: (value: boolean) => void;
   onLinkOnly: (value: boolean) => void;
+  onCreate: (sharedKey: string, linkOnly: boolean) => void;
 }) {
   const copy = SHARED_KEY_COPY[locale];
   const protectionReminder: Record<Locale, string> = {
@@ -59,6 +61,7 @@ export function SharedKeySetup({
     onChange("");
     onConfirm(false);
     onLinkOnly(true);
+    onCreate("", true);
   }
 
   if (sharedKey)
@@ -84,7 +87,11 @@ export function SharedKeySetup({
           <input
             type="checkbox"
             checked={confirmed}
-            onChange={(event) => onConfirm(event.target.checked)}
+            onChange={(event) => {
+              const next = event.target.checked;
+              onConfirm(next);
+              if (next) onCreate(sharedKey, false);
+            }}
           />
           <span>{copy.confirm}</span>
         </label>
@@ -141,6 +148,7 @@ export function SharedKeySetup({
             onLinkOnly(false);
             onChange(key);
             onConfirm(true);
+            onCreate(key, false);
           }}
         />
       )}

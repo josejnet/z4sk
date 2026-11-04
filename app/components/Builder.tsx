@@ -567,7 +567,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   );
   const [custom, setCustom] = useState("");
   const [created, setCreated] = useState<Created | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<"play" | "admin" | null>(null);
   const [mixing, setMixing] = useState(false);
@@ -621,13 +620,16 @@ export function Builder({ onClose }: { onClose?: () => void }) {
     }
   }
 
-  async function createGame() {
-    setLoading(true);
+  async function createGame(
+    overrides?: { sharedKey?: string; linkOnly?: boolean },
+  ) {
     setError("");
     try {
-      if (!sharedKey && !linkOnlyConfirmed)
+      const activeSharedKey = overrides?.sharedKey ?? sharedKey;
+      const activeLinkOnly = overrides?.linkOnly ?? linkOnlyConfirmed;
+      if (!activeSharedKey && !activeLinkOnly)
         throw new Error(SHARED_KEY_COPY[locale].chooseRequired);
-      if (sharedKey && !sharedKeyConfirmed)
+      if (activeSharedKey && !sharedKeyConfirmed && !overrides?.sharedKey)
         throw new Error(SHARED_KEY_COPY[locale].confirm);
       const normalizedCreatorName = creatorName.trim().replace(/\s+/g, " ");
       const normalizedRecipientName = recipientName.trim().replace(/\s+/g, " ");
@@ -637,7 +639,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
         generateCreatorAccessCredential(),
       ]);
       const invitationSecret = generateInvitationSecret();
-      const expectedKeyMode = linkOnlyConfirmed ? "link" : "shared";
+      const expectedKeyMode = activeLinkOnly ? "link" : "shared";
       const encryptedInvitation = await encryptPrivateInvitation(
         {
           creatorName: normalizedCreatorName,
@@ -653,7 +655,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
           createdAt: new Date().toISOString(),
         },
         invitationSecret,
-        sharedKey,
+        activeSharedKey,
       );
       if (encryptedInvitation.keyMode !== expectedKeyMode)
         throw new Error(SHARED_KEY_COPY[locale].chooseRequired);
@@ -695,8 +697,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
       setStep(5);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t("formError"));
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -962,6 +962,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             }}
             onConfirm={setSharedKeyConfirmed}
             onLinkOnly={setLinkOnlyConfirmed}
+            onCreate={(key, linkOnly) => void createGame({ sharedKey: key, linkOnly })}
           />
           {sharedKeyConfirmed && (
             <p
@@ -977,28 +978,9 @@ export function Builder({ onClose }: { onClose?: () => void }) {
               {error}
             </p>
           )}
-          <div className="button-row">
+          <div className="button-row security-back-row">
             <button className="secondary" onClick={() => setStep(3)}>
               ← {t("back")}
-            </button>
-            <button
-              className="primary"
-              disabled={
-                loading ||
-                (!linkOnlyConfirmed && !sharedKeyConfirmed) ||
-                Boolean(sharedKey && !sharedKeyConfirmed)
-              }
-              aria-describedby={
-                sharedKey && !sharedKeyConfirmed
-                  ? "shared-key-confirmation"
-                  : sharedKeyConfirmed
-                    ? "security-requirement"
-                  : undefined
-              }
-              onClick={createGame}
-            >
-              {loading ? t("creating") : t("createLink")}
-              <span>→</span>
             </button>
           </div>
         </div>
@@ -1411,7 +1393,7 @@ function FeatureConfig({
 }) {
   const c = featureText[locale];
   return (
-    <details className="feature-config">
+    <details open className="feature-config">
       <summary className="feature-intro">
         <span>✦</span>
         <div>

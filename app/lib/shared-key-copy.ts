@@ -81,7 +81,7 @@ export const SHARED_KEY_COPY: Record<Locale, SharedKeyCopy> = {
     protectBody:
       "Crea una Clave Duo: un segundo secreto que se guarda y se comparte aparte del enlace. Si no la necesitas, elige continuar solo con el enlace completo.",
     generate: "Crear QR de Clave Duo · recomendado",
-    existing: "Usar un QR de llave existente",
+    existing: "Usar un QR de Clave Duo existente",
     ready: "Llave compartida preparada",
     replace: "Usar otra llave",
     confirm: "He guardado mi copia y entregaré la otra por un canal diferente.",

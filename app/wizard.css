@@ -53,7 +53,9 @@
 .private-panel-actions>b,.private-panel-actions>span{display:block}
 .private-panel-actions>b{font-size:11px}
 .private-panel-actions>span{margin-top:4px;color:#a99ab9;font-size:9px;line-height:1.4}
-.private-panel-actions .admin-actions{margin-top:8px}
+.private-panel-actions .admin-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.private-panel-actions .admin-actions a,.private-panel-actions .admin-actions button{min-height:38px;display:flex;align-items:center;justify-content:center;padding:8px 9px;border:1px solid #654898;background:#1a1522;color:#d8c9ed;text-align:center;text-decoration:none;font-size:10px;line-height:1.25}
+.private-panel-actions .admin-actions a:hover,.private-panel-actions .admin-actions button:hover{border-color:#b989ff;background:#241936;color:#fff}
 .success-delivery-grid .qr-card canvas{width:min(100%,330px)}
 .success-delivery-grid>.qr-card .qr-card-copy,.success-private-column .qr-card .qr-card-copy{height:100px;min-height:100px}
 .success-delivery-grid>.qr-card{align-self:stretch;display:flex;flex-direction:column}

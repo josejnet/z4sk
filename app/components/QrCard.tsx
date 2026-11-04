@@ -617,6 +617,8 @@ export function QrCard({
           >
             {c.share}
           </button>
+        ) : !invitation ? (
+          <span className="qr-action-spacer" aria-hidden="true" />
         ) : null}
       </div>
     </section>

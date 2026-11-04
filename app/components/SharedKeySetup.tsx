@@ -50,12 +50,6 @@ export function SharedKeySetup({
     onChange(generateSharedKey());
   }
 
-  function replace() {
-    setShowImport(false);
-    onLinkOnly(false);
-    onChange("");
-  }
-
   function chooseLinkOnly() {
     setShowImport(false);
     onChange("");
@@ -74,9 +68,6 @@ export function SharedKeySetup({
             <p>{copy.protectBody}</p>
             <p className="shared-key-explanation">{protectionReminder[locale]}</p>
           </div>
-          <button type="button" onClick={replace}>
-            {copy.replace}
-          </button>
         </div>
         <SharedKeyCard
           locale={locale}

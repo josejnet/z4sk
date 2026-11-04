@@ -47,7 +47,7 @@
 .private-panel-actions>span{margin-top:4px;color:#a99ab9;font-size:9px;line-height:1.4}
 .private-panel-actions .admin-actions{margin-top:8px}
 .success-delivery-grid .qr-card canvas{width:min(100%,330px)}
-.success-delivery-grid>.qr-card .qr-card-copy,.success-private-column .qr-card .qr-card-copy{min-height:82px}
+.success-delivery-grid>.qr-card .qr-card-copy,.success-private-column .qr-card .qr-card-copy{height:100px;min-height:100px}
 .success-delivery-grid>.qr-card{align-self:stretch;display:flex;flex-direction:column}
 .success-delivery-grid>.qr-card .qr-card-actions{margin-top:auto}
 .shared-key-explanation{margin-top:8px!important;color:#d8c8bf!important;font-size:15px!important;line-height:1.55!important}

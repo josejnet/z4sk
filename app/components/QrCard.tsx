@@ -572,6 +572,10 @@ export function QrCard({
           </p>
         </div>
       </div>
+      <canvas
+        ref={canvasRef}
+        aria-label={invitation ? c.publicHeading : c.privateHeading}
+      />
       {!invitation && (
         <p className="qr-warning" role="note">
           <b>!</b>
@@ -580,10 +584,6 @@ export function QrCard({
             : PRIVATE_LINK_WARNING[locale]}
         </p>
       )}
-      <canvas
-        ref={canvasRef}
-        aria-label={invitation ? c.publicHeading : c.privateHeading}
-      />
       {invitation && (
         <a className="qr-link" href={url} target="_blank" rel="noreferrer">
           {url}

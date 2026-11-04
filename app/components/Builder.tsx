@@ -133,57 +133,6 @@ const growthCopy = localized<{
     share: "CREATE private_questionnaire; SEND whatsapp://; ASK.ANSWER.DARE.",
   },
 });
-const smartCopy = localized<{ button: string; note: string }>({
-  en: {
-    button: "✦ SMART MIX™",
-    note: "Optimized from anonymous completion patterns — never answer text.",
-  },
-  es: {
-    button: "✦ SMART MIX™",
-    note: "Optimizado con patrones anónimos de finalización, nunca con el texto de las respuestas.",
-  },
-  it: {
-    button: "✦ SMART MIX™",
-    note: "Ottimizzato con dati anonimi di completamento, mai con il testo delle risposte.",
-  },
-  fr: {
-    button: "✦ SMART MIX™",
-    note: "Optimisé avec des données anonymes de complétion, jamais avec le texte des réponses.",
-  },
-  de: {
-    button: "✦ SMART MIX™",
-    note: "Optimiert mit anonymen Abschlussdaten, niemals mit Antworttexten.",
-  },
-  nl: {
-    button: "✦ SLIMME MIX™",
-    note: "Geoptimaliseerd met anonieme voltooiingspatronen, nooit met antwoordtekst.",
-  },
-  eo: {
-    button: "✦ LERTA MIKSO™",
-    note: "Optimumigita per anonimaj kompletigaj ŝablonoj, neniam per la teksto de respondoj.",
-  },
-  pt: {
-    button: "✦ MISTURA INTELIGENTE™",
-    note: "Otimizado com padrões anónimos de conclusão, nunca com o texto das respostas.",
-  },
-  zh: { button: "✦ 智能组合™", note: "根据匿名完成率优化，绝不读取回答内容。" },
-  hi: {
-    button: "✦ स्मार्ट मिक्स™",
-    note: "सिर्फ गुमनाम पूर्णता पैटर्न से बेहतर बनाया गया—जवाब के टेक्स्ट से कभी नहीं।",
-  },
-  ja: {
-    button: "✦ スマートミックス™",
-    note: "匿名の完了パターンだけで最適化し、回答本文は一切使用しません。",
-  },
-  tr: {
-    button: "✦ AKILLI KARIŞIM™",
-    note: "Yalnızca anonim tamamlama örüntüleriyle optimize edilir; yanıt metni asla kullanılmaz.",
-  },
-  machine: {
-    button: "✦ SMART_MIX()",
-    note: "optimize(source=anonymous_completion_patterns); answer_text_access=false",
-  },
-});
 const responseModeCopy = localized<{
   heading: string;
   normal: string;
@@ -569,7 +518,6 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [created, setCreated] = useState<Created | null>(null);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<"play" | "admin" | null>(null);
-  const [mixing, setMixing] = useState(false);
   const [sharedKey, setSharedKey] = useState("");
   const [sharedKeyConfirmed, setSharedKeyConfirmed] = useState(false);
   const [linkOnlyConfirmed, setLinkOnlyConfirmed] = useState(false);
@@ -712,26 +660,15 @@ export function Builder({ onClose }: { onClose?: () => void }) {
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   }
 
-  async function applySmartMix() {
-    setMixing(true);
-    try {
-      const response = await fetch(
-        `/api/smart-mix?locale=${locale}&level=${level}&library=2026.08.1`,
-      );
-      const data = (await response.json()) as { questions?: string[] };
-      if (response.ok && data.questions?.length) setSelected(data.questions);
-    } finally {
-      setMixing(false);
-    }
-  }
-
+  const displayedStep = step === 4 ? 5 : step;
+  const totalSteps = 5;
   return (
-    <div ref={shellRef} className="builder-shell">
+    <div ref={shellRef} className={`builder-shell builder-theme-${packSlug}`}>
       {step <= 4 && <>
       <div className="builder-top" aria-live="polite">
         <div>
           <span className="step">
-            {t("step")} {step} {t("of")} 4
+            {t("step")} {displayedStep} {t("of")} {totalSteps}
           </span>
           <h2 ref={headingRef} id="builder-title" tabIndex={-1}>
             {step === 1
@@ -743,13 +680,13 @@ export function Builder({ onClose }: { onClose?: () => void }) {
                   : SHARED_KEY_COPY[locale].protectTitle}
           </h2>
         </div>
-        <span className="counter">0{step}</span>
+        <span className="counter">0{displayedStep}</span>
       </div>
       <progress
         className="steps-line"
-        max={4}
-        value={step}
-        aria-label={`${t("step")} ${step} ${t("of")} 4`}
+        max={totalSteps}
+        value={displayedStep}
+        aria-label={`${t("step")} ${displayedStep} ${t("of")} ${totalSteps}`}
       />
       </>}
       {step === 1 && (
@@ -873,18 +810,9 @@ export function Builder({ onClose }: { onClose?: () => void }) {
             <div className="selection-meta">
               <div>
                 <p>{t("selectHint")}</p>
-                <small>{smartCopy[locale].note}</small>
               </div>
               <strong>{selected.length}/12</strong>
             </div>
-            <button
-              className="smart-mix"
-              type="button"
-              onClick={applySmartMix}
-              disabled={mixing}
-            >
-              {mixing ? "…" : smartCopy[locale].button}
-            </button>
             <div className="questions-list">
               {questions.map((question, index) => (
                 <button

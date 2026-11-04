@@ -85,6 +85,11 @@ export function HomeContent() {
   }, []);
 
   useEffect(() => {
+    const randomPalette = paletteOptions[Math.floor(Math.random() * paletteOptions.length)];
+    queueMicrotask(() => setPackSlug(randomPalette.slug));
+  }, []);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.has("create") || params.has("sponsor"))
       queueMicrotask(() => setBuilderOpen(true));

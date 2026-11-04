@@ -498,7 +498,7 @@ const builderUi = localized<{
   machine: { done: "DONE", remove: "REMOVE::{question}", security: "SECURITY_NEXT" },
 });
 
-export function Builder({ onClose }: { onClose?: () => void }) {
+export function Builder({ onClose, initialPackSlug = "original" }: { onClose?: () => void; initialPackSlug?: string }) {
   const { locale, t } = useLanguage();
   const shellRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -510,7 +510,7 @@ export function Builder({ onClose }: { onClose?: () => void }) {
   const [viewOnce, setViewOnce] = useState(false);
   const [timedMode, setTimedMode] = useState(false);
   const [expiresInHours, setExpiresInHours] = useState(12);
-  const [packSlug, setPackSlug] = useState("original");
+  const [packSlug, setPackSlug] = useState(initialPackSlug);
   const [selected, setSelected] = useState<string[]>(() =>
     getDefaultQuestions(locale, "coqueto"),
   );

@@ -8,6 +8,23 @@
 .builder-dialog::-webkit-scrollbar-track{background:#1a1817;border-left:1px solid #2d2926}
 .builder-dialog::-webkit-scrollbar-thumb{min-height:48px;border:2px solid #1a1817;border-radius:999px;background:#75452f}
 .builder-dialog::-webkit-scrollbar-thumb:hover{background:var(--orange)}
+
+.home-shell[class*="home-theme-"]{--home-accent:#ff5a1f;background-color:#0b0b0b;background-image:radial-gradient(circle at 50% 32%,var(--home-glow),transparent 38%)}
+.home-shell.home-theme-original{--home-accent:#ff5a1f;--home-glow:rgba(255,90,31,.12)}
+.home-shell.home-theme-nightlife{--home-accent:#ff3b9d;--home-glow:rgba(255,59,157,.14)}
+.home-shell.home-theme-creator{--home-accent:#7dffbf;--home-glow:rgba(125,255,191,.13)}
+.home-shell.home-theme-ocean{--home-accent:#52c7ff;--home-glow:rgba(82,199,255,.14)}
+.home-shell.home-theme-solar{--home-accent:#ff8066;--home-glow:rgba(255,128,102,.14)}
+.home-shell.home-theme-aurora{--home-accent:#4fe0c0;--home-glow:rgba(79,224,192,.14)}
+.home-shell.home-theme-copper{--home-accent:#e8a15d;--home-glow:rgba(232,161,93,.14)}
+.home-shell[class*="home-theme-"] .eyebrow,.home-shell[class*="home-theme-"] .hero h1 em,.home-shell[class*="home-theme-"] .hero-meta b{color:var(--home-accent)}
+.home-shell[class*="home-theme-"] .hero-start{background:var(--home-accent);box-shadow:0 18px 55px color-mix(in srgb,var(--home-accent) 22%,transparent)}
+.home-palette-picker{display:flex;align-items:center;justify-content:center;gap:12px;margin:22px auto -4px;color:#8d8580;font:600 9px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase}
+.home-palette-picker>div{display:flex;gap:7px}
+.home-palette-picker button{width:18px;height:18px;border:1px solid rgba(244,239,232,.35);border-radius:50%;background:var(--palette-color);cursor:pointer;box-shadow:0 0 0 0 transparent;transition:.18s ease}
+.home-palette-picker button:hover{transform:translateY(-2px)}
+.home-palette-picker button.active{box-shadow:0 0 0 2px #0b0b0b,0 0 0 3px var(--palette-color);transform:scale(1.1)}
+@media(max-width:620px){.home-palette-picker{margin:17px auto -3px;gap:9px;font-size:8px}.home-palette-picker button{width:16px;height:16px}}
 .builder-dialog::-webkit-scrollbar-button{display:none}
 
 /* On wide screens the configurator behaves like a workspace, not a reading column. */

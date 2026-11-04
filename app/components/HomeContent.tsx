@@ -16,7 +16,7 @@ const paletteOptions = [
 ] as const;
 
 const palettePickerCopy: Record<Locale, string> = {
-  en: "Choose the invitation colour", es: "Elige el color de la invitación", it: "Scegli il colore dell’invito", fr: "Choisissez la couleur de l’invitation", de: "Wähle die Farbe der Einladung", nl: "Kies de kleur van de uitnodiging", eo: "Elektu la koloron de la invito", pt: "Escolha a cor do convite", zh: "选择邀请函颜色", hi: "निमंत्रण का रंग चुनें", ja: "招待状の色を選ぶ", tr: "Davet rengini seç", machine: "INVITATION_COLOR",
+  en: "Choose your display colour", es: "Elige tu color", it: "Scegli il tuo colore", fr: "Choisissez votre couleur", de: "Wähle deine Farbe", nl: "Kies jouw kleur", eo: "Elektu vian koloron", pt: "Escolha a sua cor", zh: "选择你的颜色", hi: "अपना रंग चुनें", ja: "自分の色を選ぶ", tr: "Kendi rengini seç", machine: "YOUR_DISPLAY_COLOR",
 };
 
 const footerCopy: Record<
@@ -152,7 +152,7 @@ export function HomeContent() {
                   key={palette.slug}
                   type="button"
                   className={packSlug === palette.slug ? "active" : ""}
-                  style={{ "--palette-color": palette.color } as CSSProperties}
+                  style={{ backgroundColor: palette.color, "--palette-color": palette.color } as CSSProperties}
                   aria-label={palette.name}
                   aria-pressed={packSlug === palette.slug}
                   title={palette.name}
@@ -185,7 +185,7 @@ export function HomeContent() {
         <div className="builder-modal" role="dialog" aria-modal="true" aria-labelledby="builder-title">
           <section ref={dialogRef} className="builder-dialog">
             <button className="builder-close" type="button" onClick={closeBuilder} aria-label={footerCopy[locale].close}>×</button>
-            <Builder key={locale} onClose={closeBuilder} initialPackSlug={packSlug} />
+            <Builder key={locale} onClose={closeBuilder} />
           </section>
         </div>
       )}

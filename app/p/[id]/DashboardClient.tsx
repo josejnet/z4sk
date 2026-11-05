@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sponsor, TopNav } from "../../components/Brand";
 import { SharedKeyUnlock } from "../../components/SharedKeyUnlock";
@@ -404,7 +404,7 @@ export function DashboardClient({ id }: { id: string }) {
     null,
   );
   const { locale: preferredLocale, setLocale } = useLanguage();
-  const [locale, setGameLocale] = useState<Locale>(preferredLocale);
+  const locale = preferredLocale;
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -416,9 +416,12 @@ export function DashboardClient({ id }: { id: string }) {
   const [notifications, setNotifications] = useState(false);
   const [confirmRevealOpen, setConfirmRevealOpen] = useState(false);
   const [tooLate, setTooLate] = useState(false);
+  const initialLoadRef = useRef(false);
   const dashboardUnlocked = Boolean(data);
 
   useEffect(() => {
+    if (initialLoadRef.current) return;
+    initialLoadRef.current = true;
     const fragment = new URLSearchParams(window.location.hash.slice(1));
     const secret = fragment.get("key") || "";
     const decryptionSecret = fragment.get("decrypt") || "";
@@ -453,7 +456,6 @@ export function DashboardClient({ id }: { id: string }) {
             );
             if (!active) return;
             setData(decrypted);
-            setGameLocale(decrypted.game.locale);
             setLocale(decrypted.game.locale);
           } else {
             setPendingWire(result);
@@ -535,7 +537,6 @@ export function DashboardClient({ id }: { id: string }) {
       setSharedKey(nextSharedKey);
       setPendingWire(null);
       setData(result);
-      setGameLocale(result.game.locale);
       setLocale(result.game.locale);
     } catch {
       throw new Error(dashboardUi[preferredLocale].loadError);
@@ -554,7 +555,6 @@ export function DashboardClient({ id }: { id: string }) {
         sharedKey,
       );
       setData(result);
-      setGameLocale(result.game.locale);
       setLocale(result.game.locale);
     } catch (cause) {
       const late =

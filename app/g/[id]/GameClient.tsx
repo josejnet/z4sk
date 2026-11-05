@@ -384,6 +384,7 @@ export function GameClient({ id }: { id: string }) {
   const [invitationSecret, setInvitationSecret] = useState("");
   const [submissionToken, setSubmissionToken] = useState("");
   const answerRef = useRef<HTMLTextAreaElement>(null);
+  const initialLoadRef = useRef(false);
 
   const acceptGame = useCallback(
     (decryptedGame: Game) => {
@@ -408,6 +409,8 @@ export function GameClient({ id }: { id: string }) {
   }, []);
 
   useEffect(() => {
+    if (initialLoadRef.current) return;
+    initialLoadRef.current = true;
     fetch(`/api/games/${id}`, { cache: "no-store" })
       .then(async (response) => {
         const data = (await response.json()) as GameWire & { error?: string };
@@ -619,7 +622,7 @@ export function GameClient({ id }: { id: string }) {
     setIndex((value) => value + 1);
   }
 
-  const locale = game?.locale || preferredLocale;
+  const locale = preferredLocale;
   if (phase === "loading")
     return (
       <main className="experience-page">

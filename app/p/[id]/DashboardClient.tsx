@@ -404,6 +404,7 @@ export function DashboardClient({ id }: { id: string }) {
     null,
   );
   const { locale: preferredLocale, setLocale } = useLanguage();
+  const preferredLocaleRef = useRef(preferredLocale);
   const locale = preferredLocale;
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -418,6 +419,10 @@ export function DashboardClient({ id }: { id: string }) {
   const [tooLate, setTooLate] = useState(false);
   const initialLoadRef = useRef(false);
   const dashboardUnlocked = Boolean(data);
+
+  useEffect(() => {
+    preferredLocaleRef.current = preferredLocale;
+  }, [preferredLocale]);
 
   useEffect(() => {
     if (initialLoadRef.current) return;
@@ -470,8 +475,8 @@ export function DashboardClient({ id }: { id: string }) {
           setTooLate(late);
           setError(
             late
-              ? TOO_LATE_COPY[preferredLocale].answers
-              : dashboardUi[preferredLocale].loadError,
+              ? TOO_LATE_COPY[preferredLocaleRef.current].answers
+              : dashboardUi[preferredLocaleRef.current].loadError,
           );
         }
       })
@@ -481,7 +486,7 @@ export function DashboardClient({ id }: { id: string }) {
     return () => {
       active = false;
     };
-  }, [id, preferredLocale, setLocale]);
+  }, [id, setLocale]);
   useEffect(() => {
     if (!key || !privateKey || !dashboardUnlocked) return;
     const timer = window.setInterval(() => {

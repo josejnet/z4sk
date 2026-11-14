@@ -117,3 +117,41 @@ export function getRequestCountry(request: Request) {
   const country = String(request.headers.get("x-vercel-ip-country") || "XX").trim().toUpperCase();
   return /^[A-Z]{2}$/.test(country) ? country : "XX";
 }
+
+function requestLocale(value: string | null) {
+  const locale = String(value || "").split(",")[0]?.split("-")[0]?.trim().toLowerCase() || "unknown";
+  return /^[a-z]{2,3}$/.test(locale) ? locale : "unknown";
+}
+
+function requestDevice(value: string | null) {
+  const userAgent = String(value || "").toLowerCase();
+  if (!userAgent) return "unknown";
+  if (/bot|crawler|spider|headless|preview/.test(userAgent)) return "bot_or_preview";
+  if (/ipad|tablet|android(?!.*mobile)/.test(userAgent)) return "tablet";
+  if (/mobile|iphone|ipod|android/.test(userAgent)) return "mobile";
+  return "desktop";
+}
+
+function referrerHost(value: string | null) {
+  if (!value) return "direct";
+  try {
+    const host = new URL(value).hostname.toLowerCase().replace(/^www\./, "");
+    return host.slice(0, 120) || "direct";
+  } catch {
+    return "unknown";
+  }
+}
+
+export async function recordPublicMessageAccess(messageId: string, headers: Headers) {
+  const now = new Date().toISOString();
+  const day = now.slice(0, 10);
+  await getDatabase().prepare(`INSERT INTO founder_public_message_access_daily (message_id, day, locale, country, device, referrer_host, access_count, last_access_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(message_id, day, locale, country, device, referrer_host) DO UPDATE SET access_count = founder_public_message_access_daily.access_count + 1, last_access_at = EXCLUDED.last_access_at`).bind(
+    messageId,
+    day,
+    requestLocale(headers.get("accept-language")),
+    getRequestCountry(new Request("https://z4sk.xyz", { headers })),
+    requestDevice(headers.get("user-agent")),
+    referrerHost(headers.get("referer")),
+    now,
+  ).run();
+}

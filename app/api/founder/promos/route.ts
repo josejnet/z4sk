@@ -23,12 +23,43 @@ export async function GET(request: Request) {
     await ensureSchema();
     const denied = await authorizeFounder(request, "founder-public-messages");
     if (denied) return denied;
-    const rows = await getDatabase().prepare(`SELECT id, title, message, locale, theme, active, created_at, updated_at FROM founder_public_messages ORDER BY created_at DESC LIMIT 100`).all();
-    return NextResponse.json({ messages: rows.results }, { headers: { "cache-control": "no-store" } });
+    const database = getDatabase();
+    const rows = await database.prepare(`SELECT id, title, message, locale, theme, active, created_at, updated_at FROM founder_public_messages ORDER BY created_at DESC LIMIT 100`).all<PromoRow>();
+    const accessRows = await database.prepare(`SELECT message_id, day, locale, country, device, referrer_host, access_count, last_access_at FROM founder_public_message_access_daily WHERE message_id IN (SELECT id FROM founder_public_messages ORDER BY created_at DESC LIMIT 100) ORDER BY day DESC, access_count DESC`).all<PromoAccessRow>();
+    const accessByMessage = new Map<string, PromoAccessRow[]>();
+    for (const access of accessRows.results) {
+      const current = accessByMessage.get(access.message_id) || [];
+      current.push(access);
+      accessByMessage.set(access.message_id, current);
+    }
+    const messages = rows.results.map((message) => ({ ...message, access: summarizeAccess(accessByMessage.get(message.id) || []) }));
+    return NextResponse.json({ messages }, { headers: { "cache-control": "no-store" } });
   } catch (error) {
     console.error("founder-public-messages-list", error);
     return NextResponse.json({ error: "Public messages unavailable." }, { status: 500 });
   }
+}
+
+type PromoRow = { id: string; title: string; message: string; locale: string; theme: string; active: number; created_at: string; updated_at: string };
+type PromoAccessRow = { message_id: string; day: string; locale: string; country: string; device: string; referrer_host: string; access_count: number; last_access_at: string };
+type AccessItem = { label: string; count: number };
+type AccessSummary = { views: number; activeDays: number; lastAccessAt: string | null; countries: AccessItem[]; languages: AccessItem[]; devices: AccessItem[]; referrers: AccessItem[] };
+
+function summarizeAccess(rows: PromoAccessRow[]): AccessSummary {
+  const sum = (field: keyof Pick<PromoAccessRow, "country" | "locale" | "device" | "referrer_host">) => {
+    const counts = new Map<string, number>();
+    for (const row of rows) counts.set(row[field], (counts.get(row[field]) || 0) + Number(row.access_count || 0));
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([label, count]) => ({ label, count }));
+  };
+  return {
+    views: rows.reduce((total, row) => total + Number(row.access_count || 0), 0),
+    activeDays: new Set(rows.map((row) => row.day)).size,
+    lastAccessAt: rows.map((row) => row.last_access_at).sort().at(-1) || null,
+    countries: sum("country"),
+    languages: sum("locale"),
+    devices: sum("device"),
+    referrers: sum("referrer_host"),
+  };
 }
 
 export async function POST(request: Request) {

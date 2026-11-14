@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import QRCode from "qrcode";
 
-type Promo = { id: string; title: string; message: string; locale: string; theme: string; active: number; created_at: string; updated_at: string };
+type AccessItem = { label: string; count: number };
+type AccessSummary = { views: number; activeDays: number; lastAccessAt: string | null; countries: AccessItem[]; languages: AccessItem[]; devices: AccessItem[]; referrers: AccessItem[] };
+type Promo = { id: string; title: string; message: string; locale: string; theme: string; active: number; created_at: string; updated_at: string; access: AccessSummary };
 type Props = { founderKey: string };
 
 const themes = ["original", "nightlife", "creator", "ocean", "solar", "aurora", "copper"];
@@ -59,7 +61,7 @@ export function PromoManager({ founderKey }: Props) {
   }
 
   return <div className="promo-manager">
-    <p className="metric-note">Generate public-only QR cards for posters, events or social posts. These messages are not invitations and never contain private data.</p>
+    <div className="promo-manager-intro"><p>Generate public-only QR cards for posters, events or social posts. Edit the text later and the same QR will keep working.</p><small>Access data is aggregated: no IP addresses, names, emails or individual visitor identities are stored.</small></div>
     <div className="promo-create-grid">
       <label>Title<input value={title} maxLength={80} onChange={(event) => setTitle(event.target.value)} /></label>
       <label>Theme<select value={theme} onChange={(event) => setTheme(event.target.value)}>{themes.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
@@ -82,9 +84,15 @@ function PromoRow({ promo, onUpdate, onDisable }: { promo: Promo; onUpdate: (pro
     <div className="promo-row-fields">
       <span className="promo-row-id">{draft.active ? "PUBLIC · ACTIVE" : "PUBLIC · DISABLED"} · {draft.id}</span>
       <input value={draft.title} maxLength={80} onChange={(event) => setDraft({ ...draft, title: event.target.value })} aria-label="Public message title" />
+      <select value={draft.theme} onChange={(event) => setDraft({ ...draft, theme: event.target.value })} aria-label="Public message theme">{themes.map((item) => <option key={item} value={item}>{item}</option>)}</select>
       <textarea value={draft.message} maxLength={320} rows={3} onChange={(event) => setDraft({ ...draft, message: event.target.value })} aria-label="Public message" />
       <code>{url}</code>
+      <div className="promo-access" aria-label="Aggregated access data"><div className="promo-access-kpis"><span><b>{promo.access.views}</b> scans</span><span><b>{promo.access.activeDays}</b> active days</span><span><b>{promo.access.lastAccessAt ? new Date(promo.access.lastAccessAt).toLocaleString() : "—"}</b> last access</span></div><AccessBreakdown title="Countries" rows={promo.access.countries} /><AccessBreakdown title="Languages" rows={promo.access.languages} /><AccessBreakdown title="Devices" rows={promo.access.devices} /><AccessBreakdown title="Referrers" rows={promo.access.referrers} /></div>
       <div className="promo-row-actions"><button type="button" onClick={() => void onUpdate(draft)} disabled={!draft.active}>Save text</button><button type="button" onClick={() => void navigator.clipboard?.writeText(url)}>Copy link</button><a href={qr} download={`z4sk-public-${draft.id}.png`} aria-disabled={!qr}>Download QR</a>{draft.active && <button type="button" onClick={() => void onDisable(draft.id)}>Disable</button>}</div>
     </div>
   </article>;
+}
+
+function AccessBreakdown({ title, rows }: { title: string; rows: AccessItem[] }) {
+  return <div className="promo-access-breakdown"><strong>{title}</strong>{rows.length ? rows.map((row) => <span key={row.label}><em>{row.label}</em><b>{row.count}</b></span>) : <small>No data yet</small>}</div>;
 }

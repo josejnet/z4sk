@@ -100,6 +100,14 @@ const migrations = [
       `REVOKE ALL ON founder_public_messages FROM PUBLIC`,
     ],
   },
+  {
+    id: "2026-11-14-public-qr-access-aggregates",
+    statements: [
+      `CREATE TABLE IF NOT EXISTS founder_public_message_access_daily (message_id TEXT NOT NULL REFERENCES founder_public_messages(id) ON DELETE CASCADE, day DATE NOT NULL, locale TEXT NOT NULL DEFAULT 'unknown', country TEXT NOT NULL DEFAULT 'XX', device TEXT NOT NULL DEFAULT 'unknown', referrer_host TEXT NOT NULL DEFAULT 'direct', access_count BIGINT NOT NULL DEFAULT 0, last_access_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (message_id, day, locale, country, device, referrer_host))`,
+      `CREATE INDEX IF NOT EXISTS idx_public_message_access_message_day ON founder_public_message_access_daily(message_id, day DESC)`,
+      `REVOKE ALL ON founder_public_message_access_daily FROM PUBLIC`,
+    ],
+  },
 ];
 
 export async function runMigrations(databaseUrl) {

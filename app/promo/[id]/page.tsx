@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ensureSchema, getDatabase } from "../../../db/runtime";
+import { ensureSchema, getDatabase, recordPublicMessageAccess } from "../../../db/runtime";
 import { site } from "../../lib/site";
 import "../../promo.css";
 
@@ -20,6 +21,7 @@ export default async function PromoPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const message = await getDatabase().prepare(`SELECT id, title, message, theme, active FROM founder_public_messages WHERE id = ? AND active = 1`).bind(id).first<PublicMessage>();
   if (!message) notFound();
+  await recordPublicMessageAccess(id, await headers());
   const theme = ["original", "nightlife", "creator", "ocean", "solar", "aurora", "copper"].includes(message.theme) ? message.theme : "original";
   return <main className={`promo-page promo-theme-${theme}`}>
     <nav className="promo-nav"><Link href="/" className="promo-brand">Z4SK</Link><span>ASK · ANSWER · DARE</span></nav>

@@ -761,7 +761,7 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
   const displayedStep = step === 4 ? 5 : step;
   const totalSteps = 5;
   return (
-    <div ref={shellRef} className={`builder-shell builder-theme-${step >= 3 ? packSlug : uiPackSlug}`}>
+    <div ref={shellRef} className={`builder-shell builder-theme-${uiPackSlug}`}>
       {step <= 4 && <>
       <div className="builder-top" aria-live="polite">
         <div>

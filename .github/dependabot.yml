@@ -18,6 +18,8 @@ updates:
         versions: [">=10"]
       - dependency-name: "@eslint/js"
         versions: [">=10"]
+      - dependency-name: "typescript"
+        versions: [">=7"]
 
   - package-ecosystem: github-actions
     directory: /

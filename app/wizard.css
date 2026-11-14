@@ -118,3 +118,15 @@
   .success-key-status{grid-template-columns:30px 1fr}
   .success-key-status>b{grid-column:2;text-align:left}
 }
+
+/* Mobile wizard guardrails: no horizontal clipping and comfortable tap targets. */
+@media(max-width:620px){
+  .builder-shell,.builder-top,.step-panel,.questions-step-layout,.questions-panel,.feature-config,.security-step,.success-panel{min-width:0;max-width:100%}
+  .builder-top h2,.builder-flow-hint,.selection-meta p,.questions-list p,.shared-key-explanation{overflow-wrap:anywhere}
+  .button-row{min-width:0;align-items:stretch}
+  .button-row .secondary,.button-row .primary{min-width:0;flex:1 1 0;padding-left:12px;padding-right:12px;white-space:normal;line-height:1.2}
+  .custom-row{min-width:0}
+  .custom-row input{min-width:0}
+  .custom-row button{flex:0 0 auto;padding-inline:13px}
+  .success-delivery-grid>.qr-card,.success-share-column,.success-private-column{min-width:0}
+}

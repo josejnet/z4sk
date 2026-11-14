@@ -8,3 +8,14 @@
 /* Keep the desktop carousel frame stable while copy and artwork change. */
 @media(min-width:701px){.tour-grid{height:460px;min-height:460px}.tour-copy{min-width:0;overflow:hidden}.tour-art-wrap{height:460px;min-height:460px}}
 @media(max-width:700px){.tour-backdrop{padding:0;place-items:stretch}.tour-stage{width:100%;display:flex;flex-direction:column;height:100dvh}.tour-language-reveal{flex:none;min-height:61px;margin:0}.tour-language-bar{border-width:0 0 1px;overflow-x:auto;justify-content:flex-start;padding:7px 12px}.tour-dialog{width:100%;height:auto;flex:1;display:flex;flex-direction:column;border:0}.tour-grid{display:flex;flex:1;flex-direction:column-reverse;min-height:0}.tour-art-wrap{min-height:33dvh;max-height:42dvh}.tour-copy{justify-content:flex-start;padding:34px 22px 20px;overflow:auto}.tour-copy h2{min-height:0;font-size:37px;margin:14px 0 10px}.tour-intro{min-height:0;font-size:14px}.tour-progress{margin-top:24px}.tour-footer{align-items:stretch;flex-direction:column;padding:13px 18px calc(13px + env(safe-area-inset-bottom))}.tour-actions{display:grid;grid-template-columns:1fr 1fr 1.5fr}.tour-back,.tour-skip,.tour-primary{width:100%;padding-left:10px;padding-right:10px}.tour-close{top:12px;right:12px}}
+
+/* Mobile: keep the artwork visible without a tall empty band and keep all actions inside the viewport. */
+@media(max-width:700px){
+  .tour-grid{height:auto;align-items:stretch}
+  .tour-art-wrap{flex:0 0 auto;width:100%;height:auto;min-height:0;max-height:none;aspect-ratio:3 / 2}
+  .tour-art{object-fit:contain}
+  .tour-copy{flex:1 1 auto;min-height:0}
+  .tour-actions{width:100%;min-width:0;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .tour-back,.tour-skip,.tour-primary{min-width:0;min-height:44px;padding-left:7px;padding-right:7px;font-size:12px}
+  .tour-primary{gap:6px}
+}

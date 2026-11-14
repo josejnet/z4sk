@@ -13,12 +13,17 @@
 @media(max-width:700px){
   .tour-backdrop{display:block;overflow-y:auto;overscroll-behavior:contain}
   .tour-stage{height:auto;min-height:100dvh}
+  .tour-language-reveal{min-height:94px}
+  .tour-language-bar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(2,36px);gap:4px;min-height:94px;padding:8px 12px;overflow:hidden}
+  .tour-language-bar button{width:100%;min-width:0;padding:7px 2px;font-size:9px}
   .tour-dialog{flex:none;height:auto;min-height:0;overflow:visible}
   .tour-grid{flex:none;min-height:0;height:auto}
   .tour-grid{height:auto;align-items:stretch}
   .tour-art-wrap{flex:0 0 auto;width:100%;height:auto;min-height:0;max-height:none;aspect-ratio:16 / 9}
   .tour-art{object-fit:contain}
-  .tour-copy{flex:none;width:100%;min-width:0;min-height:0;overflow:visible}
+  .tour-copy{flex:none;width:100%;min-width:0;height:290px;min-height:290px;overflow-y:auto;overflow-x:hidden}
+  .tour-copy h2{min-height:2.1em}
+  .tour-intro{min-height:6em}
   .tour-intro{max-width:none;overflow-wrap:anywhere}
   .tour-actions{width:100%;min-width:0;overflow:hidden;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.3fr);gap:6px}
   .tour-actions>*{min-width:0}

@@ -338,6 +338,45 @@ const timedCopy = localized<TimedCopy>({
   },
 });
 const QUESTION_TIME_LIMIT_SECONDS = 15;
+const reviewCopy = localized<{
+  eyebrow: string;
+  title: string;
+  intro: string;
+  edit: string;
+  submit: string;
+  privacy: string;
+}>(
+  {
+    en: { eyebrow: "READY TO SEND", title: "Review your answers", intro: "Check everything before sending. Only the person who invited you can read these answers.", edit: "Edit", submit: "Send my answers", privacy: "Encrypted in this browser before sending." },
+    es: { eyebrow: "LISTO PARA ENVIAR", title: "Revisa tus respuestas", intro: "Comprueba todo antes de enviarlo. Solo la persona que te invitó podrá leer estas respuestas.", edit: "Editar", submit: "Enviar mis respuestas", privacy: "Se cifran en este navegador antes de enviarse." },
+    it: { eyebrow: "PRONTO PER L’INVIO", title: "Controlla le tue risposte", intro: "Controlla tutto prima di inviare. Solo chi ti ha invitato potrà leggere queste risposte.", edit: "Modifica", submit: "Invia le mie risposte", privacy: "Cifrate in questo browser prima dell’invio." },
+    fr: { eyebrow: "PRÊT À ENVOYER", title: "Vérifiez vos réponses", intro: "Vérifiez tout avant l’envoi. Seule la personne qui vous a invité pourra lire ces réponses.", edit: "Modifier", submit: "Envoyer mes réponses", privacy: "Chiffrées dans ce navigateur avant l’envoi." },
+    de: { eyebrow: "BEREIT ZUM SENDEN", title: "Prüfe deine Antworten", intro: "Prüfe alles vor dem Senden. Nur die einladende Person kann diese Antworten lesen.", edit: "Bearbeiten", submit: "Meine Antworten senden", privacy: "Vor dem Senden in diesem Browser verschlüsselt." },
+    nl: { eyebrow: "KLAAR OM TE VERSTUREN", title: "Controleer je antwoorden", intro: "Controleer alles voordat je verzendt. Alleen de uitnodiger kan deze antwoorden lezen.", edit: "Bewerken", submit: "Mijn antwoorden versturen", privacy: "In deze browser versleuteld vóór verzending." },
+    eo: { eyebrow: "PRETA POR SENDI", title: "Reviziu viajn respondojn", intro: "Kontrolu ĉion antaŭ sendi. Nur la invitinto povas legi ĉi tiujn respondojn.", edit: "Redakti", submit: "Sendi miajn respondojn", privacy: "Ĉifrita en ĉi tiu retumilo antaŭ sendo." },
+    pt: { eyebrow: "PRONTO A ENVIAR", title: "Revê as tuas respostas", intro: "Confirma tudo antes de enviar. Só a pessoa que te convidou poderá ler estas respostas.", edit: "Editar", submit: "Enviar as minhas respostas", privacy: "Cifradas neste navegador antes do envio." },
+    zh: { eyebrow: "准备发送", title: "检查你的回答", intro: "发送前检查一遍。只有邀请你的人可以阅读这些回答。", edit: "编辑", submit: "发送我的回答", privacy: "发送前会在此浏览器中加密。" },
+    hi: { eyebrow: "भेजने के लिए तैयार", title: "अपने जवाब जाँचें", intro: "भेजने से पहले सब कुछ जाँच लें। केवल निमंत्रण भेजने वाला इन्हें पढ़ सकता है।", edit: "बदलें", submit: "मेरे जवाब भेजें", privacy: "भेजने से पहले इसी ब्राउज़र में एन्क्रिप्ट होते हैं।" },
+    ja: { eyebrow: "送信前の確認", title: "回答を確認", intro: "送信前に確認してください。回答を読めるのは招待した人だけです。", edit: "編集", submit: "回答を送信", privacy: "送信前にこのブラウザで暗号化されます。" },
+    tr: { eyebrow: "GÖNDERMEYE HAZIR", title: "Yanıtlarını kontrol et", intro: "Göndermeden önce her şeyi kontrol et. Bu yanıtları yalnızca seni davet eden kişi okuyabilir.", edit: "Düzenle", submit: "Yanıtlarımı gönder", privacy: "Gönderilmeden önce bu tarayıcıda şifrelenir." },
+    machine: { eyebrow: "READY_TO_SEND", title: "REVIEW answers[]", intro: "ASSERT recipient_only; review BEFORE POST.", edit: "EDIT", submit: "POST answers[]", privacy: "encrypt=browser_before_send" },
+  },
+);
+const recipientTrustCopy: Record<Locale, string> = {
+  en: "No account needed. Take your time: only the person who invited you will see your answers.",
+  es: "No necesitas registrarte. Tómate tu tiempo: solo la persona que te invitó verá tus respuestas.",
+  it: "Non serve un account. Prenditi il tuo tempo: solo chi ti ha invitato vedrà le tue risposte.",
+  fr: "Aucun compte nécessaire. Prenez votre temps : seule la personne qui vous a invité verra vos réponses.",
+  de: "Kein Konto nötig. Lass dir Zeit: Nur die einladende Person sieht deine Antworten.",
+  nl: "Geen account nodig. Neem je tijd: alleen de uitnodiger ziet je antwoorden.",
+  eo: "Konto ne necesas. Prenu vian tempon: nur la invitinto vidos viajn respondojn.",
+  pt: "Não precisas de conta. Responde com calma: só a pessoa que te convidou verá as tuas respostas.",
+  zh: "无需注册。慢慢回答：只有邀请你的人能看到你的回答。",
+  hi: "खाते की ज़रूरत नहीं। आराम से जवाब दें: आपके जवाब केवल निमंत्रण भेजने वाला देखेगा।",
+  ja: "アカウントは不要です。ゆっくり答えてください。回答を見られるのは招待した人だけです。",
+  tr: "Hesap gerekmez. Zamanını ayır: yanıtlarını yalnızca seni davet eden kişi görecek.",
+  machine: "account=false; answers.visibility=inviter_only",
+};
 function countdown(expiresAt: string, now: number) {
   const left = Math.max(0, new Date(expiresAt).getTime() - now);
   const hours = Math.floor(left / 3600000);
@@ -354,6 +393,7 @@ export function GameClient({ id }: { id: string }) {
     | "shared-key"
     | "intro"
     | "questions"
+    | "review"
     | "sending"
     | "done"
     | "error"
@@ -702,6 +742,36 @@ export function GameClient({ id }: { id: string }) {
   }
   if (!game) return null;
 
+  if (phase === "review")
+    return (
+      <main className={`experience-page review-page pack-${game.packSlug}`}>
+        <TopNav minimal />
+        <section className="review-stage">
+          <span className="eyebrow">{reviewCopy[locale].eyebrow}</span>
+          <h1>{reviewCopy[locale].title}</h1>
+          <p>{reviewCopy[locale].intro}</p>
+          <div className="review-list">
+            {game.questions.map((question, answerIndex) => (
+              <article key={question} className="review-answer">
+                <div>
+                  <span>{String(answerIndex + 1).padStart(2, "0")}</span>
+                  <h2>{question}</h2>
+                  <p>{answers[answerIndex]}</p>
+                </div>
+                <button type="button" onClick={() => { setIndex(answerIndex); setPhase("questions"); }}>
+                  {reviewCopy[locale].edit}
+                </button>
+              </article>
+            ))}
+          </div>
+          <button className="primary review-submit" type="button" onClick={() => void submit()}>
+            {reviewCopy[locale].submit} <span>→</span>
+          </button>
+          <small className="answer-privacy">◆ {reviewCopy[locale].privacy}</small>
+        </section>
+      </main>
+    );
+
   if (phase === "intro")
     return (
       <main className={`experience-page pack-${game.packSlug}`}>
@@ -726,6 +796,7 @@ export function GameClient({ id }: { id: string }) {
                 name: game.creatorName,
               })}
             </p>
+            <p className="invitation-trust-copy">◆ {recipientTrustCopy[locale]}</p>
             {game.viewOnce && (
               <div className="burn-note">
                 <span>◉</span>
@@ -911,7 +982,7 @@ export function GameClient({ id }: { id: string }) {
           <button
             className="primary"
             disabled={!answers[index].trim() || phase === "sending"}
-            onClick={() => (last ? submit() : advanceQuestion())}
+            onClick={() => (last ? setPhase("review") : advanceQuestion())}
           >
             {phase === "sending"
               ? flow(locale, "sending")

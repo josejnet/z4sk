@@ -497,6 +497,21 @@ const builderUi = localized<{
   tr: { done: "Bitti", remove: "{question} sorusunu kaldır", security: "Güvenliğe devam et" },
   machine: { done: "DONE", remove: "REMOVE::{question}", security: "SECURITY_NEXT" },
 });
+const creationGuide = localized<{ identity: string; questions: string }>({
+  en: { identity: "Start with the two names. You can fine-tune privacy and style later.", questions: "Choose at least 3 questions. The recommended settings are already ready to use." },
+  es: { identity: "Empieza con los dos nombres. La privacidad y el estilo se pueden ajustar después.", questions: "Elige al menos 3 preguntas. Los ajustes recomendados ya están listos para usar." },
+  it: { identity: "Inizia con i due nomi. Privacy e stile si possono regolare dopo.", questions: "Scegli almeno 3 domande. Le impostazioni consigliate sono già pronte." },
+  fr: { identity: "Commencez par les deux noms. Vous pourrez régler la confidentialité et le style ensuite.", questions: "Choisissez au moins 3 questions. Les réglages recommandés sont déjà prêts." },
+  de: { identity: "Beginne mit den beiden Namen. Privatsphäre und Stil kannst du später anpassen.", questions: "Wähle mindestens 3 Fragen. Die empfohlenen Einstellungen sind bereits bereit." },
+  nl: { identity: "Begin met de twee namen. Privacy en stijl kun je later aanpassen.", questions: "Kies minstens 3 vragen. De aanbevolen instellingen staan al klaar." },
+  eo: { identity: "Komencu per la du nomoj. Vi povas agordi privatecon kaj stilon poste.", questions: "Elektu almenaŭ 3 demandojn. La rekomenditaj agordoj jam pretas." },
+  pt: { identity: "Começa pelos dois nomes. A privacidade e o estilo podem ser ajustados depois.", questions: "Escolhe pelo menos 3 perguntas. As definições recomendadas já estão prontas." },
+  zh: { identity: "先填写两个名字。隐私和风格之后都可以调整。", questions: "至少选择 3 个问题。推荐设置已经准备好。" },
+  hi: { identity: "पहले दोनों नाम भरें। गोपनीयता और शैली बाद में बदली जा सकती है।", questions: "कम से कम 3 सवाल चुनें। सुझाई गई सेटिंग तैयार है।" },
+  ja: { identity: "まず2人の名前を入力します。プライバシーとスタイルは後で調整できます。", questions: "3問以上選んでください。おすすめ設定は準備済みです。" },
+  tr: { identity: "İki adla başla. Gizlilik ve stili daha sonra ayarlayabilirsin.", questions: "En az 3 soru seç. Önerilen ayarlar hazır." },
+  machine: { identity: "INPUT names[]; PRIVACY_AND_STYLE=DEFERRED", questions: "ASSERT questions.length>=3; defaults=READY" },
+});
 
 export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?: () => void; initialUiPackSlug?: string }) {
   const { locale, t } = useLanguage();
@@ -689,6 +704,8 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
         value={displayedStep}
         aria-label={`${t("step")} ${displayedStep} ${t("of")} ${totalSteps}`}
       />
+      {step === 1 && <p className="builder-flow-hint">{creationGuide[locale].identity}</p>}
+      {step === 3 && <p className="builder-flow-hint">{creationGuide[locale].questions}</p>}
       </>}
       {step === 1 && (
         <div className="step-panel identity-step">

@@ -2,6 +2,7 @@
 
 import { interpolate, type Locale } from "../lib/i18n";
 import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
+import { trackFunnel } from "../lib/funnel";
 
 type Copy = {
   title: string;
@@ -208,12 +209,15 @@ export function ShareInvitation({
     window.open(url, "_blank", "noopener,noreferrer");
   }
   function shareWhatsapp() {
+    trackFunnel("invitation_shared", locale);
     open(`https://wa.me/?text=${encodeURIComponent(message)}`);
   }
   function shareEmail() {
+    trackFunnel("invitation_shared", locale);
     window.location.href = `mailto:?subject=${encodeURIComponent(c.subject)}&body=${encodeURIComponent(message)}`;
   }
   function shareWebmail(provider: "gmail") {
+    trackFunnel("invitation_shared", locale);
     const subject = encodeURIComponent(c.subject);
     const body = encodeURIComponent(message);
     const urls = {

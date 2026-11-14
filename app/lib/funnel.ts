@@ -7,6 +7,9 @@ export type FunnelEvent =
   | "builder_step_3"
   | "builder_step_4"
   | "builder_created"
+  | "invitation_shared"
+  | "dashboard_shared"
+  | "builder_theme_selected"
   | "recipient_started"
   | "recipient_review"
   | "recipient_submitted";

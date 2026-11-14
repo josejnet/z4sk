@@ -393,6 +393,21 @@ const recipientTrustCopy: Record<Locale, string> = {
   tr: "Hesap gerekmez. Zamanını ayır: yanıtlarını yalnızca seni davet eden kişi görecek.",
   machine: "account=false; answers.visibility=inviter_only",
 };
+const returnLoopCopy = localized<{ title: string; copy: string; secondary: string }>({
+  en: { title: "Keep the conversation going", copy: "You answered. Now send someone your own questions.", secondary: "Back to Z4SK" },
+  es: { title: "Sigue la conversación", copy: "Ya has respondido. Ahora envía tus propias preguntas a alguien.", secondary: "Volver a Z4SK" },
+  it: { title: "Continua la conversazione", copy: "Hai risposto. Ora invia le tue domande a qualcuno.", secondary: "Torna a Z4SK" },
+  fr: { title: "Faites durer la conversation", copy: "Vous avez répondu. Envoyez maintenant vos propres questions.", secondary: "Retourner à Z4SK" },
+  de: { title: "Halte das Gespräch am Laufen", copy: "Du hast geantwortet. Sende jetzt deine eigenen Fragen.", secondary: "Zurück zu Z4SK" },
+  nl: { title: "Houd het gesprek gaande", copy: "Je hebt geantwoord. Stuur nu je eigen vragen.", secondary: "Terug naar Z4SK" },
+  eo: { title: "Daŭrigu la konversacion", copy: "Vi respondis. Nun sendu viajn proprajn demandojn.", secondary: "Reen al Z4SK" },
+  pt: { title: "Continua a conversa", copy: "Já respondeste. Agora envia as tuas próprias perguntas.", secondary: "Voltar ao Z4SK" },
+  zh: { title: "让对话继续", copy: "你已经回答了。现在也给别人发出你的问题。", secondary: "返回 Z4SK" },
+  hi: { title: "बातचीत जारी रखें", copy: "आपने जवाब दे दिया। अब अपने सवाल किसी को भेजें।", secondary: "Z4SK पर लौटें" },
+  ja: { title: "会話を続けよう", copy: "回答しました。今度はあなたの質問を誰かに送りましょう。", secondary: "Z4SKに戻る" },
+  tr: { title: "Sohbeti sürdür", copy: "Yanıtladın. Şimdi kendi sorularını birine gönder.", secondary: "Z4SK'e dön" },
+  machine: { title: "LOOP_CONTINUE", copy: "recipient.submitted => creator.next_questionnaire", secondary: "NAVIGATE_HOME" },
+});
 function countdown(expiresAt: string, now: number) {
   const left = Math.max(0, new Date(expiresAt).getTime() - now);
   const hours = Math.floor(left / 3600000);
@@ -758,8 +773,15 @@ export function GameClient({ id }: { id: string }) {
             </div>
           )}
           {message && <p role="status">{message}</p>}
+          <div className="return-loop-prompt">
+            <h2>{returnLoopCopy[locale].title}</h2>
+            <p>{returnLoopCopy[locale].copy}</p>
+          </div>
           <a className="primary-link" href="/" target="_top">
             {flow(locale, "createOther")} →
+          </a>
+          <a className="secondary-link" href="/" target="_top">
+            {returnLoopCopy[locale].secondary}
           </a>
           <Sponsor compact placement="completion" />
         </div>

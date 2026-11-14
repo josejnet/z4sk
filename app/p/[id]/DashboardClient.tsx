@@ -14,6 +14,7 @@ import type { Locale } from "../../lib/i18n";
 import { useLanguage } from "../../lib/i18n";
 import { flow } from "../../lib/flow-copy";
 import { TOO_LATE_COPY } from "../../lib/too-late-copy";
+import { trackFunnel } from "../../lib/funnel";
 import {
   decryptPrivateResponse,
   verifyPrivateDecryptionKey,
@@ -189,6 +190,7 @@ const dashboardUi: Record<
     missing: string;
     loadError: string;
     opened: string;
+    share: string;
     alertsOn: string;
     enableAlerts: string;
     openedNotification: string;
@@ -198,6 +200,7 @@ const dashboardUi: Record<
     missing: "Missing secret dashboard key.",
     loadError: "Could not open the dashboard.",
     opened: "Opened",
+    share: "Share again on WhatsApp",
     alertsOn: "Alerts on",
     enableAlerts: "Enable alerts",
     openedNotification: "{name} opened your invitation.",
@@ -206,6 +209,7 @@ const dashboardUi: Record<
     missing: "Falta la clave secreta del panel.",
     loadError: "No se pudo abrir el panel.",
     opened: "Abierta",
+    share: "Compartir de nuevo por WhatsApp",
     alertsOn: "Avisos activos",
     enableAlerts: "Activar avisos",
     openedNotification: "{name} ha abierto tu invitación.",
@@ -214,6 +218,7 @@ const dashboardUi: Record<
     missing: "Manca la chiave segreta del pannello.",
     loadError: "Impossibile aprire il pannello.",
     opened: "Aperto",
+    share: "Condividi di nuovo su WhatsApp",
     alertsOn: "Avvisi attivi",
     enableAlerts: "Attiva avvisi",
     openedNotification: "{name} ha aperto il tuo invito.",
@@ -222,6 +227,7 @@ const dashboardUi: Record<
     missing: "La clé secrète de l’espace est absente.",
     loadError: "Impossible d’ouvrir l’espace.",
     opened: "Ouvert",
+    share: "Partager à nouveau sur WhatsApp",
     alertsOn: "Alertes actives",
     enableAlerts: "Activer les alertes",
     openedNotification: "{name} a ouvert votre invitation.",
@@ -230,6 +236,7 @@ const dashboardUi: Record<
     missing: "Der geheime Dashboard-Schlüssel fehlt.",
     loadError: "Der Bereich konnte nicht geöffnet werden.",
     opened: "Geöffnet",
+    share: "Erneut über WhatsApp teilen",
     alertsOn: "Hinweise aktiv",
     enableAlerts: "Hinweise aktivieren",
     openedNotification: "{name} hat deine Einladung geöffnet.",
@@ -238,6 +245,7 @@ const dashboardUi: Record<
     missing: "De geheime dashboardsleutel ontbreekt.",
     loadError: "Het dashboard kon niet worden geopend.",
     opened: "Geopend",
+    share: "Opnieuw delen via WhatsApp",
     alertsOn: "Meldingen aan",
     enableAlerts: "Meldingen aanzetten",
     openedNotification: "{name} heeft je uitnodiging geopend.",
@@ -246,6 +254,7 @@ const dashboardUi: Record<
     missing: "Mankas la sekreta panela ŝlosilo.",
     loadError: "Ne eblis malfermi la panelon.",
     opened: "Malfermita",
+    share: "Ree kundividi per WhatsApp",
     alertsOn: "Sciigoj aktivaj",
     enableAlerts: "Aktivigi sciigojn",
     openedNotification: "{name} malfermis vian inviton.",
@@ -254,6 +263,7 @@ const dashboardUi: Record<
     missing: "Falta a chave secreta do painel.",
     loadError: "Não foi possível abrir o painel.",
     opened: "Aberto",
+    share: "Partilhar novamente no WhatsApp",
     alertsOn: "Alertas ativos",
     enableAlerts: "Ativar alertas",
     openedNotification: "{name} abriu o teu convite.",
@@ -262,6 +272,7 @@ const dashboardUi: Record<
     missing: "缺少私人面板密钥。",
     loadError: "无法打开面板。",
     opened: "已打开",
+    share: "再次通过 WhatsApp 分享",
     alertsOn: "提醒已开启",
     enableAlerts: "开启提醒",
     openedNotification: "{name} 打开了你的邀请。",
@@ -270,6 +281,7 @@ const dashboardUi: Record<
     missing: "निजी डैशबोर्ड की गुप्त कुंजी नहीं मिली।",
     loadError: "डैशबोर्ड नहीं खुल सका।",
     opened: "खोला गया",
+    share: "WhatsApp पर फिर साझा करें",
     alertsOn: "सूचनाएँ चालू",
     enableAlerts: "सूचनाएँ चालू करें",
     openedNotification: "{name} ने आपका निमंत्रण खोला।",
@@ -278,6 +290,7 @@ const dashboardUi: Record<
     missing: "非公開パネルの秘密鍵がありません。",
     loadError: "パネルを開けませんでした。",
     opened: "開封済み",
+    share: "WhatsAppで再共有",
     alertsOn: "通知オン",
     enableAlerts: "通知を有効にする",
     openedNotification: "{name}さんが招待を開きました。",
@@ -286,6 +299,7 @@ const dashboardUi: Record<
     missing: "Gizli panel anahtarı eksik.",
     loadError: "Panel açılamadı.",
     opened: "Açıldı",
+    share: "WhatsApp'ta tekrar paylaş",
     alertsOn: "Bildirimler açık",
     enableAlerts: "Bildirimleri aç",
     openedNotification: "{name} davetini açtı.",
@@ -294,6 +308,7 @@ const dashboardUi: Record<
     missing: "ERR_ADMIN_KEY_MISSING",
     loadError: "ERR_DASHBOARD_OPEN",
     opened: "OPENED",
+    share: "SHARE_AGAIN_VIA_WHATSAPP",
     alertsOn: "ALERTS=ON",
     enableAlerts: "ENABLE_ALERTS",
     openedNotification: "event=invitation_opened; actor={name}",
@@ -659,6 +674,7 @@ export function DashboardClient({ id }: { id: string }) {
   }
   function shareAgain() {
     if (!data) return;
+    trackFunnel("dashboard_shared", locale);
     const url = attachInvitationSecret(
       `${window.location.origin}/g/${id}`,
       invitationKey,
@@ -790,7 +806,7 @@ export function DashboardClient({ id }: { id: string }) {
           <button onClick={copyShare}>
             {copied ? flow(locale, "linkCopied") : flow(locale, "copyAnswer")}
           </button>
-          <button onClick={shareAgain}>{flow(locale, "shareWhatsapp")}</button>
+          <button onClick={shareAgain}>{dashboardUi[locale].share}</button>
           <button onClick={refresh}>{flow(locale, "refresh")}</button>
           <button onClick={enableNotifications}>
             {notifications
@@ -820,7 +836,7 @@ export function DashboardClient({ id }: { id: string }) {
                 <small>{flow(locale, "irreversible")}</small>
               </div>
             ) : (
-              <EmptyState once locale={locale} onCopy={copyShare} />
+              <EmptyState once locale={locale} onCopy={copyShare} onShare={shareAgain} />
             )}
           </section>
         ) : (
@@ -835,7 +851,7 @@ export function DashboardClient({ id }: { id: string }) {
                 />
               ))
             ) : (
-              <EmptyState locale={locale} onCopy={copyShare} />
+              <EmptyState locale={locale} onCopy={copyShare} onShare={shareAgain} />
             )}
           </section>
         )}
@@ -905,17 +921,22 @@ function EmptyState({
   locale,
   once = false,
   onCopy,
+  onShare,
 }: {
   locale: Locale;
   once?: boolean;
   onCopy: () => void;
+  onShare: () => void;
 }) {
   return (
     <div className="empty-responses">
       <span>○</span>
       <h2>{flow(locale, "silent")}</h2>
       <p>{flow(locale, once ? "silentOnce" : "silentNormal")}</p>
-      <button onClick={onCopy}>{flow(locale, "copyLink")}</button>
+      <div className="dashboard-empty-actions">
+        <button className="primary" onClick={onShare}>{dashboardUi[locale].share}</button>
+        <button className="secondary" onClick={onCopy}>{flow(locale, "copyLink")}</button>
+      </div>
     </div>
   );
 }

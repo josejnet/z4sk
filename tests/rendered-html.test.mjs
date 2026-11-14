@@ -461,7 +461,10 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(vercel, /"schedule": "0 3 \* \* \*"/);
   assert.doesNotMatch(builder, /hash\.slice\(1\)/);
   assert.match(builder, /sharePrivatePanel/);
-  assert.doesNotMatch(builder, /localStorage/);
+  assert.match(builder, /BUILDER_DRAFT_KEY/);
+  assert.doesNotMatch(builder, /sharedKey\s*:\s*sharedKey/);
+  assert.doesNotMatch(builder, /localStorage\.setItem\([\s\S]{0,500}adminUrl/);
+  assert.doesNotMatch(builder, /localStorage\.setItem\([\s\S]{0,500}privateUrl/);
   assert.match(manifest, /"display":"standalone"/);
   assert.match(manifest, /"scope":"\/"/);
   assert.match(manifest, /"orientation":"portrait-primary"/);

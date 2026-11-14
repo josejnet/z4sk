@@ -92,6 +92,14 @@ const migrations = [
       `ALTER TABLE games ADD COLUMN IF NOT EXISTS submission_token_hash TEXT NOT NULL DEFAULT ''`,
     ],
   },
+  {
+    id: "2026-11-14-founder-public-qr-messages",
+    statements: [
+      `CREATE TABLE IF NOT EXISTS founder_public_messages (id TEXT PRIMARY KEY, title TEXT NOT NULL DEFAULT 'Z4SK', message TEXT NOT NULL, locale TEXT NOT NULL DEFAULT 'en', theme TEXT NOT NULL DEFAULT 'original', active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)`,
+      `CREATE INDEX IF NOT EXISTS idx_founder_public_messages_active_created ON founder_public_messages(active, created_at DESC)`,
+      `REVOKE ALL ON founder_public_messages FROM PUBLIC`,
+    ],
+  },
 ];
 
 export async function runMigrations(databaseUrl) {

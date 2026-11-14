@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import type { Locale } from "../lib/i18n";
+import { LOCALES, type Locale, useLanguage } from "../lib/i18n";
 
 const TOUR_SEEN_KEY = "z4sk:tour-seen";
 const TOUR_IMAGES = [
@@ -55,10 +55,13 @@ const backCopy: Partial<Record<Locale, string>> = {
   machine: "BACK",
 };
 
-export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; onCreate: () => void; openRequest?: number }) {
+export function Tour({ openRequest = 0 }: { openRequest?: number }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [noMore, setNoMore] = useState(true);
+  const [languageBarOpen, setLanguageBarOpen] = useState(true);
+  const [languageBarClosing, setLanguageBarClosing] = useState(false);
+  const { locale, setLocale } = useLanguage();
   const c = copy[locale];
 
   useEffect(() => {
@@ -67,10 +70,20 @@ export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; on
   }, []);
 
   useEffect(() => {
+    TOUR_IMAGES.forEach((src) => {
+      const image = new window.Image();
+      image.decoding = "async";
+      image.src = src;
+    });
+  }, []);
+
+  useEffect(() => {
     if (openRequest > 0) {
       const frame = window.requestAnimationFrame(() => {
         setStep(0);
         setOpen(true);
+        setLanguageBarClosing(false);
+        setLanguageBarOpen(true);
       });
       return () => window.cancelAnimationFrame(frame);
     }
@@ -93,7 +106,12 @@ export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; on
 
   function finish() {
     close();
-    onCreate();
+  }
+
+  function chooseLanguage(nextLocale: Locale) {
+    setLocale(nextLocale);
+    setLanguageBarClosing(true);
+    window.setTimeout(() => setLanguageBarOpen(false), 180);
   }
 
   if (!open) return null;
@@ -102,7 +120,11 @@ export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; on
   const back = c.back ?? backCopy[locale] ?? "Back";
   return (
     <div className="tour-backdrop" role="dialog" aria-modal="true" aria-labelledby="tour-title">
-      <section className="tour-dialog">
+      <div className="tour-stage">
+        {languageBarOpen && <div className={`tour-language-bar${languageBarClosing ? " is-closing" : ""}`} aria-label="Language selector">
+          {LOCALES.map((item) => <button key={item.id} type="button" className={item.id === locale ? "active" : ""} onClick={() => chooseLanguage(item.id)} aria-pressed={item.id === locale} title={item.label}>{item.short}</button>)}
+        </div>}
+        <section className="tour-dialog">
         <button className="tour-close" type="button" onClick={close} aria-label={c.close}>×</button>
         <div className="tour-grid">
           <div className="tour-copy">
@@ -114,7 +136,7 @@ export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; on
             </div>
           </div>
           <div className="tour-art-wrap">
-            <Image src={TOUR_IMAGES[step]} alt="Dos personas adultas compartiendo preguntas atrevidas por el móvil" className="tour-art" fill sizes="(max-width: 700px) 100vw, 50vw" priority />
+            <Image key={TOUR_IMAGES[step]} src={TOUR_IMAGES[step]} alt="Dos personas adultas compartiendo preguntas atrevidas por el móvil" className="tour-art" fill sizes="(max-width: 700px) 100vw, 50vw" priority />
             <span className="tour-art-note">{step === 0 ? "ASK · ANSWER · DARE" : current.eyebrow}</span>
           </div>
         </div>
@@ -126,7 +148,8 @@ export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; on
             {last ? <button className="tour-primary" type="button" onClick={finish}>{c.start} <span>→</span></button> : <button className="tour-primary" type="button" onClick={() => setStep((value) => value + 1)}>{c.next} <span>→</span></button>}
           </div>
         </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

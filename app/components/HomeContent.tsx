@@ -190,7 +190,7 @@ export function HomeContent() {
           </nav>
         </footer>
       </div>
-      <Tour locale={locale} onCreate={openBuilder} openRequest={tourOpenRequest} />
+      <Tour openRequest={tourOpenRequest} />
       {builderOpen && (
         <div className="builder-modal" role="dialog" aria-modal="true" aria-labelledby="builder-title">
           <section ref={dialogRef} className="builder-dialog">

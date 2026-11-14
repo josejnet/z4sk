@@ -23,21 +23,6 @@ import { NAME_RULE_COPY } from "../lib/name-copy";
 import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
 import { trackFunnel } from "../lib/funnel";
 const localized = <T,>(base: Record<Locale, T>) => base;
-const BUILDER_DRAFT_KEY = "z4sk-builder-draft-v1";
-type BuilderDraft = Partial<{
-  creatorName: string; recipientName: string; level: Level; adultConfirmed: boolean;
-  viewOnce: boolean; timedMode: boolean; expiresInHours: number; packSlug: string;
-  selected: string[]; step: number; previewInvitationTheme: boolean;
-}>;
-function readBuilderDraft(): BuilderDraft | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const value = JSON.parse(localStorage.getItem(BUILDER_DRAFT_KEY) || "null") as BuilderDraft | null;
-    return value && typeof value === "object" ? value : null;
-  } catch {
-    return null;
-  }
-}
 
 type Created = { id: string; playUrl: string; adminUrl: string };
 const growthCopy = localized<{
@@ -543,21 +528,6 @@ const audienceGuide = localized<{ label: string; friends: string; couples: strin
   tr: { label: "Hızlı başlangıç", friends: "Arkadaşlar · Meraklı", couples: "Çiftler · Flörtöz" },
   machine: { label: "QUICK_START", friends: "AUDIENCE=FRIENDS; LEVEL=CURIOUS", couples: "AUDIENCE=COUPLES; LEVEL=FLIRTY" },
 });
-const draftCopy = localized<{ saved: string; restored: string; clear: string }>({
-  en: { saved: "Draft saved on this device", restored: "Your draft was restored", clear: "Clear draft" },
-  es: { saved: "Borrador guardado en este dispositivo", restored: "Hemos recuperado tu borrador", clear: "Borrar borrador" },
-  it: { saved: "Bozza salvata su questo dispositivo", restored: "La tua bozza è stata recuperata", clear: "Cancella bozza" },
-  fr: { saved: "Brouillon enregistré sur cet appareil", restored: "Votre brouillon a été récupéré", clear: "Effacer le brouillon" },
-  de: { saved: "Entwurf auf diesem Gerät gespeichert", restored: "Dein Entwurf wurde wiederhergestellt", clear: "Entwurf löschen" },
-  nl: { saved: "Concept opgeslagen op dit apparaat", restored: "Je concept is hersteld", clear: "Concept wissen" },
-  eo: { saved: "Malneto konservita en ĉi tiu aparato", restored: "Via malneto estis restaŭrita", clear: "Forigi malneton" },
-  pt: { saved: "Rascunho guardado neste dispositivo", restored: "Recuperámos o teu rascunho", clear: "Apagar rascunho" },
-  zh: { saved: "草稿已保存在此设备", restored: "已恢复你的草稿", clear: "清除草稿" },
-  hi: { saved: "ड्राफ्ट इस डिवाइस पर सुरक्षित है", restored: "आपका ड्राफ्ट वापस आ गया है", clear: "ड्राफ्ट मिटाएँ" },
-  ja: { saved: "下書きをこの端末に保存しました", restored: "下書きを復元しました", clear: "下書きを消去" },
-  tr: { saved: "Taslak bu cihazda kaydedildi", restored: "Taslağın geri yüklendi", clear: "Taslağı sil" },
-  machine: { saved: "DRAFT_STORAGE=LOCAL_DEVICE", restored: "DRAFT_RESTORED", clear: "DRAFT_CLEAR" },
-});
 const themeRecipientCopy = localized<string>({
   en: "This preview is also the visual style your recipient will see.", es: "Esta vista previa será también el estilo visual que verá la persona invitada.",
   it: "Questa anteprima è anche lo stile visivo che vedrà la persona invitata.", fr: "Cet aperçu est aussi le style visuel que verra la personne invitée.",
@@ -572,19 +542,18 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
   const { locale, t } = useLanguage();
   const shellRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const [initialDraft] = useState<BuilderDraft | null>(() => readBuilderDraft());
-  const [step, setStep] = useState(() => initialDraft?.step === 4 ? 3 : (initialDraft?.step || 1));
-  const [creatorName, setCreatorName] = useState(() => initialDraft?.creatorName || "");
-  const [recipientName, setRecipientName] = useState(() => initialDraft?.recipientName || "");
-  const [level, setLevel] = useState<Level>(() => initialDraft?.level || "coqueto");
-  const [adultConfirmed, setAdultConfirmed] = useState(() => initialDraft?.adultConfirmed || false);
-  const [viewOnce, setViewOnce] = useState(() => initialDraft?.viewOnce || false);
-  const [timedMode, setTimedMode] = useState(() => initialDraft?.timedMode || false);
-  const [expiresInHours, setExpiresInHours] = useState(() => initialDraft?.expiresInHours || 12);
+  const [step, setStep] = useState(1);
+  const [creatorName, setCreatorName] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [level, setLevel] = useState<Level>("coqueto");
+  const [adultConfirmed, setAdultConfirmed] = useState(false);
+  const [viewOnce, setViewOnce] = useState(false);
+  const [timedMode, setTimedMode] = useState(false);
+  const [expiresInHours, setExpiresInHours] = useState(12);
   const [uiPackSlug] = useState(initialUiPackSlug);
-  const [packSlug, setPackSlug] = useState(() => initialDraft?.packSlug || "original");
-  const [previewInvitationTheme, setPreviewInvitationTheme] = useState(() => initialDraft?.previewInvitationTheme || false);
-  const [selected, setSelected] = useState<string[]>(() => initialDraft?.selected?.filter((item): item is string => typeof item === "string").slice(0, 12) || getDefaultQuestions(locale, "coqueto"));
+  const [packSlug, setPackSlug] = useState("original");
+  const [previewInvitationTheme, setPreviewInvitationTheme] = useState(false);
+  const [selected, setSelected] = useState<string[]>(() => getDefaultQuestions(locale, "coqueto"));
   const [custom, setCustom] = useState("");
   const [created, setCreated] = useState<Created | null>(null);
   const [error, setError] = useState("");
@@ -592,7 +561,6 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
   const [sharedKey, setSharedKey] = useState("");
   const [sharedKeyConfirmed, setSharedKeyConfirmed] = useState(false);
   const [linkOnlyConfirmed, setLinkOnlyConfirmed] = useState(false);
-  const [draftRestored, setDraftRestored] = useState(() => Boolean(initialDraft));
   const questions = getQuestions(locale, level);
   const identityValid =
     creatorName.trim().length >= 1 &&
@@ -625,20 +593,6 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
   useEffect(() => {
     if (step === 3) trackFunnel("builder_theme_selected", locale);
   }, [locale, packSlug, step]);
-
-  useEffect(() => {
-    if (step === 5) return;
-    try {
-      localStorage.setItem(BUILDER_DRAFT_KEY, JSON.stringify({ creatorName, recipientName, level, adultConfirmed, viewOnce, timedMode, expiresInHours, packSlug, selected, step, previewInvitationTheme }));
-    } catch {
-      // Local storage is optional and never blocks creation.
-    }
-  }, [adultConfirmed, creatorName, expiresInHours, level, packSlug, previewInvitationTheme, recipientName, selected, step, timedMode, viewOnce]);
-
-  function clearDraft() {
-    try { localStorage.removeItem(BUILDER_DRAFT_KEY); } catch { /* Optional storage. */ }
-    setDraftRestored(false);
-  }
 
   function changeInvitationTheme(nextTheme: string) {
     setPackSlug(nextTheme);
@@ -745,7 +699,6 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
           encryptionKeys.privateSecret,
         ),
       });
-      clearDraft();
       setStep(5);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t("formError"));
@@ -794,12 +747,6 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
       />
       {step === 1 && <p className="builder-flow-hint">{creationGuide[locale].identity}</p>}
       {step === 3 && <p className="builder-flow-hint">{creationGuide[locale].questions}</p>}
-      {step <= 4 && (draftRestored || creatorName || recipientName) && (
-        <div className="builder-draft-note" role="status">
-          <span>{draftRestored ? draftCopy[locale].restored : draftCopy[locale].saved}</span>
-          <button type="button" onClick={clearDraft}>{draftCopy[locale].clear}</button>
-        </div>
-      )}
       </>}
       {step === 1 && (
         <div className="step-panel identity-step">

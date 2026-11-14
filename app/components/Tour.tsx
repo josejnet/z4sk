@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { LOCALES, type Locale, useLanguage } from "../lib/i18n";
 
@@ -64,6 +64,7 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
   });
   const [languageBarOpen, setLanguageBarOpen] = useState(true);
   const [languageBarClosing, setLanguageBarClosing] = useState(false);
+  const preloadedImages = useRef(new Set<string>());
   const { locale: contextLocale, setLocale } = useLanguage();
   const locale = pageLocale ?? contextLocale;
   const c = copy[locale];
@@ -74,22 +75,17 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    const preloadInOrder = async () => {
-      for (const src of TOUR_IMAGES) {
-        if (cancelled) return;
-        await new Promise<void>((resolve) => {
-          const image = new window.Image();
-          image.decoding = "async";
-          image.onload = () => resolve();
-          image.onerror = () => resolve();
-          image.src = src;
-        });
-      }
-    };
-    void preloadInOrder();
-    return () => { cancelled = true; };
-  }, []);
+    const nextSrc = TOUR_IMAGES[step + 1];
+    if (!nextSrc || preloadedImages.current.has(nextSrc)) return;
+
+    preloadedImages.current.add(nextSrc);
+    const image = new window.Image();
+    image.decoding = "async";
+    image.loading = "eager";
+    image.src = nextSrc;
+    const decoded = image.decode?.();
+    if (decoded) void decoded.catch(() => undefined);
+  }, [step]);
 
   useEffect(() => {
     if (openRequest > 0) {
@@ -141,11 +137,11 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
   return (
     <div className="tour-backdrop" role="dialog" aria-modal="true" aria-labelledby="tour-title">
       <div className="tour-stage">
-        {step === 0 && <div className="tour-language-reveal">
+        <div className="tour-language-reveal">
           {languageBarOpen && <div className={`tour-language-bar${languageBarClosing ? " is-closing" : ""}`} aria-label="Language selector">
             {LOCALES.map((item) => <button key={item.id} type="button" className={item.id === locale ? "active" : ""} onClick={() => chooseLanguage(item.id)} aria-pressed={item.id === locale} title={item.label}>{item.short}</button>)}
           </div>}
-        </div>}
+        </div>
         <section className="tour-dialog">
         <button className="tour-close" type="button" onClick={close} aria-label={c.close}>×</button>
         <div className="tour-grid">

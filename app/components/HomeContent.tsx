@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from "re
 import { type Locale, useLanguage } from "../lib/i18n";
 import { Builder } from "./Builder";
 import { TopNav } from "./Brand";
+import { Tour } from "./Tour";
 
 const paletteOptions = [
   { slug: "original", color: "#ff5a1f", name: "Original · Orange" },
@@ -28,22 +29,23 @@ const footerCopy: Record<
     safety: string;
     audit: string;
     source: string;
+    tour: string;
     close: string;
   }
 > = {
-  en: { legal: "Legal", privacy: "Privacy", terms: "Terms", safety: "Safety", audit: "Audit", source: "Source", close: "Close" },
-  es: { legal: "Información legal", privacy: "Privacidad", terms: "Condiciones", safety: "Seguridad", audit: "Auditoría", source: "Código", close: "Cerrar" },
-  it: { legal: "Informazioni legali", privacy: "Privacy", terms: "Termini", safety: "Sicurezza", audit: "Audit", source: "Codice", close: "Chiudi" },
-  fr: { legal: "Informations légales", privacy: "Confidentialité", terms: "Conditions", safety: "Sécurité", audit: "Audit", source: "Code", close: "Fermer" },
-  de: { legal: "Rechtliches", privacy: "Datenschutz", terms: "Bedingungen", safety: "Sicherheit", audit: "Audit", source: "Code", close: "Schließen" },
-  nl: { legal: "Juridisch", privacy: "Privacy", terms: "Voorwaarden", safety: "Veiligheid", audit: "Audit", source: "Code", close: "Sluiten" },
-  eo: { legal: "Leĝaj informoj", privacy: "Privateco", terms: "Kondiĉoj", safety: "Sekureco", audit: "Revizio", source: "Kodo", close: "Fermi" },
-  pt: { legal: "Informação legal", privacy: "Privacidade", terms: "Termos", safety: "Segurança", audit: "Auditoria", source: "Código", close: "Fechar" },
-  zh: { legal: "法律信息", privacy: "隐私", terms: "条款", safety: "安全", audit: "审计", source: "源码", close: "关闭" },
-  hi: { legal: "कानूनी जानकारी", privacy: "गोपनीयता", terms: "शर्तें", safety: "सुरक्षा", audit: "ऑडिट", source: "कोड", close: "बंद करें" },
-  ja: { legal: "法的情報", privacy: "プライバシー", terms: "利用規約", safety: "安全", audit: "監査", source: "コード", close: "閉じる" },
-  tr: { legal: "Yasal", privacy: "Gizlilik", terms: "Koşullar", safety: "Güvenlik", audit: "Denetim", source: "Kod", close: "Kapat" },
-  machine: { legal: "LEGAL", privacy: "PRIVACY", terms: "TERMS", safety: "SAFETY", audit: "AUDIT", source: "SOURCE", close: "CLOSE" },
+  en: { legal: "Legal", privacy: "Privacy", terms: "Terms", safety: "Safety", audit: "Audit", source: "Source", tour: "Z4SK Tour", close: "Close" },
+  es: { legal: "Información legal", privacy: "Privacidad", terms: "Condiciones", safety: "Seguridad", audit: "Auditoría", source: "Código", tour: "Z4SK Tour", close: "Cerrar" },
+  it: { legal: "Informazioni legali", privacy: "Privacy", terms: "Termini", safety: "Sicurezza", audit: "Audit", source: "Codice", tour: "Tour Z4SK", close: "Chiudi" },
+  fr: { legal: "Informations légales", privacy: "Confidentialité", terms: "Conditions", safety: "Sécurité", audit: "Audit", source: "Code", tour: "Tour Z4SK", close: "Fermer" },
+  de: { legal: "Rechtliches", privacy: "Datenschutz", terms: "Bedingungen", safety: "Sicherheit", audit: "Audit", source: "Code", tour: "Z4SK-Tour", close: "Schließen" },
+  nl: { legal: "Juridisch", privacy: "Privacy", terms: "Voorwaarden", safety: "Veiligheid", audit: "Audit", source: "Code", tour: "Z4SK-tour", close: "Sluiten" },
+  eo: { legal: "Leĝaj informoj", privacy: "Privateco", terms: "Kondiĉoj", safety: "Sekureco", audit: "Revizio", source: "Kodo", tour: "Z4SK-turneo", close: "Fermi" },
+  pt: { legal: "Informação legal", privacy: "Privacidade", terms: "Termos", safety: "Segurança", audit: "Auditoria", source: "Código", tour: "Tour Z4SK", close: "Fechar" },
+  zh: { legal: "法律信息", privacy: "隐私", terms: "条款", safety: "安全", audit: "审计", source: "源码", tour: "Z4SK 导览", close: "关闭" },
+  hi: { legal: "कानूनी जानकारी", privacy: "गोपनीयता", terms: "शर्तें", safety: "सुरक्षा", audit: "ऑडिट", source: "कोड", tour: "Z4SK टूर", close: "बंद करें" },
+  ja: { legal: "法的情報", privacy: "プライバシー", terms: "利用規約", safety: "安全", audit: "監査", source: "コード", tour: "Z4SKツアー", close: "閉じる" },
+  tr: { legal: "Yasal", privacy: "Gizlilik", terms: "Koşullar", safety: "Güvenlik", audit: "Denetim", source: "Kod", tour: "Z4SK Turu", close: "Kapat" },
+  machine: { legal: "LEGAL", privacy: "PRIVACY", terms: "TERMS", safety: "SAFETY", audit: "AUDIT", source: "SOURCE", tour: "Z4SK_TOUR", close: "CLOSE" },
 };
 
 const twoChannelCopy: Record<Locale, string> = {
@@ -74,6 +76,7 @@ const focusableSelector = [
 export function HomeContent() {
   const { t, locale } = useLanguage();
   const [builderOpen, setBuilderOpen] = useState(false);
+  const [tourOpenRequest, setTourOpenRequest] = useState(0);
   const [packSlug, setPackSlug] = useState("original");
   const dialogRef = useRef<HTMLElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -183,9 +186,11 @@ export function HomeContent() {
             <a href={`/safety?lang=${locale}`} target="_top">{footerCopy[locale].safety}</a>
             <a href="/audit" target="_top">{footerCopy[locale].audit}</a>
             <a href="https://github.com/josejnet/z4sk" target="_blank" rel="noopener noreferrer">{footerCopy[locale].source} ↗</a>
+            <button className="footer-tour" type="button" onClick={() => setTourOpenRequest((value) => value + 1)}>{footerCopy[locale].tour}</button>
           </nav>
         </footer>
       </div>
+      <Tour locale={locale} onCreate={openBuilder} openRequest={tourOpenRequest} />
       {builderOpen && (
         <div className="builder-modal" role="dialog" aria-modal="true" aria-labelledby="builder-title">
           <section ref={dialogRef} className="builder-dialog">

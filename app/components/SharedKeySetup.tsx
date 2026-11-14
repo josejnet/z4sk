@@ -70,7 +70,6 @@ export function SharedKeySetup({
     setShowImport(false);
     onChange("");
     onConfirm(false);
-    onLinkOnly(true);
     onCreate("", true);
   }
 

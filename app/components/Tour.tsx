@@ -58,7 +58,10 @@ const backCopy: Partial<Record<Locale, string>> = {
 export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: number; locale?: Locale }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
-  const [noMore, setNoMore] = useState(true);
+  const [noMore, setNoMore] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try { return window.localStorage.getItem(TOUR_SEEN_KEY) === "1"; } catch { return false; }
+  });
   const [languageBarOpen, setLanguageBarOpen] = useState(true);
   const [languageBarClosing, setLanguageBarClosing] = useState(false);
   const { locale: contextLocale, setLocale } = useLanguage();
@@ -71,11 +74,21 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
   }, []);
 
   useEffect(() => {
-    TOUR_IMAGES.forEach((src) => {
-      const image = new window.Image();
-      image.decoding = "async";
-      image.src = src;
-    });
+    let cancelled = false;
+    const preloadInOrder = async () => {
+      for (const src of TOUR_IMAGES) {
+        if (cancelled) return;
+        await new Promise<void>((resolve) => {
+          const image = new window.Image();
+          image.decoding = "async";
+          image.onload = () => resolve();
+          image.onerror = () => resolve();
+          image.src = src;
+        });
+      }
+    };
+    void preloadInOrder();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -83,6 +96,7 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
       const frame = window.requestAnimationFrame(() => {
         setStep(0);
         setOpen(true);
+        setNoMore(window.localStorage.getItem(TOUR_SEEN_KEY) === "1");
         setLanguageBarClosing(false);
         setLanguageBarOpen(true);
       });
@@ -114,6 +128,12 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
     setLanguageBarClosing(true);
   }
 
+  function goToStep(nextStep: number) {
+    const boundedStep = Math.max(0, Math.min(c.steps.length - 1, nextStep));
+    setStep(boundedStep);
+    setLanguageBarClosing(boundedStep !== 0);
+  }
+
   if (!open) return null;
   const current = c.steps[step];
   const last = step === c.steps.length - 1;
@@ -121,8 +141,10 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
   return (
     <div className="tour-backdrop" role="dialog" aria-modal="true" aria-labelledby="tour-title">
       <div className="tour-stage">
-        {languageBarOpen && <div className={`tour-language-bar${languageBarClosing ? " is-closing" : ""}`} aria-label="Language selector">
-          {LOCALES.map((item) => <button key={item.id} type="button" className={item.id === locale ? "active" : ""} onClick={() => chooseLanguage(item.id)} aria-pressed={item.id === locale} title={item.label}>{item.short}</button>)}
+        {step === 0 && <div className="tour-language-reveal">
+          {languageBarOpen && <div className={`tour-language-bar${languageBarClosing ? " is-closing" : ""}`} aria-label="Language selector">
+            {LOCALES.map((item) => <button key={item.id} type="button" className={item.id === locale ? "active" : ""} onClick={() => chooseLanguage(item.id)} aria-pressed={item.id === locale} title={item.label}>{item.short}</button>)}
+          </div>}
         </div>}
         <section className="tour-dialog">
         <button className="tour-close" type="button" onClick={close} aria-label={c.close}>×</button>
@@ -132,7 +154,7 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
             <h2 id="tour-title">{current.title}</h2>
             <p className="tour-intro">{current.copy}</p>
             <div className="tour-progress" aria-label={`${step + 1} / ${c.steps.length}`}>
-              {c.steps.map((item, index) => <button key={item.eyebrow} type="button" className={index === step ? "active" : ""} onClick={() => setStep(index)} aria-label={item.eyebrow} aria-current={index === step ? "step" : undefined} />)}
+              {c.steps.map((item, index) => <button key={item.eyebrow} type="button" className={index === step ? "active" : ""} onClick={() => goToStep(index)} aria-label={item.eyebrow} aria-current={index === step ? "step" : undefined} />)}
             </div>
           </div>
           <div className="tour-art-wrap">
@@ -143,9 +165,9 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
         <div className="tour-footer">
           <label className="tour-no-more"><input type="checkbox" checked={noMore} onChange={(event) => setNoMore(event.target.checked)} /> <span>{c.noMore}</span></label>
           <div className="tour-actions">
-            <button className="tour-back" type="button" onClick={() => setStep((value) => Math.max(0, value - 1))} disabled={step === 0}>{back}</button>
+            <button className="tour-back" type="button" onClick={() => goToStep(step - 1)} disabled={step === 0}>{back}</button>
             <button className="tour-skip" type="button" onClick={close}>{c.skip}</button>
-            {last ? <button className="tour-primary" type="button" onClick={finish}>{c.start} <span>→</span></button> : <button className="tour-primary" type="button" onClick={() => setStep((value) => value + 1)}>{c.next} <span>→</span></button>}
+            {last ? <button className="tour-primary" type="button" onClick={finish}>{c.start} <span>→</span></button> : <button className="tour-primary" type="button" onClick={() => goToStep(step + 1)}>{c.next} <span>→</span></button>}
           </div>
         </div>
         </section>

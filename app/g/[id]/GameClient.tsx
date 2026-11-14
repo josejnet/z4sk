@@ -21,6 +21,7 @@ import {
 import { NAME_RULE_COPY } from "../../lib/name-copy";
 import { CANCELLATION_COPY } from "../../lib/cancellation-copy";
 import { TOO_LATE_COPY } from "../../lib/too-late-copy";
+import { trackFunnel } from "../../lib/funnel";
 import "./emoji-picker.css";
 
 const localized = <T,>(base: Record<Locale, T>) => base;
@@ -425,6 +426,16 @@ export function GameClient({ id }: { id: string }) {
   const [submissionToken, setSubmissionToken] = useState("");
   const answerRef = useRef<HTMLTextAreaElement>(null);
   const initialLoadRef = useRef(false);
+
+  useEffect(() => {
+    const eventByPhase = {
+      intro: "recipient_started",
+      review: "recipient_review",
+      done: "recipient_submitted",
+    } as const;
+    const eventType = eventByPhase[phase as keyof typeof eventByPhase];
+    if (eventType) trackFunnel(eventType, preferredLocale);
+  }, [phase, preferredLocale]);
 
   const acceptGame = useCallback(
     (decryptedGame: Game) => {

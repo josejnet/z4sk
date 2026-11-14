@@ -21,6 +21,7 @@ import {
 } from "../lib/invitation-crypto";
 import { NAME_RULE_COPY } from "../lib/name-copy";
 import { SHARED_KEY_COPY } from "../lib/shared-key-copy";
+import { trackFunnel } from "../lib/funnel";
 const localized = <T,>(base: Record<Locale, T>) => base;
 
 type Created = { id: string; playUrl: string; adminUrl: string };
@@ -557,6 +558,14 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
     });
     return () => window.cancelAnimationFrame(frame);
   }, [step]);
+
+  useEffect(() => {
+    trackFunnel(step === 5 ? "builder_created" : `builder_step_${step}` as "builder_step_1" | "builder_step_2" | "builder_step_3" | "builder_step_4", locale);
+  }, [locale, step]);
+
+  useEffect(() => {
+    trackFunnel("builder_started", locale);
+  }, [locale]);
 
   function chooseLevel(next: Level) {
     setLevel(next);

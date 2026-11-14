@@ -158,7 +158,7 @@ test("ships privacy, defensibility and PWA assets", async () => {
   assert.match(builder, /Share once & remove ads/);
   assert.doesNotMatch(`${builder}\n${gameClient}\n${founderDashboard}`, /\sstyle=\{/);
   assert.match(builder, /<progress[\s\S]{0,80}className="steps-line"/);
-  assert.match(builder, /builder-theme-\$\{uiPackSlug\}/);
+  assert.match(builder, /builder-theme-\$\{previewInvitationTheme \? packSlug : uiPackSlug\}/);
   assert.match(gameClient, /<progress[\s\S]{0,80}className="question-progress"/);
   assert.match(founderDashboard, /<DailyChart rows=\{data\.daily\}/);
   assert.match(builder, /<a[\s\S]{0,180}href=\{created\.adminUrl\}[\s\S]{0,180}\{t\("openPanel"\)\}[\s\S]{0,40}<\/a>/);

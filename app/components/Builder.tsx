@@ -27,7 +27,7 @@ const BUILDER_DRAFT_KEY = "z4sk-builder-draft-v1";
 type BuilderDraft = Partial<{
   creatorName: string; recipientName: string; level: Level; adultConfirmed: boolean;
   viewOnce: boolean; timedMode: boolean; expiresInHours: number; packSlug: string;
-  selected: string[]; step: number;
+  selected: string[]; step: number; previewInvitationTheme: boolean;
 }>;
 function readBuilderDraft(): BuilderDraft | null {
   if (typeof window === "undefined") return null;
@@ -583,6 +583,7 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
   const [expiresInHours, setExpiresInHours] = useState(() => initialDraft?.expiresInHours || 12);
   const [uiPackSlug] = useState(initialUiPackSlug);
   const [packSlug, setPackSlug] = useState(() => initialDraft?.packSlug || "original");
+  const [previewInvitationTheme, setPreviewInvitationTheme] = useState(() => initialDraft?.previewInvitationTheme || false);
   const [selected, setSelected] = useState<string[]>(() => initialDraft?.selected?.filter((item): item is string => typeof item === "string").slice(0, 12) || getDefaultQuestions(locale, "coqueto"));
   const [custom, setCustom] = useState("");
   const [created, setCreated] = useState<Created | null>(null);
@@ -628,15 +629,20 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
   useEffect(() => {
     if (step === 5) return;
     try {
-      localStorage.setItem(BUILDER_DRAFT_KEY, JSON.stringify({ creatorName, recipientName, level, adultConfirmed, viewOnce, timedMode, expiresInHours, packSlug, selected, step }));
+      localStorage.setItem(BUILDER_DRAFT_KEY, JSON.stringify({ creatorName, recipientName, level, adultConfirmed, viewOnce, timedMode, expiresInHours, packSlug, selected, step, previewInvitationTheme }));
     } catch {
       // Local storage is optional and never blocks creation.
     }
-  }, [adultConfirmed, creatorName, expiresInHours, level, packSlug, recipientName, selected, step, timedMode, viewOnce]);
+  }, [adultConfirmed, creatorName, expiresInHours, level, packSlug, previewInvitationTheme, recipientName, selected, step, timedMode, viewOnce]);
 
   function clearDraft() {
     try { localStorage.removeItem(BUILDER_DRAFT_KEY); } catch { /* Optional storage. */ }
     setDraftRestored(false);
+  }
+
+  function changeInvitationTheme(nextTheme: string) {
+    setPackSlug(nextTheme);
+    setPreviewInvitationTheme(true);
   }
 
   function chooseLevel(next: Level) {
@@ -761,7 +767,7 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
   const displayedStep = step === 4 ? 5 : step;
   const totalSteps = 5;
   return (
-    <div ref={shellRef} className={`builder-shell builder-theme-${uiPackSlug}`}>
+    <div ref={shellRef} className={`builder-shell builder-theme-${previewInvitationTheme ? packSlug : uiPackSlug}`}>
       {step <= 4 && <>
       <div className="builder-top" aria-live="polite">
         <div>
@@ -919,7 +925,7 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
             expiresInHours={expiresInHours}
             setExpiresInHours={setExpiresInHours}
             packSlug={packSlug}
-            setPackSlug={setPackSlug}
+            setPackSlug={changeInvitationTheme}
           />
           <div className="step-panel questions-panel">
             <div className="selection-meta">

@@ -22,3 +22,4 @@
 .question-page[class*="pack-"] .question-stage textarea,.question-page[class*="pack-"] .quick-reactions button{border-color:var(--invitation-line);background:var(--invitation-panel)}
 .question-page[class*="pack-"] .quick-reactions button:hover,.question-page[class*="pack-"] .quick-reactions button.active{background:var(--invitation-soft)}
 .experience-page[class*="pack-"] .invitation-card input,.experience-page[class*="pack-"] .timed-consent,.experience-page[class*="pack-"] .burn-note{border-color:var(--invitation-line);background:var(--invitation-soft)}
+.timed-toggle.active{background:color-mix(in srgb,var(--orange) 16%,#151515);border-bottom-color:color-mix(in srgb,var(--orange) 55%,#302c2a)}.timed-toggle.active>span{border-color:var(--orange);color:var(--orange)}.timed-toggle.active i{border-color:var(--orange);color:var(--orange);background:color-mix(in srgb,var(--orange) 10%,#151515)}

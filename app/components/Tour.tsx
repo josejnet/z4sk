@@ -6,10 +6,10 @@ import { LOCALES, type Locale, useLanguage } from "../lib/i18n";
 
 const TOUR_SEEN_KEY = "z4sk:tour-seen";
 const TOUR_IMAGES = [
-  "/z4sk-tour-create.png",
-  "/z4sk-tour-shape.png",
-  "/z4sk-tour-protect.png",
-  "/z4sk-tour-share.png",
+  "/z4sk-tour-create.webp",
+  "/z4sk-tour-shape.webp",
+  "/z4sk-tour-protect.webp",
+  "/z4sk-tour-share.webp",
 ];
 
 type TourStep = { eyebrow: string; title: string; copy: string };

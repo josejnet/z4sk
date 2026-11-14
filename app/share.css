@@ -6,3 +6,4 @@
 .qr-warning{display:flex;align-items:flex-start;gap:10px;border:1px solid #8058b8;background:rgba(185,137,255,.09);color:#c9b9d8;padding:12px;font-size:11px;line-height:1.5;margin:14px 0 0}.qr-warning b{display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;border-radius:50%;background:#b989ff;color:#160f1e}.qr-card.private .qr-actions{grid-template-columns:repeat(3,1fr)}.qr-action-spacer{display:block;min-height:44px}
 .qr-link{display:block;margin:12px auto 0;padding:11px 13px;width:min(100%,520px);border:1px solid #38322f;background:#0c0c0c;color:#c8bfb8;font:500 10px/1.45 var(--font-mono);overflow-wrap:anywhere;text-decoration:none}.qr-link:hover,.qr-link:focus-visible{border-color:var(--orange);color:#f4efe8}
 @media(max-width:620px){.qr-card.private .qr-actions{grid-template-columns:1fr 1fr}.qr-action-spacer{display:none}}
+.share-heading p{font-size:11px;line-height:1.5}.share-flow li{font-size:11px;line-height:1.55}

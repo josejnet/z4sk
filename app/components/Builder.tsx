@@ -513,6 +513,21 @@ const creationGuide = localized<{ identity: string; questions: string }>({
   tr: { identity: "İki adla başla. Gizlilik ve stili daha sonra ayarlayabilirsin.", questions: "En az 3 soru seç. Önerilen ayarlar hazır." },
   machine: { identity: "INPUT names[]; PRIVACY_AND_STYLE=DEFERRED", questions: "ASSERT questions.length>=3; defaults=READY" },
 });
+const audienceGuide = localized<{ label: string; friends: string; couples: string }>({
+  en: { label: "Quick start", friends: "Friends · Curious", couples: "Couples · Flirty" },
+  es: { label: "Atajo", friends: "Amigos · Curioso", couples: "Parejas · Coqueto" },
+  it: { label: "Scelta rapida", friends: "Amici · Curioso", couples: "Coppie · Civettuolo" },
+  fr: { label: "Démarrage rapide", friends: "Amis · Curieux", couples: "Couples · Séducteur" },
+  de: { label: "Schnellstart", friends: "Freunde · Neugierig", couples: "Paare · Flirt" },
+  nl: { label: "Snelstart", friends: "Vrienden · Nieuwsgierig", couples: "Koppels · Flirt" },
+  eo: { label: "Rapida komenco", friends: "Amikoj · Scivolema", couples: "Paroj · Flirta" },
+  pt: { label: "Atalho", friends: "Amigos · Curioso", couples: "Casais · Sedutor" },
+  zh: { label: "快速开始", friends: "朋友 · 好奇", couples: "情侣 · 暧昧" },
+  hi: { label: "त्वरित शुरुआत", friends: "दोस्त · जिज्ञासु", couples: "जोड़े · फ़्लर्ट" },
+  ja: { label: "クイックスタート", friends: "友だち · 好奇心", couples: "カップル · ちょっと大胆" },
+  tr: { label: "Hızlı başlangıç", friends: "Arkadaşlar · Meraklı", couples: "Çiftler · Flörtöz" },
+  machine: { label: "QUICK_START", friends: "AUDIENCE=FRIENDS; LEVEL=CURIOUS", couples: "AUDIENCE=COUPLES; LEVEL=FLIRTY" },
+});
 
 export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?: () => void; initialUiPackSlug?: string }) {
   const { locale, t } = useLanguage();
@@ -773,6 +788,15 @@ export function Builder({ onClose, initialUiPackSlug = "original" }: { onClose?:
             <div>
               <fieldset className="intensity-fieldset">
                 <legend>{t("chooseIntensity")}</legend>
+                <div className="audience-shortcuts" aria-label={audienceGuide[locale].label}>
+                  <span>{audienceGuide[locale].label}</span>
+                  <button type="button" className={level === "curioso" ? "active" : ""} onClick={() => chooseLevel("curioso")}>
+                    {audienceGuide[locale].friends}
+                  </button>
+                  <button type="button" className={level === "coqueto" ? "active" : ""} onClick={() => chooseLevel("coqueto")}>
+                    {audienceGuide[locale].couples}
+                  </button>
+                </div>
                 <div className="level-grid">
                   {getLevels(locale).map((item) => (
                     <button

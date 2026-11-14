@@ -25,6 +25,21 @@ import { trackFunnel } from "../../lib/funnel";
 import "./emoji-picker.css";
 
 const localized = <T,>(base: Record<Locale, T>) => base;
+const answerStarterCopy = localized<{ label: string; options: string[] }>({
+  en: { label: "Need a starting point?", options: ["Honestly…", "I think…", "Maybe…"] },
+  es: { label: "¿Necesitas empezar?", options: ["Sinceramente…", "Creo que…", "Quizá…"] },
+  it: { label: "Non sai da dove iniziare?", options: ["Sinceramente…", "Penso che…", "Forse…"] },
+  fr: { label: "Besoin d’un début ?", options: ["Honnêtement…", "Je pense que…", "Peut-être…"] },
+  de: { label: "Keine Idee, wie du anfangen sollst?", options: ["Ehrlich gesagt…", "Ich denke…", "Vielleicht…"] },
+  nl: { label: "Een begin nodig?", options: ["Eerlijk gezegd…", "Ik denk…", "Misschien…"] },
+  eo: { label: "Ĉu bezonas komencon?", options: ["Sincere…", "Mi pensas…", "Eble…"] },
+  pt: { label: "Precisas de uma ideia?", options: ["Sinceramente…", "Acho que…", "Talvez…"] },
+  zh: { label: "需要一个开头？", options: ["说实话…", "我觉得…", "也许…"] },
+  hi: { label: "शुरू करने में मदद?", options: ["सच कहूँ तो…", "मुझे लगता है…", "शायद…"] },
+  ja: { label: "書き出しに迷ったら？", options: ["正直に言うと…", "私は…と思う", "もしかしたら…"] },
+  tr: { label: "Başlamak zor mu?", options: ["Dürüstçe…", "Bence…", "Belki…"] },
+  machine: { label: "STARTER_PROMPT", options: ["HONESTLY", "I_THINK", "MAYBE"] },
+});
 const expiryCopy: Record<Locale, string> = {
   en: "DESTROYS IN",
   es: "SE DESTRUYE EN",
@@ -582,7 +597,7 @@ export function GameClient({ id }: { id: string }) {
     );
     setAnswers(nextAnswers);
     if (index === game.questions.length - 1)
-      void submit(nextAnswers, reactions);
+      setPhase("review");
     else {
       setQuestionSeconds(QUESTION_TIME_LIMIT_SECONDS);
       setIndex((value) => value + 1);
@@ -978,6 +993,18 @@ export function GameClient({ id }: { id: string }) {
           }
           placeholder={flow(locale, "answer")}
         />
+        <div className="answer-starters" aria-label={answerStarterCopy[locale].label}>
+          <span>{answerStarterCopy[locale].label}</span>
+          {answerStarterCopy[locale].options.map((starter) => (
+            <button
+              type="button"
+              key={starter}
+              onClick={() => setAnswers((current) => current.map((value, answerIndex) => answerIndex === index && !value.trim() ? starter + " " : value))}
+            >
+              {starter}
+            </button>
+          ))}
+        </div>
         <div className="answer-count">{answers[index].length}/800</div>
         {message && <p className="form-error">{message}</p>}
         <div className={`question-actions ${game.timedMode ? "timed" : ""}`}>

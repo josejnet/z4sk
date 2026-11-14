@@ -59,7 +59,7 @@ No ejecutes migraciones productivas con el `DATABASE_URL` de Vercel: ese rol no 
 
 ## Comprobaciones posteriores
 
-- confirma que el despliegue está `READY` y asignado a `https://z4sk.vercel.app`;
+- confirma que el despliegue está `READY` y asignado a `https://z4sk.xyz`;
 - comprueba que la CSP contiene un nonce por petición y no permite scripts `unsafe-inline`;
 - confirma que existen `Reporting-Endpoints`, los informes de la CSP aplicada y Trusted Types en modo informe;
 - compara `deployment.commitSha` de `/api/privacy-proof` con el commit público y los metadatos de Vercel;

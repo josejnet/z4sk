@@ -1,6 +1,6 @@
 # Z4SK
 
-[English](README.md) · [Español](README.es.md) · [Aplicación publicada](https://z4sk.vercel.app) · [Auditoría pública](https://z4sk.vercel.app/audit) · [CI](https://github.com/josejnet/z4sk/actions/workflows/ci.yml)
+[English](README.md) · [Español](README.es.md) · [Aplicación publicada](https://z4sk.xyz) · [Auditoría pública](https://z4sk.xyz/audit) · [CI](https://github.com/josejnet/z4sk/actions/workflows/ci.yml)
 
 **Pregunta. Responde. Atrévete.** Z4SK es una aplicación móvil para crear cuestionarios privados. La persona creadora prepara una invitación, comparte el enlace público y consulta las respuestas cifradas desde un enlace secreto diferente.
 
@@ -98,12 +98,12 @@ Para las nuevas invitaciones, Z4SK evita que el contenido legible de invitacione
 
 **Trata cada enlace completo como una contraseña.** Puede abrir una invitación sin llave. Si el creador activa la llave opcional, envía su QR con marca o la frase de recuperación de 12 palabras por separado; entonces harán falta ambos secretos. El ID no es la llave y no permite recuperarla. El enlace del creador da acceso al panel y a las respuestas; en invitaciones protegidas también exige la llave opcional. Un navegador, dispositivo, extensión, despliegue, portapapeles, cámara o captura comprometidos aún pueden revelar el contenido.
 
-- [Auditoría pública](https://z4sk.vercel.app/audit): protocolo, límites, código y evidencia en vivo.
+- [Auditoría pública](https://z4sk.xyz/audit): protocolo, límites, código y evidencia en vivo.
 - [Auditoría externa automatizada](docs/EXTERNAL_AUDIT.es.md): hallazgos de CodeQL, OWASP ZAP y OpenSSF, correcciones y riesgo residual.
 - [Paquete de revisión humana](docs/HUMAN_SECURITY_REVIEW.es.md): alcance reproducible para una revisión criptográfica y un pentest independientes; no afirma que ya se hayan realizado.
 - [Diseño criptográfico](docs/CRYPTOGRAPHY.md): algoritmos, payloads, datos visibles y amenazas.
 - [Política de seguridad](SECURITY.md): notificación de vulnerabilidades y controles.
-- [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof): autoauditoría de ejecución en JSON.
+- [`/api/privacy-proof`](https://z4sk.xyz/api/privacy-proof): autoauditoría de ejecución en JSON.
 
 El repositorio y la autoauditoría permiten inspeccionar el diseño; no son una certificación independiente ni una atestación remota de cada respuesta desplegada.
 

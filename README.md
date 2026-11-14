@@ -1,6 +1,6 @@
 # Z4SK
 
-[English](README.md) · [Español](README.es.md) · [Live application](https://z4sk.vercel.app) · [Public security audit](https://z4sk.vercel.app/audit) · [CI](https://github.com/josejnet/z4sk/actions/workflows/ci.yml)
+[English](README.md) · [Español](README.es.md) · [Live application](https://z4sk.xyz) · [Public security audit](https://z4sk.xyz/audit) · [CI](https://github.com/josejnet/z4sk/actions/workflows/ci.yml)
 
 **Ask. Answer. Dare.** Z4SK is an English-first, mobile-first private questionnaire app. A creator prepares an invitation, shares the public link, and reads encrypted responses through a separate secret dashboard link.
 
@@ -98,12 +98,12 @@ Z4SK keeps invitation and response plaintext out of its creation/response APIs a
 
 **Treat every complete link like a password.** It can open a link-only invitation. If the creator enables the optional shared key, send its branded QR or 12-word recovery phrase separately; then both secrets are required. The key ID is non-secret and cannot recover the key. A creator link grants dashboard and response access, with the optional shared key additionally required for protected invitations. A compromised browser, device, extension, deployment, clipboard, camera pipeline or screenshot can still reveal plaintext.
 
-- [Public audit page](https://z4sk.vercel.app/audit): human-readable protocol, limits, source and live evidence.
+- [Public audit page](https://z4sk.xyz/audit): human-readable protocol, limits, source and live evidence.
 - [External automated audit](docs/EXTERNAL_AUDIT.md): CodeQL, OWASP ZAP and OpenSSF findings, remediation and residual risk.
 - [Human security review packet](docs/HUMAN_SECURITY_REVIEW.md): reproducible scope for an independent cryptography review and penetration test; it does not claim one has already occurred.
 - [Cryptographic design](docs/CRYPTOGRAPHY.md): algorithms, payloads, visible data and threat boundaries.
 - [Security policy](SECURITY.md): vulnerability reporting and production controls.
-- [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof): machine-readable runtime self-audit.
+- [`/api/privacy-proof`](https://z4sk.xyz/api/privacy-proof): machine-readable runtime self-audit.
 
 The repository and self-audit make the design inspectable; neither is an independent certification or remote attestation of every deployed response.
 

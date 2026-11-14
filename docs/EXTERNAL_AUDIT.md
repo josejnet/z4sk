@@ -1,6 +1,6 @@
 # External automated security audit — 1 November 2026
 
-[Español](EXTERNAL_AUDIT.es.md) · [Security policy](../SECURITY.md) · [Cryptographic design](CRYPTOGRAPHY.md) · [Live self-audit](https://z4sk.vercel.app/audit)
+[Español](EXTERNAL_AUDIT.es.md) · [Security policy](../SECURITY.md) · [Cryptographic design](CRYPTOGRAPHY.md) · [Live self-audit](https://z4sk.xyz/audit)
 
 ## Executive result
 
@@ -15,11 +15,11 @@ This is an automated independent-tool assessment, **not** a human penetration te
 | Area | Independent control | Evidence |
 | --- | --- | --- |
 | Source SAST | GitHub CodeQL, `security-extended`, remote threat model | [Remediated scan](https://github.com/josejnet/z4sk/actions/runs/41345217731) |
-| Production DAST | OWASP ZAP 2.17.0 passive baseline against `https://z4sk.vercel.app` | [Baseline](https://github.com/josejnet/z4sk/actions/runs/41344732440) · [final post-remediation scan](https://github.com/josejnet/z4sk/actions/runs/41359038546) |
+| Production DAST | OWASP ZAP 2.17.0 passive baseline against `https://z4sk.xyz` | [Baseline](https://github.com/josejnet/z4sk/actions/runs/41344732440) · [final post-remediation scan](https://github.com/josejnet/z4sk/actions/runs/41359038546) |
 | Supply chain | OpenSSF Scorecard 2.5.0 | [Scorecard run](https://github.com/josejnet/z4sk/actions/runs/41345217661) · [public result](https://scorecard.dev/viewer/?uri=github.com/josejnet/z4sk) |
 | Dependencies | npm advisory database and GitHub Dependabot | `npm audit`: 0; GitHub open alerts: 0 |
 | Secrets | GitHub secret scanning and push protection | GitHub open alerts: 0 |
-| Runtime controls | Public database/privacy checks | [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof) |
+| Runtime controls | Public database/privacy checks | [`/api/privacy-proof`](https://z4sk.xyz/api/privacy-proof) |
 
 The baseline DAST run exercised public pages and public static/API discovery only. It did not receive creator links, invitation keys, response keys, bearer tokens, credentials or real user data. No destructive or authenticated active attack was performed.
 

@@ -11,7 +11,7 @@ The reviewer must not have authored Z4SK and must disclose commercial or persona
 ## In-scope targets
 
 - public source at `https://github.com/josejnet/z4sk`;
-- the exact production commit displayed at `https://z4sk.vercel.app/audit` and in `/api/privacy-proof`;
+- the exact production commit displayed at `https://z4sk.xyz/audit` and in `/api/privacy-proof`;
 - disposable invitations created solely for the review;
 - browser cryptography in `app/lib/shared-key.ts`, `app/lib/invitation-crypto.ts` and `app/lib/response-crypto.ts`;
 - local camera/image QR decoding in `app/components/SharedKeyUnlock.tsx`;

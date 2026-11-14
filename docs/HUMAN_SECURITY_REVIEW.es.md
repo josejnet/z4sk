@@ -11,7 +11,7 @@ La persona revisora no debe haber desarrollado Z4SK y debe declarar conflictos p
 ## Alcance
 
 - código público en `https://github.com/josejnet/z4sk`;
-- commit exacto mostrado en `https://z4sk.vercel.app/audit` y `/api/privacy-proof`;
+- commit exacto mostrado en `https://z4sk.xyz/audit` y `/api/privacy-proof`;
 - invitaciones desechables creadas exclusivamente para la revisión;
 - criptografía del navegador en `app/lib/shared-key.ts`, `app/lib/invitation-crypto.ts` y `app/lib/response-crypto.ts`;
 - lectura local de QR por cámara o imagen en `app/components/SharedKeyUnlock.tsx`;

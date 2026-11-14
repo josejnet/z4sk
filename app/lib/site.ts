@@ -1,4 +1,4 @@
-const FALLBACK_SITE_URL = "https://z4sk.vercel.app";
+const FALLBACK_SITE_URL = "https://z4sk.xyz";
 
 function resolveSiteUrl() {
   const configuredUrl = process.env.SITE_URL?.trim() || FALLBACK_SITE_URL;
@@ -12,7 +12,7 @@ function resolveSiteUrl() {
 
 export const site = {
   name: "Z4SK",
-  domain: "z4sk.com",
+  domain: "z4sk.xyz",
   url: resolveSiteUrl(),
   title: "Z4SK — Ask. Answer. Dare.",
   description: "Create end-to-end encrypted questions protected by a private link and a separately shared reusable key.",

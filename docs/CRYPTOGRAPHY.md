@@ -1,6 +1,6 @@
 # Cryptographic design / Diseño criptográfico
 
-[English](#english) · [Español](#español) · [Security policy](../SECURITY.md) · [Live audit](https://z4sk.vercel.app/audit) · [Machine-readable proof](https://z4sk.vercel.app/api/privacy-proof)
+[English](#english) · [Español](#español) · [Security policy](../SECURITY.md) · [Live audit](https://z4sk.xyz/audit) · [Machine-readable proof](https://z4sk.xyz/api/privacy-proof)
 
 ## English
 
@@ -140,4 +140,4 @@ El servidor sigue viendo identificadores aleatorios, fechas, estado, caducidad, 
 
 Los secretos y el texto legible permanecen temporalmente en la memoria del navegador mientras se usan. Los buffers binarios se limpian en lo posible, pero JavaScript no permite garantizar el borrado de cadenas ni de copias internas. No hay recuperación desde el servidor.
 
-La página [z4sk.vercel.app/audit](https://z4sk.vercel.app/audit) reúne código y evidencia. [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof) es una autoauditoría, no una certificación independiente.
+La página [z4sk.xyz/audit](https://z4sk.xyz/audit) reúne código y evidencia. [`/api/privacy-proof`](https://z4sk.xyz/api/privacy-proof) es una autoauditoría, no una certificación independiente.

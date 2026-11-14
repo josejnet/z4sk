@@ -3,7 +3,7 @@
 ## Core identity
 
 - Name: `Z4SK`
-- Primary domain: `z4sk.com`
+- Primary domain: `z4sk.xyz`
 - Brand line: `Ask. Answer. Dare.`
 - Spanish adaptation: `Pregunta. Responde. Atrévete.`
 - Primary orange: `#ff5a1f`
@@ -15,18 +15,18 @@ Use `Z4SK` in uppercase. Do not spell it as `Zask`, `Z4sk` or `Z 4 SK`. The spar
 
 ## Domain activation
 
-The application uses `SITE_URL` as the single canonical origin for metadata, Open Graph links, the sitemap and robots file. Until the domain is connected, production must keep:
+The application uses `SITE_URL` as the single canonical origin for metadata, Open Graph links, the sitemap, robots file and server-generated shared links. Production uses:
 
 ```text
-SITE_URL=https://z4sk.vercel.app
+SITE_URL=https://z4sk.xyz
 ```
 
 After purchasing the domain:
 
-1. Add `z4sk.com` and `www.z4sk.com` to the Vercel project.
+1. Add `z4sk.xyz` and `www.z4sk.xyz` to the Vercel project.
 2. Apply the DNS records shown by Vercel at the registrar.
-3. Make `z4sk.com` the primary domain and redirect `www.z4sk.com` to it.
-4. Set the Production environment variable to `SITE_URL=https://z4sk.com`.
+3. Make `z4sk.xyz` the primary domain and redirect `www.z4sk.xyz` to it.
+4. Set the Production environment variable to `SITE_URL=https://z4sk.xyz`.
 5. Redeploy production and verify the canonical link, social preview, sitemap and HTTPS redirect.
 
 Do not change `SITE_URL` before Vercel reports the custom domain as valid; doing so would advertise links that do not resolve yet.

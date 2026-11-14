@@ -1,6 +1,6 @@
 # Auditoría externa automatizada de seguridad — 1 de noviembre de 2026
 
-[English](EXTERNAL_AUDIT.md) · [Política de seguridad](../SECURITY.md) · [Diseño criptográfico](CRYPTOGRAPHY.md) · [Autoauditoría en vivo](https://z4sk.vercel.app/audit)
+[English](EXTERNAL_AUDIT.md) · [Política de seguridad](../SECURITY.md) · [Diseño criptográfico](CRYPTOGRAPHY.md) · [Autoauditoría en vivo](https://z4sk.xyz/audit)
 
 ## Resultado ejecutivo
 
@@ -15,11 +15,11 @@ Es una evaluación con herramientas externas automatizadas, **no** un pentest hu
 | Área | Control independiente | Evidencia |
 | --- | --- | --- |
 | SAST del código | GitHub CodeQL, `security-extended`, modelo de amenaza remoto | [Análisis corregido](https://github.com/josejnet/z4sk/actions/runs/41345217731) |
-| DAST de producción | OWASP ZAP 2.17.0 pasivo contra `https://z4sk.vercel.app` | [Línea base](https://github.com/josejnet/z4sk/actions/runs/41344732440) · [análisis final](https://github.com/josejnet/z4sk/actions/runs/41359038546) |
+| DAST de producción | OWASP ZAP 2.17.0 pasivo contra `https://z4sk.xyz` | [Línea base](https://github.com/josejnet/z4sk/actions/runs/41344732440) · [análisis final](https://github.com/josejnet/z4sk/actions/runs/41359038546) |
 | Cadena de suministro | OpenSSF Scorecard 2.5.0 | [Ejecución](https://github.com/josejnet/z4sk/actions/runs/41345217661) · [resultado público](https://scorecard.dev/viewer/?uri=github.com/josejnet/z4sk) |
 | Dependencias | Base de avisos npm y GitHub Dependabot | `npm audit`: 0; alertas abiertas en GitHub: 0 |
 | Secretos | GitHub secret scanning y protección al hacer push | alertas abiertas en GitHub: 0 |
-| Controles en vivo | Comprobaciones públicas de base de datos y privacidad | [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof) |
+| Controles en vivo | Comprobaciones públicas de base de datos y privacidad | [`/api/privacy-proof`](https://z4sk.xyz/api/privacy-proof) |
 
 El DAST solo recorrió páginas públicas y descubrió activos/API públicos. No recibió enlaces de creador, claves de invitación o respuesta, tokens al portador, credenciales ni datos reales. No se ejecutó ningún ataque activo destructivo o autenticado.
 

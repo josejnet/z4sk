@@ -1,6 +1,6 @@
 # Security policy / Política de seguridad
 
-[English](#english) · [Español](#español) · [Cryptographic design](docs/CRYPTOGRAPHY.md) · [External automated audit](docs/EXTERNAL_AUDIT.md) · [Live self-audit](https://z4sk.vercel.app/audit)
+[English](#english) · [Español](#español) · [Cryptographic design](docs/CRYPTOGRAPHY.md) · [External automated audit](docs/EXTERNAL_AUDIT.md) · [Live self-audit](https://z4sk.xyz/audit)
 
 ## English
 
@@ -20,7 +20,7 @@ Report vulnerabilities privately through [GitHub private vulnerability reporting
 - Enforced CSP violations and Trusted Types compatibility reports are reduced to daily counters by directive, coarse route class and disposition. Full URLs, identifiers, blocked resources, source files, code samples and user/network identifiers are discarded before storage.
 - New public identifiers contain 128 random bits. Creator and recipient-deletion secrets contain 192 random bits.
 - Rate-limit and event pseudonyms use HMAC-SHA-256 with a server-only secret and rotation. Raw IP addresses are not stored by application code.
-- The public [`/api/privacy-proof`](https://z4sk.vercel.app/api/privacy-proof) endpoint checks the active schema and data for plaintext leakage, malformed envelopes, weak identifiers, expiry backlog and required production controls.
+- The public [`/api/privacy-proof`](https://z4sk.xyz/api/privacy-proof) endpoint checks the active schema and data for plaintext leakage, malformed envelopes, weak identifiers, expiry backlog and required production controls.
 
 > **A complete link is a bearer secret.** It opens a link-only invitation. If the optional shared key is enabled, send it through a second channel; link and key are then both required. A creator link additionally authorizes the dashboard and carries the response private key.
 
@@ -67,7 +67,7 @@ Comunica vulnerabilidades mediante los [avisos privados de seguridad de GitHub](
 - El enlace privado del creador añade un token de acceso y la única clave privada capaz de descifrar respuestas. La base de datos guarda únicamente el hash SHA-256 del token.
 - El servidor conserva texto cifrado y metadatos operativos mínimos: identificador aleatorio, fechas, estado, número de preguntas y política de lectura única/caducidad.
 - Los informes CSP y de compatibilidad Trusted Types se reducen antes de guardarse a contadores diarios por directiva y clase de ruta; se descartan URL, identificadores, recursos bloqueados, archivos fuente, muestras de código e identificadores de red.
-- La [auditoría pública en vivo](https://z4sk.vercel.app/audit) explica el diseño y enlaza las comprobaciones de la base activa.
+- La [auditoría pública en vivo](https://z4sk.xyz/audit) explica el diseño y enlaza las comprobaciones de la base activa.
 
 > **El enlace completo es un secreto al portador.** Abre una invitación sin llave. Si activas la llave opcional, envíala por un segundo canal: entonces harán falta ambos. El enlace del creador añade autorización del panel y la clave privada de respuestas.
 

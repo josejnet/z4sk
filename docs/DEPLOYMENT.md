@@ -59,7 +59,7 @@ Do not run production migrations with Vercel's runtime `DATABASE_URL`; that role
 
 ## Post-deploy checks
 
-- confirm the production deployment is `READY` and assigned to `https://z4sk.vercel.app`;
+- confirm the production deployment is `READY` and assigned to `https://z4sk.xyz`;
 - check the homepage CSP contains a per-request nonce and no `unsafe-inline` script permission;
 - confirm `Reporting-Endpoints`, enforced CSP reporting and the report-only Trusted Types policy are present;
 - compare `deployment.commitSha` from `/api/privacy-proof` with the public GitHub commit and Vercel deployment metadata;

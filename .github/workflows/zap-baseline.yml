@@ -21,7 +21,7 @@ jobs:
       - name: Scan public production surface
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
-          target: https://z4sk.vercel.app
+          target: https://z4sk.xyz
           allow_issue_writing: false
           fail_action: false
           artifact_name: zap-passive-audit

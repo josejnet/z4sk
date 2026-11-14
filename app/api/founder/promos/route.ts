@@ -126,6 +126,12 @@ export async function DELETE(request: Request) {
     const denied = await authorizeFounder(request, "founder-public-messages");
     if (denied) return denied;
     const body = await request.json() as Record<string, unknown>;
+    const responseId = clean(body.responseId, 64);
+    if (responseId) {
+      const result = await getDatabase().prepare(`DELETE FROM founder_public_message_responses WHERE id = ?`).bind(responseId).run();
+      if (!result.meta.changes) return NextResponse.json({ error: "Answer not found." }, { status: 404 });
+      return NextResponse.json({ ok: true, deleted: "response" }, { headers: { "cache-control": "no-store" } });
+    }
     const id = clean(body.id, 64);
     if (!id) return NextResponse.json({ error: "A message ID is required." }, { status: 400 });
     const result = await getDatabase().prepare(`UPDATE founder_public_messages SET active = 0, updated_at = ? WHERE id = ?`).bind(new Date().toISOString(), id).run();

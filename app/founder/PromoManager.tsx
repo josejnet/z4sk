@@ -62,6 +62,13 @@ export function PromoManager({ founderKey }: Props) {
     setStatus("Public message disabled. Its QR no longer shows the message.");
   }
 
+  async function deleteResponse(responseId: string) {
+    const response = await fetch("/api/founder/promos", { method: "DELETE", headers: { authorization: `Bearer ${founderKey}`, "content-type": "application/json" }, body: JSON.stringify({ responseId }) });
+    if (!response.ok) { const result = await response.json() as { error?: string }; setStatus(result.error || "Could not delete answer."); return false; }
+    setStatus("Answer deleted.");
+    return true;
+  }
+
   return <div className="promo-manager">
     <div className="promo-manager-intro"><p>Generate reusable public Z4SK questionnaires for posters, events or social posts. Each QR opens the full answer flow, never expires, and keeps the same address when you edit its questions.</p><small>These responses are intentionally readable in this admin panel. Access analytics remain aggregated; no IP addresses are stored.</small></div>
     <div className="promo-create-grid">
@@ -73,12 +80,14 @@ export function PromoManager({ founderKey }: Props) {
     </div>
     <button className="ad-save" type="button" onClick={() => void create()} disabled={!message.trim()}>Generate QR series</button>
     {status && <p className="ad-status" role="status">{status}</p>}
-    <div className="promo-list">{loading ? <p>Loading public messages…</p> : promos.length ? promos.map((promo) => <PromoRow key={promo.id} promo={promo} onUpdate={update} onDisable={disable} />) : <p>No public QR messages yet.</p>}</div>
+    <div className="promo-list">{loading ? <p>Loading public messages…</p> : promos.length ? promos.map((promo) => <PromoRow key={promo.id} promo={promo} onUpdate={update} onDisable={disable} onDeleteResponse={deleteResponse} />) : <p>No public QR messages yet.</p>}</div>
   </div>;
 }
 
-function PromoRow({ promo, onUpdate, onDisable }: { promo: Promo; onUpdate: (promo: Promo) => Promise<void>; onDisable: (id: string) => Promise<void> }) {
+function PromoRow({ promo, onUpdate, onDisable, onDeleteResponse }: { promo: Promo; onUpdate: (promo: Promo) => Promise<void>; onDisable: (id: string) => Promise<void>; onDeleteResponse: (id: string) => Promise<boolean> }) {
   const [draft, setDraft] = useState(promo);
+  const [responses, setResponses] = useState(promo.responses);
+  const [inboxOpen, setInboxOpen] = useState(promo.responses.length > 0);
   const [qr, setQr] = useState("");
   const url = typeof window === "undefined" ? `/promo/${promo.id}` : `${window.location.origin}/promo/${promo.id}`;
   useEffect(() => { void QRCode.toDataURL(url, { width: 720, margin: 2, color: { dark: "#111111", light: "#ffffff" } }).then(setQr); }, [url]);
@@ -92,7 +101,7 @@ function PromoRow({ promo, onUpdate, onDisable }: { promo: Promo; onUpdate: (pro
       <label className="promo-questions-field">Questions · one per line<textarea value={draft.questions.join("\n")} maxLength={2200} rows={6} onChange={(event) => setDraft({ ...draft, questions: event.target.value.split(/\r?\n/).filter(Boolean) })} aria-label="Public questions" /></label>
       <code>{url}</code>
       <div className="promo-access" aria-label="Aggregated access data"><div className="promo-access-kpis"><span><b>{promo.access.views}</b> scans</span><span><b>{promo.access.activeDays}</b> active days</span><span><b>{promo.access.lastAccessAt ? new Date(promo.access.lastAccessAt).toLocaleString() : "—"}</b> last access</span></div><AccessBreakdown title="Countries" rows={promo.access.countries} /><AccessBreakdown title="Languages" rows={promo.access.languages} /><AccessBreakdown title="Devices" rows={promo.access.devices} /><AccessBreakdown title="Referrers" rows={promo.access.referrers} /></div>
-      <div className="promo-responses"><strong>Answers · {promo.responses.length}</strong>{promo.responses.length ? promo.responses.map((response) => <details key={response.id}><summary>{response.name} · {new Date(response.createdAt).toLocaleString()}</summary>{response.answers.map((answer, index) => <p key={`${response.id}-${index}`}><b>{String(index + 1).padStart(2, "0")}</b>{answer}</p>)}</details>) : <small>No answers yet.</small>}</div>
+      <div className="promo-responses"><button className="promo-inbox-toggle" type="button" onClick={() => setInboxOpen((open) => !open)}><strong>Inbox · {responses.length}</strong><span>{inboxOpen ? "Hide answers" : "Open answers"} {inboxOpen ? "↑" : "↓"}</span></button>{inboxOpen && (responses.length ? responses.map((response) => <article className="promo-response" key={response.id}><div className="promo-response-head"><div><b>{response.name}</b><small>{new Date(response.createdAt).toLocaleString()} · {response.locale} · {response.country}</small></div><button type="button" onClick={() => { if (window.confirm("Delete this answer permanently?")) void onDeleteResponse(response.id).then((deleted) => { if (deleted) setResponses((current) => current.filter((item) => item.id !== response.id)); }); }}>Delete</button></div>{response.answers.map((answer, index) => <p key={`${response.id}-${index}`}><b>{String(index + 1).padStart(2, "0")}</b>{answer}</p>)}</article>) : <small>No answers yet.</small>)}</div>
       <div className="promo-row-actions"><button type="button" onClick={() => void onUpdate(draft)} disabled={!draft.active}>Save text</button><button type="button" onClick={() => void navigator.clipboard?.writeText(url)}>Copy link</button><a href={qr} download={`z4sk-public-${draft.id}.png`} aria-disabled={!qr}>Download QR</a>{draft.active && <button type="button" onClick={() => void onDisable(draft.id)}>Disable</button>}</div>
     </div>
   </article>;

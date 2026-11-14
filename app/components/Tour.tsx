@@ -111,7 +111,6 @@ export function Tour({ openRequest = 0 }: { openRequest?: number }) {
   function chooseLanguage(nextLocale: Locale) {
     setLocale(nextLocale);
     setLanguageBarClosing(true);
-    window.setTimeout(() => setLanguageBarOpen(false), 180);
   }
 
   if (!open) return null;

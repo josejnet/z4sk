@@ -55,13 +55,14 @@ const backCopy: Partial<Record<Locale, string>> = {
   machine: "BACK",
 };
 
-export function Tour({ openRequest = 0 }: { openRequest?: number }) {
+export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: number; locale?: Locale }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [noMore, setNoMore] = useState(true);
   const [languageBarOpen, setLanguageBarOpen] = useState(true);
   const [languageBarClosing, setLanguageBarClosing] = useState(false);
-  const { locale, setLocale } = useLanguage();
+  const { locale: contextLocale, setLocale } = useLanguage();
+  const locale = pageLocale ?? contextLocale;
   const c = copy[locale];
 
   useEffect(() => {

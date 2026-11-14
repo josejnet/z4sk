@@ -17,6 +17,7 @@ type TourCopy = {
   title: string;
   intro: string;
   skip: string;
+  back?: string;
   next: string;
   start: string;
   close: string;
@@ -25,8 +26,8 @@ type TourCopy = {
 };
 
 const copy: Record<Locale, TourCopy> = {
-  en: { title: "A quick tour of Z4SK", intro: "Create something daring, share it privately, and let the answers come back to you.", skip: "Skip", next: "Next", start: "Start creating", close: "Close tour", noMore: "Don't show this again", steps: [{ eyebrow: "01 · CREATE", title: "Start with two names", copy: "Set the mood with your name, their name and an intensity that feels right." }, { eyebrow: "02 · SHAPE IT", title: "Make it yours", copy: "Choose the questions, add your own, set the expiry and preview the invitation style." }, { eyebrow: "03 · PROTECT", title: "Add a second secret", copy: "Use a reusable Duo Key for an extra layer, or continue with the complete link." }, { eyebrow: "04 · SHARE", title: "Send one small secret", copy: "Share the invitation link or QR. Answers return encrypted to your private panel." }] },
-  es: { title: "Un tour rápido por Z4SK", intro: "Crea algo atrevido, compártelo en privado y deja que las respuestas vuelvan a ti.", skip: "Saltar", next: "Siguiente", start: "Empezar a crear", close: "Cerrar tour", noMore: "No volver a mostrar", steps: [{ eyebrow: "01 · CREA", title: "Empieza con dos nombres", copy: "Define el tono con tu nombre, el suyo y una intensidad que encaje." }, { eyebrow: "02 · DALE FORMA", title: "Hazlo tuyo", copy: "Elige las preguntas, añade las tuyas, fija la caducidad y previsualiza el estilo." }, { eyebrow: "03 · PROTEGE", title: "Añade un segundo secreto", copy: "Usa una Llave Duo reutilizable para una capa extra o continúa con el enlace completo." }, { eyebrow: "04 · COMPARTE", title: "Envía un pequeño secreto", copy: "Comparte el enlace o el QR. Las respuestas vuelven cifradas a tu panel privado." }] },
+  en: { title: "A quick tour of Z4SK", intro: "Create something daring, share it privately, and let the answers come back to you.", skip: "Skip", back: "Back", next: "Next", start: "Start creating", close: "Close tour", noMore: "Don't show this again", steps: [{ eyebrow: "01 · CREATE", title: "Start with two names", copy: "Enter your name and theirs. Then choose the intensity so Z4SK can tune the questions to the mood you want." }, { eyebrow: "02 · SHAPE IT", title: "Make it yours", copy: "Pick at least three questions, add your own if you like, set when the invitation expires and preview the look they will receive." }, { eyebrow: "03 · PROTECT", title: "Add a second secret", copy: "Create a reusable Duo Key and keep one copy each, or choose the complete link when you do not need a separate key." }, { eyebrow: "04 · SHARE", title: "Send it and wait for the reply", copy: "Send either the invitation link or its QR. Keep your private-panel link for yourself: replies are encrypted and return there." }] },
+  es: { title: "Un tour rápido por Z4SK", intro: "Crea algo atrevido, compártelo en privado y deja que las respuestas vuelvan a ti.", skip: "Saltar", back: "Volver", next: "Siguiente", start: "Empezar a crear", close: "Cerrar tour", noMore: "No volver a mostrar", steps: [{ eyebrow: "01 · CREA", title: "Empieza con dos nombres", copy: "Escribe tu nombre y el de la otra persona. Después elige la intensidad para ajustar las preguntas al tono que buscas." }, { eyebrow: "02 · DALE FORMA", title: "Hazlo tuyo", copy: "Elige al menos tres preguntas, añade las tuyas si quieres, fija la caducidad y previsualiza el estilo que recibirá la otra persona." }, { eyebrow: "03 · PROTEGE", title: "Añade un segundo secreto", copy: "Crea una Llave Duo reutilizable y guardad una copia cada uno, o usa el enlace completo si no necesitas una llave separada." }, { eyebrow: "04 · COMPARTE", title: "Envíalo y espera la respuesta", copy: "Envía el enlace de invitación o su QR. Guarda para ti el enlace de tu panel privado: las respuestas cifradas volverán allí." }] },
   it: { title: "Un tour rapido di Z4SK", intro: "Crea qualcosa di audace, condividilo in privato e lascia che le risposte tornino a te.", skip: "Salta", next: "Avanti", start: "Inizia a creare", close: "Chiudi tour", noMore: "Non mostrare più", steps: [{ eyebrow: "01 · CREA", title: "Inizia con due nomi", copy: "Imposta il tono con il tuo nome, il suo e un’intensità adatta." }, { eyebrow: "02 · DAI FORMA", title: "Rendilo tuo", copy: "Scegli le domande, aggiungine di tue, imposta la scadenza e lo stile." }, { eyebrow: "03 · PROTEGGI", title: "Aggiungi un secondo segreto", copy: "Usa una Chiave Duo riutilizzabile oppure continua con il link completo." }, { eyebrow: "04 · CONDIVIDI", title: "Invia un piccolo segreto", copy: "Condividi il link o il QR. Le risposte tornano cifrate nel tuo pannello privato." }] },
   fr: { title: "Visite express de Z4SK", intro: "Créez quelque chose d’audacieux, partagez-le en privé et recevez les réponses.", skip: "Passer", next: "Suivant", start: "Commencer", close: "Fermer le tour", noMore: "Ne plus afficher", steps: [{ eyebrow: "01 · CRÉER", title: "Commencez par deux noms", copy: "Choisissez le ton avec votre nom, le sien et une intensité adaptée." }, { eyebrow: "02 · FAÇONNER", title: "Faites-le vôtre", copy: "Choisissez les questions, ajoutez les vôtres, fixez l’expiration et le style." }, { eyebrow: "03 · PROTÉGER", title: "Ajoutez un second secret", copy: "Utilisez une Clé Duo réutilisable ou continuez avec le lien complet." }, { eyebrow: "04 · PARTAGER", title: "Envoyez un petit secret", copy: "Partagez le lien ou le QR. Les réponses reviennent chiffrées dans votre espace." }] },
   de: { title: "Ein kurzer Z4SK-Rundgang", intro: "Erstelle etwas Gewagtes, teile es privat und lass die Antworten zu dir zurückkommen.", skip: "Überspringen", next: "Weiter", start: "Jetzt erstellen", close: "Tour schließen", noMore: "Nicht wieder anzeigen", steps: [{ eyebrow: "01 · ERSTELLEN", title: "Beginne mit zwei Namen", copy: "Lege mit deinem Namen, dem anderen Namen und der passenden Intensität den Ton fest." }, { eyebrow: "02 · GESTALTEN", title: "Mach es zu deinem", copy: "Wähle Fragen, füge eigene hinzu, setze den Ablauf und sieh den Stil vorher an." }, { eyebrow: "03 · SCHÜTZEN", title: "Füge ein zweites Geheimnis hinzu", copy: "Nutze einen wiederverwendbaren Duo-Schlüssel oder den vollständigen Link." }, { eyebrow: "04 · TEILEN", title: "Sende ein kleines Geheimnis", copy: "Teile Link oder QR. Antworten kommen verschlüsselt in deinen privaten Bereich zurück." }] },
@@ -38,6 +39,20 @@ const copy: Record<Locale, TourCopy> = {
   ja: { title: "Z4SK クイックツアー", intro: "少し大胆なものを作って、非公開で送り、答えを受け取りましょう。", skip: "スキップ", next: "次へ", start: "作成を始める", close: "ツアーを閉じる", noMore: "次回から表示しない", steps: [{ eyebrow: "01 · 作成", title: "2人の名前から開始", copy: "自分と相手の名前、ちょうどいい大胆さを選んで雰囲気を決めます。" }, { eyebrow: "02 · カスタム", title: "自分らしく整える", copy: "質問を選び、自作の質問、期限、招待スタイルを設定します。" }, { eyebrow: "03 · 保護", title: "2つ目の秘密を追加", copy: "再利用できるDuoキー、または完全なリンクを使います。" }, { eyebrow: "04 · 共有", title: "小さな秘密を送る", copy: "リンクかQRを共有。答えは暗号化されて非公開パネルに戻ります。" }] },
   tr: { title: "Kısa bir Z4SK turu", intro: "Cesur bir şey oluştur, özel olarak paylaş ve yanıtların sana dönmesini bekle.", skip: "Atla", next: "İleri", start: "Oluşturmaya başla", close: "Turu kapat", noMore: "Bir daha gösterme", steps: [{ eyebrow: "01 · OLUŞTUR", title: "İki adla başla", copy: "Adın, diğer kişinin adı ve uygun bir yoğunlukla havayı belirle." }, { eyebrow: "02 · ŞEKİLLENDİR", title: "Kendine göre yap", copy: "Soruları seç, kendi sorularını ekle, süreyi belirle ve stili önizle." }, { eyebrow: "03 · KORU", title: "İkinci bir sır ekle", copy: "Yeniden kullanılabilir Duo anahtarını veya tam bağlantıyı kullan." }, { eyebrow: "04 · PAYLAŞ", title: "Küçük bir sır gönder", copy: "Bağlantıyı veya QR'ı paylaş. Yanıtlar şifreli olarak özel paneline döner." }] },
   machine: { title: "Z4SK_TOUR", intro: "CREATE daring_questions; SHARE private; RECEIVE encrypted_answers", skip: "SKIP", next: "NEXT", start: "CREATE", close: "CLOSE_TOUR", noMore: "tour.seen=true", steps: [{ eyebrow: "01 · CREATE", title: "IDENTITY", copy: "SET creator_name + recipient_name + intensity" }, { eyebrow: "02 · CONFIGURE", title: "CUSTOMIZE", copy: "SELECT questions + expiry + visual_style" }, { eyebrow: "03 · PROTECT", title: "SECOND_SECRET", copy: "USE reusable_duo_key OR complete_link" }, { eyebrow: "04 · SHARE", title: "DELIVER", copy: "SEND link|QR; RECEIVE encrypted responses" }] },
+};
+
+const backCopy: Partial<Record<Locale, string>> = {
+  it: "Indietro",
+  fr: "Retour",
+  de: "Zurück",
+  nl: "Terug",
+  eo: "Reen",
+  pt: "Voltar",
+  zh: "返回",
+  hi: "वापस",
+  ja: "戻る",
+  tr: "Geri",
+  machine: "BACK",
 };
 
 export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; onCreate: () => void; openRequest?: number }) {
@@ -72,6 +87,7 @@ export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; on
 
   function close() {
     if (noMore) window.localStorage.setItem(TOUR_SEEN_KEY, "1");
+    else window.localStorage.removeItem(TOUR_SEEN_KEY);
     setOpen(false);
   }
 
@@ -83,6 +99,7 @@ export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; on
   if (!open) return null;
   const current = c.steps[step];
   const last = step === c.steps.length - 1;
+  const back = c.back ?? backCopy[locale] ?? "Back";
   return (
     <div className="tour-backdrop" role="dialog" aria-modal="true" aria-labelledby="tour-title">
       <section className="tour-dialog">
@@ -90,8 +107,8 @@ export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; on
         <div className="tour-grid">
           <div className="tour-copy">
             <span className="tour-kicker">Z4SK · {current.eyebrow}</span>
-            <h2 id="tour-title">{step === 0 ? c.title : current.title}</h2>
-            <p className="tour-intro">{step === 0 ? c.intro : current.copy}</p>
+            <h2 id="tour-title">{current.title}</h2>
+            <p className="tour-intro">{current.copy}</p>
             <div className="tour-progress" aria-label={`${step + 1} / ${c.steps.length}`}>
               {c.steps.map((item, index) => <button key={item.eyebrow} type="button" className={index === step ? "active" : ""} onClick={() => setStep(index)} aria-label={item.eyebrow} aria-current={index === step ? "step" : undefined} />)}
             </div>
@@ -104,6 +121,7 @@ export function Tour({ locale, onCreate, openRequest = 0 }: { locale: Locale; on
         <div className="tour-footer">
           <label className="tour-no-more"><input type="checkbox" checked={noMore} onChange={(event) => setNoMore(event.target.checked)} /> <span>{c.noMore}</span></label>
           <div className="tour-actions">
+            <button className="tour-back" type="button" onClick={() => setStep((value) => Math.max(0, value - 1))} disabled={step === 0}>{back}</button>
             <button className="tour-skip" type="button" onClick={close}>{c.skip}</button>
             {last ? <button className="tour-primary" type="button" onClick={finish}>{c.start} <span>→</span></button> : <button className="tour-primary" type="button" onClick={() => setStep((value) => value + 1)}>{c.next} <span>→</span></button>}
           </div>

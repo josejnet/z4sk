@@ -102,7 +102,7 @@
   .questions-step-layout{gap:16px}
   .questions-step-layout>.feature-config{padding:14px}
   .questions-step-layout .smart-mix-toggle{margin:10px 0}
-  .security-step .shared-key-explanation,.security-step .shared-key-setup-title p{display:none}
+  .security-step .shared-key-setup-title p{display:block;font-size:11px;line-height:1.45;margin-top:5px}.security-step .shared-key-explanation{display:block!important;font-size:12px!important;line-height:1.45!important;margin-top:9px!important}
   .questions-step-layout .custom-question-row{grid-template-columns:1fr auto}
   .questions-step-layout .questions-list{max-height:38dvh;gap:8px;padding-right:5px}
   .questions-step-layout .question-edit{padding:11px}

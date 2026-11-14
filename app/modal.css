@@ -41,3 +41,4 @@
   .builder-top .step{font-size:9px}
   .steps-line{margin:13px 0 18px}
 }
+.pwa-already-installed{display:block;width:100%;margin-top:12px;border:1px solid #3c3632;background:transparent;color:#aaa39d;padding:12px;font:600 11px/1 var(--font-geist);cursor:pointer}.pwa-already-installed:hover,.pwa-already-installed:focus-visible{border-color:var(--orange);color:var(--ink)}

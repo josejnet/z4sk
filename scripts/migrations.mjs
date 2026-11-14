@@ -95,7 +95,8 @@ const migrations = [
   {
     id: "2026-11-14-founder-public-qr-messages",
     statements: [
-      `CREATE TABLE IF NOT EXISTS founder_public_messages (id TEXT PRIMARY KEY, title TEXT NOT NULL DEFAULT 'Z4SK', message TEXT NOT NULL, locale TEXT NOT NULL DEFAULT 'en', theme TEXT NOT NULL DEFAULT 'original', active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)`,
+      `CREATE TABLE IF NOT EXISTS founder_public_messages (id TEXT PRIMARY KEY, title TEXT NOT NULL DEFAULT 'Z4SK', message TEXT NOT NULL, locale TEXT NOT NULL DEFAULT 'en', theme TEXT NOT NULL DEFAULT 'original', questions_json TEXT NOT NULL DEFAULT '[]', active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)`,
+      `ALTER TABLE founder_public_messages ADD COLUMN IF NOT EXISTS questions_json TEXT NOT NULL DEFAULT '[]'`,
       `CREATE INDEX IF NOT EXISTS idx_founder_public_messages_active_created ON founder_public_messages(active, created_at DESC)`,
       `REVOKE ALL ON founder_public_messages FROM PUBLIC`,
     ],
@@ -106,6 +107,14 @@ const migrations = [
       `CREATE TABLE IF NOT EXISTS founder_public_message_access_daily (message_id TEXT NOT NULL REFERENCES founder_public_messages(id) ON DELETE CASCADE, day DATE NOT NULL, locale TEXT NOT NULL DEFAULT 'unknown', country TEXT NOT NULL DEFAULT 'XX', device TEXT NOT NULL DEFAULT 'unknown', referrer_host TEXT NOT NULL DEFAULT 'direct', access_count BIGINT NOT NULL DEFAULT 0, last_access_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (message_id, day, locale, country, device, referrer_host))`,
       `CREATE INDEX IF NOT EXISTS idx_public_message_access_message_day ON founder_public_message_access_daily(message_id, day DESC)`,
       `REVOKE ALL ON founder_public_message_access_daily FROM PUBLIC`,
+    ],
+  },
+  {
+    id: "2026-11-14-founder-public-quiz-responses",
+    statements: [
+      `CREATE TABLE IF NOT EXISTS founder_public_message_responses (id TEXT PRIMARY KEY, message_id TEXT NOT NULL REFERENCES founder_public_messages(id) ON DELETE CASCADE, respondent_name TEXT NOT NULL DEFAULT '', answers_json TEXT NOT NULL DEFAULT '[]', locale TEXT NOT NULL DEFAULT 'unknown', country TEXT NOT NULL DEFAULT 'XX', device TEXT NOT NULL DEFAULT 'unknown', created_at TIMESTAMPTZ NOT NULL)`,
+      `CREATE INDEX IF NOT EXISTS idx_founder_public_responses_message_created ON founder_public_message_responses(message_id, created_at DESC)`,
+      `REVOKE ALL ON founder_public_message_responses FROM PUBLIC`,
     ],
   },
 ];

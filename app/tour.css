@@ -12,10 +12,12 @@
 /* Mobile: keep the artwork visible without a tall empty band and keep all actions inside the viewport. */
 @media(max-width:700px){
   .tour-grid{height:auto;align-items:stretch}
-  .tour-art-wrap{flex:0 0 auto;width:100%;height:auto;min-height:0;max-height:none;aspect-ratio:3 / 2}
+  .tour-art-wrap{flex:0 0 auto;width:100%;height:auto;min-height:0;max-height:none;aspect-ratio:16 / 9}
   .tour-art{object-fit:contain}
-  .tour-copy{flex:1 1 auto;min-height:0}
-  .tour-actions{width:100%;min-width:0;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .tour-copy{flex:1 1 auto;width:100%;min-width:0;min-height:0}
+  .tour-intro{max-width:none;overflow-wrap:anywhere}
+  .tour-actions{width:100%;min-width:0;overflow:hidden;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.3fr);gap:6px}
+  .tour-actions>*{min-width:0}
   .tour-back,.tour-skip,.tour-primary{min-width:0;min-height:44px;padding-left:7px;padding-right:7px;font-size:12px}
   .tour-primary{gap:6px}
 }

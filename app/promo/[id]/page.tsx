@@ -21,7 +21,11 @@ export default async function PromoPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const message = await getDatabase().prepare(`SELECT id, title, message, theme, active FROM founder_public_messages WHERE id = ? AND active = 1`).bind(id).first<PublicMessage>();
   if (!message) notFound();
-  await recordPublicMessageAccess(id, await headers());
+  try {
+    await recordPublicMessageAccess(id, await headers());
+  } catch (error) {
+    console.error("public-message-access-metric", error);
+  }
   const theme = ["original", "nightlife", "creator", "ocean", "solar", "aurora", "copper"].includes(message.theme) ? message.theme : "original";
   return <main className={`promo-page promo-theme-${theme}`}>
     <nav className="promo-nav"><Link href="/" className="promo-brand">Z4SK</Link><span>ASK · ANSWER · DARE</span></nav>

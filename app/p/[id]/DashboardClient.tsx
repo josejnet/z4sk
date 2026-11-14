@@ -657,6 +657,15 @@ export function DashboardClient({ id }: { id: string }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   }
+  function shareAgain() {
+    if (!data) return;
+    const url = attachInvitationSecret(
+      `${window.location.origin}/g/${id}`,
+      invitationKey,
+    );
+    const message = `${flow(locale, "shareText", { name: data.game.recipientName })}\n\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+  }
   async function enableNotifications() {
     if (!("Notification" in window)) return;
     const permission = await Notification.requestPermission();
@@ -781,6 +790,7 @@ export function DashboardClient({ id }: { id: string }) {
           <button onClick={copyShare}>
             {copied ? flow(locale, "linkCopied") : flow(locale, "copyAnswer")}
           </button>
+          <button onClick={shareAgain}>{flow(locale, "shareWhatsapp")}</button>
           <button onClick={refresh}>{flow(locale, "refresh")}</button>
           <button onClick={enableNotifications}>
             {notifications

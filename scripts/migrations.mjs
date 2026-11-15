@@ -123,6 +123,14 @@ const migrations = [
       `ALTER TABLE founder_public_messages ADD COLUMN IF NOT EXISTS questions_json TEXT NOT NULL DEFAULT '[]'`,
     ],
   },
+  {
+    id: "2026-11-15-affiliate-campaign-cards",
+    statements: [
+      `CREATE TABLE IF NOT EXISTS affiliate_cards (id TEXT PRIMARY KEY, slug TEXT NOT NULL UNIQUE, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', cta_text TEXT NOT NULL DEFAULT 'Descubrir', affiliate_url TEXT NOT NULL, badge_text TEXT NOT NULL DEFAULT '', accent_color TEXT NOT NULL DEFAULT '#ff5a1f', intensity_tags TEXT NOT NULL DEFAULT '["all"]', languages TEXT NOT NULL DEFAULT '["en","es"]', country_codes TEXT NOT NULL DEFAULT '[]', weight INTEGER NOT NULL DEFAULT 5, active INTEGER NOT NULL DEFAULT 0, impressions_count BIGINT NOT NULL DEFAULT 0, clicks_count BIGINT NOT NULL DEFAULT 0, created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP)`,
+      `CREATE INDEX IF NOT EXISTS idx_affiliate_cards_active ON affiliate_cards(active)`,
+      `REVOKE ALL ON affiliate_cards FROM PUBLIC`,
+    ],
+  },
 ];
 
 export async function runMigrations(databaseUrl) {

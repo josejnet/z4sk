@@ -1,6 +1,7 @@
 "use client";
 
 import { LOCALES, type Locale, useLanguage } from "../lib/i18n";
+import { SponsorCard } from "./SponsorCard";
 
 const navCopy:Record<Locale,{home:string;language:string;advertisement:string}>={
   en:{home:"Z4SK, home",language:"Language",advertisement:"Advertisement"},es:{home:"Z4SK, inicio",language:"Idioma",advertisement:"Publicidad"},it:{home:"Z4SK, home",language:"Lingua",advertisement:"Pubblicità"},fr:{home:"Z4SK, accueil",language:"Langue",advertisement:"Publicité"},de:{home:"Z4SK, Startseite",language:"Sprache",advertisement:"Werbung"},nl:{home:"Z4SK, startpagina",language:"Taal",advertisement:"Advertentie"},eo:{home:"Z4SK, hejmpaĝo",language:"Lingvo",advertisement:"Reklamo"},pt:{home:"Z4SK, início",language:"Idioma",advertisement:"Publicidade"},zh:{home:"Z4SK，首页",language:"语言",advertisement:"广告"},hi:{home:"Z4SK, होम",language:"भाषा",advertisement:"विज्ञापन"},ja:{home:"Z4SK、ホーム",language:"言語",advertisement:"広告"},tr:{home:"Z4SK, ana sayfa",language:"Dil",advertisement:"Reklam"},machine:{home:"Z4SK::ROOT",language:"LOCALE",advertisement:"ADVERTISEMENT"}
@@ -20,7 +21,8 @@ export function TopNav({ minimal = false }: { minimal?: boolean }) {
 
 type SponsorPlacement = "invitation" | "completion" | "dashboard";
 
-export function Sponsor(_props: { compact?: boolean; placement: SponsorPlacement }) {
-  void _props;
-  return null;
+export function Sponsor(props: { compact?: boolean; placement: SponsorPlacement }) {
+  const { locale } = useLanguage();
+  void props.placement;
+  return <SponsorCard lang={locale} intensity="all" />;
 }

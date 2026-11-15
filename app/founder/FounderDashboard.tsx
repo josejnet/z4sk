@@ -26,11 +26,11 @@ export function FounderDashboard({ showDevelopmentKey = false }: { showDevelopme
       if (!response.ok) throw new Error(result.error);
       setData(result);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se han podido cargar las métricas.");
+      setError(cause instanceof Error ? cause.message : "Could not load the metrics.");
     } finally { setLoading(false); }
   }
 
-  if (!data) return <main className="founder-login"><Brand /><section><span className="eyebrow">ACCESO FOUNDER</span><h1>Tu crecimiento,<br /><em>sin adivinar.</em></h1><p>Analítica agregada y controles de patrocinio. Este acceso nunca puede devolver ni descifrar respuestas, nombres, correos o enlaces privados.</p><div><input type="password" autoComplete="current-password" value={key} onChange={(event) => setKey(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void load(); }} placeholder="Clave del panel founder" /><button onClick={load} disabled={!key || loading}>{loading ? "Abriendo…" : "Abrir panel →"}</button></div>{error && <small>{error}</small>}{showDevelopmentKey && <small>Clave local de desarrollo: dev-founder</small>}</section></main>;
+  if (!data) return <main className="founder-login"><Brand /><section><span className="eyebrow">FOUNDER ACCESS</span><h1>Your growth,<br /><em>without guessing.</em></h1><p>Aggregated analytics and sponsor controls. This access can never return or decrypt answers, names, emails or private links.</p><div><input type="password" autoComplete="current-password" value={key} onChange={(event) => setKey(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void load(); }} placeholder="Founder dashboard key" /><button onClick={load} disabled={!key || loading}>{loading ? "Opening…" : "Open dashboard →"}</button></div>{error && <small>{error}</small>}{showDevelopmentKey && <small>Local development key: dev-founder</small>}</section></main>;
 
   const get = (name: string) => Number(data.events.find((row) => row.label === name)?.value || 0);
   const created = get("created"), opened = get("opened"), responded = get("responded"), unlocked = get("unlocked");

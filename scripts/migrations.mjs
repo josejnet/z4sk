@@ -117,6 +117,12 @@ const migrations = [
       `REVOKE ALL ON founder_public_message_responses FROM PUBLIC`,
     ],
   },
+  {
+    id: "2026-11-15-founder-public-quiz-questions-column",
+    statements: [
+      `ALTER TABLE founder_public_messages ADD COLUMN IF NOT EXISTS questions_json TEXT NOT NULL DEFAULT '[]'`,
+    ],
+  },
 ];
 
 export async function runMigrations(databaseUrl) {

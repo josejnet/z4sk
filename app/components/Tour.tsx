@@ -75,17 +75,19 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
   }, []);
 
   useEffect(() => {
+    if (!open) return;
     const nextSrc = TOUR_IMAGES[step + 1];
     if (!nextSrc || preloadedImages.current.has(nextSrc)) return;
 
-    preloadedImages.current.add(nextSrc);
     const image = new window.Image();
     image.decoding = "async";
     image.loading = "eager";
+    image.fetchPriority = "high";
     image.src = nextSrc;
+    preloadedImages.current.add(nextSrc);
     const decoded = image.decode?.();
     if (decoded) void decoded.catch(() => undefined);
-  }, [step]);
+  }, [open, step]);
 
   useEffect(() => {
     if (openRequest > 0) {
@@ -154,7 +156,7 @@ export function Tour({ openRequest = 0, locale: pageLocale }: { openRequest?: nu
             </div>
           </div>
           <div className="tour-art-wrap">
-            <Image key={TOUR_IMAGES[step]} src={TOUR_IMAGES[step]} alt="Dos personas adultas compartiendo preguntas atrevidas por el móvil" className="tour-art" fill sizes="(max-width: 700px) 100vw, 50vw" priority />
+            <Image key={TOUR_IMAGES[step]} src={TOUR_IMAGES[step]} alt="Dos personas adultas compartiendo preguntas atrevidas por el móvil" className="tour-art" fill sizes="(max-width: 700px) 100vw, 50vw" priority={step === 0} loading="eager" unoptimized fetchPriority={step === 0 ? "high" : "auto"} />
             <span className="tour-art-note">{step === 0 ? "ASK · ANSWER · DARE" : current.eyebrow}</span>
           </div>
         </div>
